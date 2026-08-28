@@ -20,14 +20,18 @@ Release platform builds use `cargo build --locked --release --no-default-feature
 
 ## Advisory disposition
 
-This repository has no advisory exceptions. `deny.toml` has an empty
-`[advisories].ignore` list; any RustSec advisory, including high and critical
-severity advisories, fails CI through `cargo-deny`. An exception may not be
-added merely because a dependency is optional: it must identify the exact
-feature and target, include a reproducible `cargo tree --locked --target …
---features …` proof that the package is absent, and be removed once the path
-is supported again. The policy's current empty exception set needs no such
-reachability evidence.
+All high- and critical-severity advisories fail CI through `cargo-deny`. The
+two narrow RustSec dispositions in `deny.toml` are reviewed exceptions, not a
+blanket suppression:
+
+| Advisory | Exact path | Reproducible reachability evidence | Disposition |
+| --- | --- | --- | --- |
+| RUSTSEC-2026-0189 (rmcp Streamable HTTP Host validation) | `docmost-local-mcp` → `rmcp 0.6.4`, enabled only through `transport-io`/`transport-async-rw` | `cargo tree --locked -e features -i rmcp` shows `transport-io`; source imports only `rmcp::transport::io::stdio` in `src/main.rs`; no rmcp Streamable HTTP listener is constructed. The binary's only local HTTP service is the separate Axum auth handler bound to loopback. | The advisory explicitly states stdio and child-process transports are unaffected. The affected Streamable HTTP path is unreachable in every supported build. Revisit on each rmcp update. |
+| RUSTSEC-2024-0436 (`paste` unmaintained) | `docmost-local-mcp` → `rmcp 0.6.4` → `paste 1.0.15` | `cargo tree --locked -i paste` identifies the single transitive macro path. | Informational maintenance notice with no CVE, CVSS score, or security impact. It is kept visible as an explicit deny-policy exception pending rmcp upstream removal; it is not a high/critical vulnerability exception. |
+
+Any new exception must identify its exact feature and target, include the
+corresponding locked dependency-tree and source-reachability evidence, and be
+removed when the path becomes supported or an upstream fix is available.
 
 The lockfile refresh on 2026-08-28 removes the native GTK/WebKit chain and
 updates the remaining active graph, including `anyhow` 1.0.104,
