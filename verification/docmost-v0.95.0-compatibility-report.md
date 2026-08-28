@@ -4,6 +4,9 @@
 2026-08-28. This report is sanitized: it omits URLs, credentials, tokens,
 cookies, private identifiers, page IDs, and private content.
 
+The corresponding command and observed-output record is
+[`docmost-v0.95.0-live-evidence.md`](docmost-v0.95.0-live-evidence.md).
+
 ## Candidate identity
 
 | Field | Value |
