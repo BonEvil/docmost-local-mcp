@@ -14,6 +14,9 @@ struct Cli {
     base_url: Option<String>,
     #[arg(long)]
     allow_insecure_loopback_http: bool,
+    /// I acknowledge that encrypted credential files and their key share one directory
+    #[arg(long)]
+    allow_insecure_credential_file: bool,
     #[arg(long)]
     authority_mode: Option<String>,
     #[arg(long)]
@@ -26,6 +29,16 @@ struct Cli {
 enum Command {
     #[command(name = "auth-window", hide = true)]
     AuthWindow(AuthWindowArgs),
+    /// Remove all local authentication state for one canonical Docmost origin
+    Forget(ForgetArgs),
+}
+
+#[derive(Args, Debug)]
+struct ForgetArgs {
+    #[arg(long)]
+    base_url: String,
+    #[arg(long)]
+    allow_insecure_loopback_http: bool,
 }
 
 #[derive(Args, Debug)]
@@ -63,6 +76,18 @@ async fn try_main() -> Result<()> {
                 args.height,
             )
             .await?;
+            Ok(())
+        }
+        Some(Command::Forget(args)) => {
+            use docmost_local_mcp::{
+                startup_config::CanonicalDocmostOrigin, storage::state_store::StateStore,
+            };
+            let origin =
+                CanonicalDocmostOrigin::parse(&args.base_url, args.allow_insecure_loopback_http)?;
+            StateStore::new(None, false)?
+                .forget_origin(origin.as_str())
+                .await?;
+            eprintln!("Forgot local authentication state for {}.", origin.as_str());
             Ok(())
         }
         None => {

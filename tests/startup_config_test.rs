@@ -121,6 +121,29 @@ fn startup_flag_enables_only_loopback_http() {
 }
 
 #[test]
+fn insecure_credential_file_requires_explicit_operator_acknowledgement() {
+    let defaults = parse_startup_config(&[], &HashMap::new()).unwrap();
+    assert!(!defaults.allow_insecure_credential_file);
+
+    let cli = parse_startup_config(
+        &["--allow-insecure-credential-file".to_string()],
+        &HashMap::new(),
+    )
+    .unwrap();
+    assert!(cli.allow_insecure_credential_file);
+
+    let env = HashMap::from([(
+        "DOCMOST_ALLOW_INSECURE_CREDENTIAL_FILE".to_string(),
+        "true".to_string(),
+    )]);
+    assert!(
+        parse_startup_config(&[], &env)
+            .unwrap()
+            .allow_insecure_credential_file
+    );
+}
+
+#[test]
 fn defaults_to_read_only_with_no_write_allowlist() {
     let config = parse_startup_config(&[], &HashMap::new()).unwrap();
     assert_eq!(config.authority_mode, AuthorityMode::ReadOnly);

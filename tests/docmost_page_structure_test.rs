@@ -49,7 +49,7 @@ async fn spawn(temp: &TempDir) -> Result<(DocmostClient, Captured)> {
     });
     let base_url = format!("http://{address}");
 
-    let store = StateStore::new(Some(temp.path().to_path_buf()))?;
+    let store = StateStore::new(Some(temp.path().to_path_buf()), true)?;
     store
         .write_config(&StoredConfig {
             base_url: base_url.clone(),

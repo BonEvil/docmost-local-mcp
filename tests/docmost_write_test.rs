@@ -73,7 +73,7 @@ async fn spawn(temp: &TempDir) -> Result<(DocmostClient, CapturedState, String)>
     let base_url = format!("http://{address}");
 
     // Pre-seed a valid (non-expiring) session so the client skips interactive auth.
-    let store = StateStore::new(Some(temp.path().to_path_buf()))?;
+    let store = StateStore::new(Some(temp.path().to_path_buf()), true)?;
     store
         .write_config(&StoredConfig {
             base_url: base_url.clone(),
@@ -103,6 +103,7 @@ async fn spawn(temp: &TempDir) -> Result<(DocmostClient, CapturedState, String)>
         StartupConfig {
             base_url: Some(base_url.clone()),
             allow_insecure_loopback_http: true,
+            allow_insecure_credential_file: true,
             ..StartupConfig::default()
         },
         Some(temp.path().to_path_buf()),

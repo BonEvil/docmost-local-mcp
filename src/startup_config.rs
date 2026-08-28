@@ -25,6 +25,8 @@ pub fn parse_startup_config(
     let mut base_url = read_base_url_from_env(env);
     let mut allow_insecure_loopback_http =
         read_bool_from_env(env, "DOCMOST_ALLOW_INSECURE_LOOPBACK_HTTP")?;
+    let mut allow_insecure_credential_file =
+        read_bool_from_env(env, "DOCMOST_ALLOW_INSECURE_CREDENTIAL_FILE")?;
     let mut authority_mode = env.get("DOCMOST_AUTHORITY_MODE").cloned();
     let mut write_tools = env.get("DOCMOST_WRITE_TOOLS").cloned();
     let mut index = 0usize;
@@ -74,12 +76,16 @@ pub fn parse_startup_config(
         if argument == "--allow-insecure-loopback-http" {
             allow_insecure_loopback_http = true;
         }
+        if argument == "--allow-insecure-credential-file" {
+            allow_insecure_credential_file = true;
+        }
 
         index += 1;
     }
 
     let mut config = StartupConfig {
         allow_insecure_loopback_http,
+        allow_insecure_credential_file,
         ..StartupConfig::default()
     };
     if let Some(base_url) = base_url.filter(|value| !value.trim().is_empty()) {

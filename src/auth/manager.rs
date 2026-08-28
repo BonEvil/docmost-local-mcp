@@ -54,7 +54,10 @@ impl AuthManager {
             pinned_origin: Arc::new(Mutex::new(configured_origin.clone())),
             configured_origin,
             allow_insecure_loopback_http: options.allow_insecure_loopback_http,
-            store: Arc::new(StateStore::new(base_dir)?),
+            store: Arc::new(StateStore::new(
+                base_dir,
+                options.allow_insecure_credential_file,
+            )?),
             http: Client::builder().redirect(Policy::none()).build()?,
         })
     }
@@ -124,6 +127,7 @@ impl AuthManager {
                     base_url: origin.as_str().to_string(),
                     email: credentials.email,
                     password: credentials.password,
+                    remember_password: true,
                 })
                 .await;
         }
@@ -187,6 +191,15 @@ impl AuthManager {
         let expires_at = get_jwt_expiry_iso(&token);
         let now = Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Millis, true);
 
+        if input.remember_password {
+            self.store
+                .write_credentials(&StoredCredentials {
+                    origin: Some(base_url.clone()),
+                    email: input.email.clone(),
+                    password: input.password,
+                })
+                .await?;
+        }
         self.store
             .write_config(&StoredConfig {
                 base_url: base_url.clone(),
@@ -202,20 +215,17 @@ impl AuthManager {
                 saved_at: now.clone(),
             })
             .await?;
-        self.store
-            .write_credentials(&StoredCredentials {
-                origin: Some(base_url.clone()),
-                email: input.email.clone(),
-                password: input.password,
-            })
-            .await?;
-
         Ok(AuthenticatedSession {
             base_url,
             email: input.email,
             token,
             expires_at,
         })
+    }
+
+    pub async fn forget(&self, origin: &str) -> Result<()> {
+        let origin = CanonicalDocmostOrigin::parse(origin, self.allow_insecure_loopback_http)?;
+        self.store.forget_origin(origin.as_str()).await
     }
 
     fn get_preferred_origin(
@@ -287,7 +297,7 @@ impl AuthManager {
             "Waiting for interactive authentication",
             Some(&serde_json::json!({
                 "mode": format!("{:?}", auth_window.mode),
-                "loginUrl": auth_session.login_url
+                "loopbackAuth": true
             })),
         );
 
@@ -436,15 +446,31 @@ mod tests {
         );
         let auth_session = auth_server.start().await?;
 
-        let auth_url = auth_session.login_url.replacen("/login", "/auth", 1);
+        let login_url = reqwest::Url::parse(&auth_session.login_url)?;
+        let flow = login_url
+            .query_pairs()
+            .find(|(name, _)| name == "flow")
+            .expect("flow query")
+            .1
+            .into_owned();
+        let origin = format!(
+            "{}://{}:{}",
+            login_url.scheme(),
+            login_url.host_str().expect("host"),
+            login_url.port().expect("port")
+        );
+        let auth_url = format!("{origin}/auth");
         tokio::spawn(async move {
             sleep(Duration::from_millis(50)).await;
             let _ = reqwest::Client::new()
                 .post(&auth_url)
+                .header(reqwest::header::ORIGIN, origin)
+                .header("x-docmost-auth-flow", flow)
                 .json(&serde_json::json!({
                     "baseUrl": "https://docs.example.com",
                     "email": "jane@example.com",
-                    "password": "super-secret"
+                    "password": "synthetic-test-value",
+                    "rememberPassword": false
                 }))
                 .send()
                 .await;

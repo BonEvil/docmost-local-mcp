@@ -1,4 +1,4 @@
-use anyhow::{Context, Result, anyhow};
+use anyhow::{Context, Result, anyhow, bail};
 
 use crate::types::StoredCredentials;
 
@@ -11,7 +11,7 @@ pub struct KeyringStore;
 impl KeyringStore {
     pub fn read_credentials(&self, origin: &str) -> Result<Option<StoredCredentials>> {
         if keyring_disabled() {
-            return Ok(None);
+            bail!("Secure OS credential storage is unavailable.");
         }
 
         let entry = keyring::Entry::new(KEYRING_SERVICE, &keyring_username(origin))
@@ -28,14 +28,13 @@ impl KeyringStore {
                 }
             }
             Err(error) if is_missing_entry(&error) => Ok(None),
-            Err(error) if should_fallback(&error) => Ok(None),
             Err(error) => Err(anyhow!(error)).context("Failed to read credentials from keyring"),
         }
     }
 
-    pub fn write_credentials(&self, origin: &str, credentials: &StoredCredentials) -> Result<bool> {
+    pub fn write_credentials(&self, origin: &str, credentials: &StoredCredentials) -> Result<()> {
         if keyring_disabled() {
-            return Ok(false);
+            bail!("Secure OS credential storage is unavailable.");
         }
 
         let entry = keyring::Entry::new(KEYRING_SERVICE, &keyring_username(origin))
@@ -44,10 +43,31 @@ impl KeyringStore {
             .context("Failed to encode credentials for keyring")?;
 
         match entry.set_password(&value) {
-            Ok(()) => Ok(true),
-            Err(error) if should_fallback(&error) => Ok(false),
+            Ok(()) => Ok(()),
             Err(error) => Err(anyhow!(error)).context("Failed to write credentials to keyring"),
         }
+    }
+
+    pub fn delete_credentials(&self, origin: &str) -> Result<()> {
+        if keyring_disabled() {
+            return Ok(());
+        }
+        for username in [
+            keyring_username(origin),
+            LEGACY_KEYRING_USERNAME.to_string(),
+        ] {
+            let entry = keyring::Entry::new(KEYRING_SERVICE, &username)
+                .context("Failed to initialize keyring entry for deletion")?;
+            match entry.delete_credential() {
+                Ok(()) => {}
+                Err(error) if is_missing_entry(&error) => {}
+                Err(error) => {
+                    return Err(anyhow!(error))
+                        .context("Failed to delete credentials from keyring");
+                }
+            }
+        }
+        Ok(())
     }
 }
 
@@ -59,16 +79,6 @@ fn keyring_disabled() -> bool {
     matches!(
         std::env::var("DOCMOST_DISABLE_KEYRING").ok().as_deref(),
         Some("1") | Some("true")
-    )
-}
-
-fn should_fallback(error: &keyring::Error) -> bool {
-    matches!(
-        error,
-        keyring::Error::PlatformFailure(_)
-            | keyring::Error::NoStorageAccess(_)
-            | keyring::Error::NoEntry
-            | keyring::Error::BadEncoding(_)
     )
 }
 

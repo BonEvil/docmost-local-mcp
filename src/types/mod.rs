@@ -51,6 +51,7 @@ pub enum AuthorityMode {
 pub struct StartupConfig {
     pub base_url: Option<String>,
     pub allow_insecure_loopback_http: bool,
+    pub allow_insecure_credential_file: bool,
     pub authority_mode: AuthorityMode,
     pub allowed_write_tools: BTreeSet<String>,
 }
@@ -61,6 +62,8 @@ pub struct LoginInput {
     pub base_url: String,
     pub email: String,
     pub password: String,
+    #[serde(default)]
+    pub remember_password: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
