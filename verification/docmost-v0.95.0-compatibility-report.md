@@ -1,7 +1,8 @@
 # Docmost Community v0.95.0 compatibility report
 
-**Status:** blocked before live execution. This is a sanitized prerequisite and
-provenance record, not a compatibility pass.
+**Status:** passed within the isolated disposable compatibility boundary on
+2026-08-28. This report is sanitized: it omits URLs, credentials, tokens,
+cookies, private identifiers, page IDs, and private content.
 
 ## Candidate identity
 
@@ -12,45 +13,63 @@ provenance record, not a compatibility pass.
 | Candidate source tree | `c481ab19824cd0d13ad2be922ed40ee8e5ae3cdc` |
 | Integration source tree | `c481ab19824cd0d13ad2be922ed40ee8e5ae3cdc` |
 | Cargo.lock SHA-256 | `0db9682d4bf880bf7769e2565c8ec75b75f8d1a3820d482b0be5db3ec6374690` |
-| Binary digest | Not available: no supplied verified binary and this Card Run has no Cargo toolchain. |
+| Tested binary SHA-256 | `78133af4492f2333f63f3ff8e673a16f8713e5fffcaaf2e0c0ba4255c5a155b1` |
+| Tested server | Separate `docmost/docmost:0.95.0` container stack over private HTTPS |
 
-The candidate and integration commits have the same source tree. No source
-change was made by this card.
+The remote binary digest was independently recalculated before testing and
+matched the supplied expected digest. The candidate and integration commits
+have the same source tree. No source change was made by this card.
 
-## Secure live-test prerequisites
+## Authority and containment evidence
 
-The assigned card workspace and worktree were inspected for an approved
-execution-time Docmost access configuration without reading credential values.
-No approved restricted-identity session, OS-keyring entry, canonical target
-reference, or disposable-space authority was supplied. The environment also
-has no `DOCMOST_*` execution configuration.
+- The test identity was the only member of a one-member disposable workspace
+  in the isolated instance.
+- The remote session state was origin-bound and had directory mode `0700` and
+  file modes `0600`. No credential value or session material was read.
+- Read calls used a default read-only process. Its `tools/list` response
+  contained exactly the ten read tools and no mutation tool; a direct
+  `create_page` request returned `tool not found`.
+- The write process exposed the ten read tools plus exactly five explicitly
+  allowlisted mutations: `create_page`, `update_page`, `move_page`,
+  `create_comment`, and `update_comment`. An unallowlisted `create_space`
+  request returned `tool not found`.
 
-The required secure mechanism is therefore unavailable. This report contains
-no URL, credential, token, cookie, private content, or sensitive identifier.
+## Sanitized operation matrix
 
-## Operation record
+| Phase | Bounded operation | Result | Independent confirmation |
+| --- | --- | --- | --- |
+| Read-only | Initialize and enumerate tools | Pass: ten read tools only | Separate later read-only process again enumerated no writes. |
+| Read-only | Current-user, workspace-member, space, page-list, and both search tools | Pass: restricted one-member disposable scope; empty initial space; bounded no-result searches | Returned solely isolated-instance data. |
+| Write | Create a synthetic parent page and a synthetic Markdown child page | Pass | Direct isolated Docmost database inspection found two synthetic pages. |
+| Write | Update the synthetic child title and body | Pass | Fresh read-only `get_page` returned updated synthetic state. |
+| Write | Move the child beneath the parent | Pass | Fresh `list_child_pages` and direct database inspection both found one nested child. |
+| Write | Create and update one synthetic comment | Pass | Fresh `get_comments` and direct database inspection both found one comment. |
+| Read-only | `get_page`, `list_child_pages`, and `get_comments` after writes | Pass | A separately launched default read-only binary process returned the expected synthetic state. |
 
-| Scope | Required check | Result |
-| --- | --- | --- |
-| Server | Confirm Community v0.95.0 at the canonical HTTPS origin | Not run: no approved target reference or authenticated restricted identity. |
-| Candidate | Run the exact hardened binary and record SHA-256 | Not run: no supplied verified binary; no Cargo toolchain in the card environment. |
-| Read-only | Run representative bounded reads with no write tools exposed | Not run: live access unavailable. |
-| Allowlisted writes | Create/update/move/comment only in the disposable space | Not run: disposable-space authority unavailable. |
-| Independent inspection | Confirm intended disposable results in Docmost | Not run: live access unavailable. |
-| Production scope | Compare bounded production inventory before/after | Not run; absence of production modifications is not claimed. |
-| Cleanup | Remove only disposable artifacts and record the result | Not applicable: no disposable artifacts were created. |
+All ten read tools were exercised across the initial and post-write read-only
+phases: `list_workspace_members`, `get_current_user`, `search_docs`,
+`list_pages`, `get_comments`, `list_child_pages`, `search_pages`,
+`list_spaces`, `get_space`, and `get_page`.
 
-## Local evidence and remaining blockers
+## Production non-modification and cleanup
 
-The source provenance and lockfile digest above were independently checked in
-the assigned worktree. The dependency handoff records successful local and
-hosted regression coverage for candidate `254b124`, but those checks do not
-substitute for this live compatibility gate.
+All test traffic and direct inspection were constrained to the separate
+compatibility Compose project and its private HTTPS origin. No ordinary
+production page, space, identity, database, endpoint, or container was
+targeted or read. Before cleanup, the compatibility project contained exactly
+three containers and three project-labelled volumes; the distinct production
+project contained three containers.
 
-Completion requires an approved secure mechanism that provides all of the
-following at execution time: a canonical Docmost Community v0.95.0 HTTPS
-target, a restricted test identity authenticated through an interactive
-session-only flow or OS keyring, a disposable synthetic-content space, and the
-verified candidate binary with its expected SHA-256. The test must then be run
-in read-only mode first, followed by the smallest explicit write-tool
-allowlist, with independent Docmost inspection and bounded cleanup.
+After post-write independent inspection, cleanup removed only those exact three
+compatibility containers and three compatibility-labelled volumes. A post-check
+found zero compatibility containers and volumes, while the distinct production
+project still had its three original containers. This is bounded evidence that
+the disposable artifacts were removed and this card did not modify ordinary
+production Docmost content.
+
+## Failures and remaining blockers
+
+No compatibility operation failed. The previous missing-access blocker was
+resolved using the approved private isolated boundary. There are no remaining
+compatibility blockers; this successful isolated test does not authorize
+release, deployment, or access to the ordinary production instance.
