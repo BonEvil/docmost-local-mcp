@@ -1,3 +1,5 @@
+use std::collections::BTreeSet;
+
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -34,9 +36,18 @@ pub struct AuthenticatedSession {
     pub expires_at: Option<String>,
 }
 
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum AuthorityMode {
+    #[default]
+    ReadOnly,
+    Write,
+}
+
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct StartupConfig {
     pub base_url: Option<String>,
+    pub authority_mode: AuthorityMode,
+    pub allowed_write_tools: BTreeSet<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

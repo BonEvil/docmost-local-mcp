@@ -34,6 +34,9 @@ If you run your own Docmost and want it available inside Cursor, Claude Desktop,
 
 ## Available Tools
 
+The server starts in **read-only mode**. The default inventory is the ten read
+tools below; no persistent mutation is registered:
+
 - `list_spaces`: list available Docmost spaces
 - `get_space`: fetch details for a specific space
 - `search_docs`: search documentation, optionally scoped to a space
@@ -44,6 +47,10 @@ If you run your own Docmost and want it available inside Cursor, Claude Desktop,
 - `get_comments`: list comments for a page
 - `list_workspace_members`: list workspace members
 - `get_current_user`: fetch the authenticated user and workspace context
+
+The following write tools are unavailable unless the operator enables write
+mode and names each tool in the allowlist:
+
 - `create_page`: create a new page in a space from Markdown content
 - `update_page`: update an existing page's title and/or Markdown content
 - `duplicate_page`: duplicate a page (and its sub-pages) within its space
@@ -54,6 +61,10 @@ If you run your own Docmost and want it available inside Cursor, Claude Desktop,
 - `update_space`: update a space's name, slug, and/or description
 - `create_comment`: add a page-level comment to a page from Markdown
 - `update_comment`: replace an existing comment's body with new Markdown
+
+See [Authority modes](docs/authority-modes.md) for the fail-closed configuration,
+the exact inventories and annotations, and the independent Atlas confirmation
+requirement.
 
 ## Roadmap
 
@@ -102,6 +113,19 @@ Run the server directly with `npx`:
 ```bash
 npx -y @wisflux/docmost-local-mcp --base-url=https://docs.example.com
 ```
+
+This command is read-only. A narrowly scoped write launch must include both
+explicit write mode and a nonempty allowlist, for example:
+
+```bash
+npx -y @wisflux/docmost-local-mcp \
+  --base-url=https://docs.example.com \
+  --authority-mode=write \
+  --write-tools=create_page,update_page
+```
+
+Environment equivalents are `DOCMOST_AUTHORITY_MODE=write` and
+`DOCMOST_WRITE_TOOLS=create_page,update_page`.
 
 You can also provide the base URL with an environment variable:
 

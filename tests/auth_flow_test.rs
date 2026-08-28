@@ -43,6 +43,7 @@ async fn login_extracts_auth_token_and_persists_session() -> Result<()> {
     let auth_manager = AuthManager::new(
         StartupConfig {
             base_url: Some(server.base_url.clone()),
+            ..StartupConfig::default()
         },
         Some(temp_dir.path().to_path_buf()),
     )?;
@@ -117,6 +118,7 @@ async fn docmost_client_retries_after_401() -> Result<()> {
     let auth_manager = AuthManager::new(
         StartupConfig {
             base_url: Some(server.base_url.clone()),
+            ..StartupConfig::default()
         },
         Some(temp_dir.path().to_path_buf()),
     )?;
