@@ -50,19 +50,8 @@ jobs:
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
 
-      - name: Install Linux system dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            pkg-config \
-            libgtk-3-dev \
-            libwebkit2gtk-4.1-dev \
-            libsoup-3.0-dev \
-            libjavascriptcoregtk-4.1-dev
-
       - name: Build release binary
-        run: cargo build --release
+        run: cargo build --locked --release --no-default-features
 
       - name: Rename binary for upload
         shell: bash
@@ -74,7 +63,7 @@ jobs:
       - name: Build headless binary for containers (Linux only)
         if: runner.os == 'Linux'
         run: |
-          cargo build --release --no-default-features
+          cargo build --locked --release --no-default-features
           cp "target/release/${{ matrix.target.binary_name }}" "docmost-local-mcp-${{ matrix.target.id }}-headless"
 
       - name: Upload binary artifact
@@ -95,18 +84,8 @@ jobs:
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install Linux system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            pkg-config \
-            libgtk-3-dev \
-            libwebkit2gtk-4.1-dev \
-            libsoup-3.0-dev \
-            libjavascriptcoregtk-4.1-dev
-
       - name: Run Rust tests
-        run: cargo test
+        run: cargo test --locked --no-default-features
 
       - name: Download all binary artifacts
         uses: actions/download-artifact@v5
