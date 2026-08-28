@@ -1,12 +1,13 @@
-# @wisflux/docmost-local-mcp
+# docmost-local-mcp hardened fork
 
-[![npm version](https://img.shields.io/npm/v/@wisflux/docmost-local-mcp.svg)](https://www.npmjs.com/package/@wisflux/docmost-local-mcp)
-[![npm downloads](https://img.shields.io/npm/dm/@wisflux/docmost-local-mcp.svg)](https://www.npmjs.com/package/@wisflux/docmost-local-mcp)
-[![license](https://img.shields.io/npm/l/@wisflux/docmost-local-mcp.svg)](./LICENSE)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
 MCP server for [Docmost](https://docmost.com/) that is built for self-hosted instances, especially deployments that do not have an enterprise license but still want reliable MCP access from local IDEs and AI tools.
 
-The package is launched with `npx`, while the actual server is a Rust binary downloaded from GitHub Releases during install. That binary handles stdio MCP traffic, local authentication UX, session storage, and Docmost API access.
+Atlas production launches a reviewed Rust binary from this fork by absolute path.
+The supported installer verifies a reviewed SHA-256 digest and a keyless-signed,
+commit-bound release manifest before an atomic install. The legacy npm downloader
+is disabled. See [Atlas release integrity](docs/atlas-release-integrity.md).
 
 > The main reason this project exists: bring MCP access to self-hosted Docmost setups without making an enterprise license a prerequisite.
 
@@ -18,7 +19,7 @@ Many MCP integrations are designed around hosted or enterprise assumptions. This
 - Uses Docmost email/password authentication
 - Stores session state locally for reuse
 - Opens a local auth flow instead of requiring a separate hosted control plane
-- Ships as a simple `npx` entrypoint for easy IDE integration
+- Ships as a versioned, checksum- and provenance-verified Rust binary
 
 If you run your own Docmost and want it available inside Cursor, Claude Desktop, or another MCP client, this package is the straightforward path.
 
@@ -102,23 +103,23 @@ supported.
 
 ## Requirements
 
-- Node.js 18 or newer for `npx`
+- A binary installed through the verified fork procedure
 - A reachable Docmost instance
 - Email/password authentication enabled in that Docmost instance
 
 ## Quick Start
 
-Run the server directly with `npx`:
+After completing the reviewed installation procedure, run the pinned binary:
 
 ```bash
-npx -y @wisflux/docmost-local-mcp --base-url=https://docs.example.com
+/opt/atlas/mcp/docmost-local-mcp --base-url=https://docs.example.com
 ```
 
 This command is read-only. A narrowly scoped write launch must include both
 explicit write mode and a nonempty allowlist, for example:
 
 ```bash
-npx -y @wisflux/docmost-local-mcp \
+/opt/atlas/mcp/docmost-local-mcp \
   --base-url=https://docs.example.com \
   --authority-mode=write \
   --write-tools=create_page,update_page
@@ -130,19 +131,19 @@ Environment equivalents are `DOCMOST_AUTHORITY_MODE=write` and
 You can also provide the base URL with an environment variable:
 
 ```bash
-DOCMOST_BASE_URL=https://docs.example.com npx -y @wisflux/docmost-local-mcp
+DOCMOST_BASE_URL=https://docs.example.com /opt/atlas/mcp/docmost-local-mcp
 ```
 
 ## MCP Client Configuration
 
-Most MCP clients launch the server directly with `npx`. Add this to your client's MCP config, replacing the base URL with your own Docmost instance:
+Configure the client with the absolute verified-binary path, replacing the base URL with your own Docmost instance:
 
 ```json
 {
   "mcpServers": {
     "docmost": {
-      "command": "npx",
-      "args": ["-y", "@wisflux/docmost-local-mcp", "--base-url=https://docs.example.com"]
+      "command": "/opt/atlas/mcp/docmost-local-mcp",
+      "args": ["--base-url=https://docs.example.com"]
     }
   }
 }
@@ -155,7 +156,7 @@ Where that config lives, per client:
 - **Claude Code** — one command, no file editing:
 
   ```bash
-  claude mcp add docmost -- npx -y @wisflux/docmost-local-mcp --base-url=https://docs.example.com
+  claude mcp add docmost -- /opt/atlas/mcp/docmost-local-mcp --base-url=https://docs.example.com
   ```
 
 - **VS Code (GitHub Copilot)** — `.vscode/mcp.json`, using a top-level `servers` key instead of `mcpServers`:
@@ -164,8 +165,8 @@ Where that config lives, per client:
   {
     "servers": {
       "docmost": {
-        "command": "npx",
-        "args": ["-y", "@wisflux/docmost-local-mcp", "--base-url=https://docs.example.com"]
+        "command": "/opt/atlas/mcp/docmost-local-mcp",
+        "args": ["--base-url=https://docs.example.com"]
       }
     }
   }

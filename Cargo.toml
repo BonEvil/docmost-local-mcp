@@ -4,7 +4,12 @@ version = "0.9.2"
 edition = "2024"
 description = "Docmost MCP server for local IDE integrations"
 license = "MIT"
-repository = "https://github.com/wisflux/docmost-local-mcp"
+repository = "https://github.com/BonEvil/docmost-local-mcp"
+
+[profile.release]
+codegen-units = 1
+lto = "thin"
+strip = "symbols"
 
 [features]
 # The native GTK/WebKit webview stack was removed from supported builds because it
