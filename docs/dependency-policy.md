@@ -47,9 +47,11 @@ updates the remaining active graph, including `anyhow` 1.0.104,
 Lockfile identity after this refresh:
 
 ```text
-Cargo.lock SHA-256: 1e0246190172c39b9adf7597c6abbae9771fe00e88879f38e4bdabb4c45fe07f
+Cargo.lock SHA-256: 0db9682d4bf880bf7769e2565c8ec75b75f8d1a3820d482b0be5db3ec6374690
 Generator: cargo 1.98.0
-Refresh command: cargo update
+Integration note: the release-policy refresh was followed by the locked
+`sha2` and `url` additions required by origin-scoped credential state. The hash
+above is the integrated release-candidate lockfile identity.
 ```
 
 Run the same checks locally with a Rust toolchain:

@@ -68,6 +68,13 @@ pub fn sanitize_details(details: &Value) -> Value {
     Value::Object(safe)
 }
 
+pub fn debug_enabled() -> bool {
+    matches!(
+        std::env::var("DEBUG_DOCMOST_MCP").ok().as_deref(),
+        Some("1") | Some("true")
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::sanitize_details;
@@ -111,11 +118,4 @@ mod tests {
             assert!(!serialized.contains(forbidden), "leaked {forbidden}");
         }
     }
-}
-
-pub fn debug_enabled() -> bool {
-    matches!(
-        std::env::var("DEBUG_DOCMOST_MCP").ok().as_deref(),
-        Some("1") | Some("true")
-    )
 }

@@ -26,8 +26,8 @@ If you run your own Docmost and want it available inside Cursor, Claude Desktop,
 ## Highlights
 
 - Strong fit for self-hosted Docmost instances without enterprise licensing
-- Rust server core with a small Node launcher for predictable local installs
-- Native auth window on supported platforms, with browser fallback
+- Rust server core distributed as provenance-verified platform binaries
+- System-browser authentication on every supported platform
 - Explicit Docmost instance selection via startup config
 - Session reuse with JWT expiry checks and automatic re-login
 - OS keychain credential storage on supported platforms
@@ -81,8 +81,11 @@ scope for this REST-based server.
 
 ## Compatibility
 
-Targets Docmost from roughly the last year of releases (**v0.22+**); older
-servers work best-effort. The server detects the Docmost version (via
+The release candidate targets Docmost Community **v0.95.0**, but compatibility
+with that exact version has not yet been verified against a live instance.
+Deployment remains disabled until the live procedure in
+[Operations and maintenance](docs/operations-and-maintenance.md) passes. The
+server detects the Docmost version (via
 `POST /api/version`) once per session and adapts where behaviour differs:
 
 - **Page body edits:** `update_page` can only change an existing page's **body**
@@ -194,7 +197,7 @@ Once connected, ask your AI client things like:
 
 1. Your MCP client launches the server over stdio.
 2. On the first authenticated tool call, the server starts a local HTTP login page on `127.0.0.1`.
-3. The server opens a native auth window when available, or falls back to the system browser.
+3. The server opens the system browser for the loopback authentication flow.
 4. You enter your email and password there. If `--base-url` or `DOCMOST_BASE_URL` is set, the Docmost URL is prefilled and locked.
 5. The server signs in through `/api/auth/login`, extracts the `authToken` cookie, stores the session, and optionally stores credentials for automatic re-login.
 6. Future requests reuse the saved token until it is close to expiry or rejected by Docmost.
@@ -228,17 +231,9 @@ For deliberately enabled literal-loopback Docmost HTTP, add `--allow-insecure-lo
 
 ## Platform Notes
 
-The native auth window uses the system webview on each platform:
-
-- macOS: `WKWebView`
-- Windows: `WebView2`
-- Linux: `WebKitGTK`
-
-Important caveats:
-
-- Windows needs the WebView2 runtime available
-- Linux desktop environments need WebKitGTK packages installed
-- When the binary is built without the `native-webview` feature, browser fallback is always used
+Authentication always uses the system browser. The retained `native-webview`
+Cargo feature is a no-op compatibility switch; embedded webview dependencies
+are absent from the supported dependency graph.
 
 ## Tool Reference
 

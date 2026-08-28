@@ -120,10 +120,10 @@ pub fn validate_optional_text(
 }
 
 pub fn validate_limit(limit: Option<u32>, maximum: u32) -> Result<()> {
-    if let Some(limit) = limit {
-        if limit == 0 || limit > maximum {
-            bail!("limit must be between 1 and {maximum}.");
-        }
+    if let Some(limit) = limit
+        && (limit == 0 || limit > maximum)
+    {
+        bail!("limit must be between 1 and {maximum}.");
     }
     Ok(())
 }
