@@ -1,8 +1,8 @@
 use anyhow::Result;
 use clap::{Args, Parser, Subcommand};
 use docmost_local_mcp::{
-    auth::webview::run_auth_window, server::DocmostMcpServer, startup_config::normalize_base_url,
-    types::StartupConfig,
+    auth::webview::run_auth_window, server::DocmostMcpServer,
+    startup_config::parse_runtime_startup_config,
 };
 use rmcp::{ServiceExt, transport::io::stdio};
 
@@ -10,8 +10,12 @@ use rmcp::{ServiceExt, transport::io::stdio};
 #[command(name = "docmost-local-mcp")]
 #[command(about = "Docmost MCP server for local IDE integrations")]
 struct Cli {
-    #[arg(long, env = "DOCMOST_BASE_URL")]
+    #[arg(long)]
     base_url: Option<String>,
+    #[arg(long)]
+    authority_mode: Option<String>,
+    #[arg(long)]
+    write_tools: Option<String>,
     #[command(subcommand)]
     command: Option<Command>,
 }
@@ -60,9 +64,10 @@ async fn try_main() -> Result<()> {
             Ok(())
         }
         None => {
-            let startup_config = StartupConfig {
-                base_url: cli.base_url.as_deref().map(normalize_base_url),
-            };
+            // Parse the original process arguments and environment in one place so CLI and
+            // library tests enforce the same fail-closed authority rules.
+            let argv = std::env::args().skip(1).collect::<Vec<_>>();
+            let startup_config = parse_runtime_startup_config(&argv)?;
             let server = DocmostMcpServer::new(startup_config)?;
             server.serve(stdio()).await?.waiting().await?;
             Ok(())
