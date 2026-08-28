@@ -72,8 +72,8 @@ impl DocmostMcpServer {
         annotations(
             title = "Move Docmost Page",
             read_only_hint = false,
-            destructive_hint = false,
-            idempotent_hint = true,
+            destructive_hint = true,
+            idempotent_hint = false,
             open_world_hint = true
         )
     )]
@@ -95,8 +95,8 @@ impl DocmostMcpServer {
         annotations(
             title = "Move Docmost Page to Space",
             read_only_hint = false,
-            destructive_hint = false,
-            idempotent_hint = true,
+            destructive_hint = true,
+            idempotent_hint = false,
             open_world_hint = true
         )
     )]
@@ -150,8 +150,8 @@ impl DocmostMcpServer {
         annotations(
             title = "Update Docmost Space",
             read_only_hint = false,
-            destructive_hint = false,
-            idempotent_hint = true,
+            destructive_hint = true,
+            idempotent_hint = false,
             open_world_hint = true
         )
     )]

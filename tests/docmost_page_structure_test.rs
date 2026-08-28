@@ -69,6 +69,7 @@ async fn spawn(temp: &TempDir) -> Result<(DocmostClient, Captured)> {
     let auth_manager = docmost_local_mcp::auth::manager::AuthManager::new(
         StartupConfig {
             base_url: Some(base_url.clone()),
+            ..StartupConfig::default()
         },
         Some(temp.path().to_path_buf()),
     )?;
