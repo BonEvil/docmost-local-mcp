@@ -141,3 +141,24 @@ jobs:
 
       - name: Build Rust binary
         run: cargo build --locked --release --no-default-features
+
+  security-release-gate:
+    name: Integrated security and release gate
+    runs-on: ubuntu-24.04
+    needs:
+      - rust-checks
+      - dependency-policy
+      - launcher-smoke
+      - release-integrity
+      - platform-builds
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Verify integrated operating evidence is present
+        run: |
+          test -s docs/operations-and-maintenance.md
+          test -s verification/security-invariant-coverage.md
+          grep -q 'Docmost Community v0.95.0' docs/operations-and-maintenance.md
+          grep -q 'Deployment stays disabled' docs/operations-and-maintenance.md
+          git diff --check
