@@ -5,14 +5,29 @@ on:
     branches:
       - main
   pull_request:
+  schedule:
+    - cron: "23 4 * * 1"
 
 permissions:
   contents: read
 
 jobs:
   rust-checks:
-    name: Rust Checks
-    runs-on: ubuntu-24.04
+    name: Rust checks (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux-headless
+            os: ubuntu-24.04
+            args: --no-default-features
+          - name: macos-compatibility-feature
+            os: macos-15
+            args: --all-features
+          - name: windows-compatibility-feature
+            os: windows-2025
+            args: --all-features
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -25,24 +40,30 @@ jobs:
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
 
-      - name: Install Linux system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            pkg-config \
-            libgtk-3-dev \
-            libwebkit2gtk-4.1-dev \
-            libsoup-3.0-dev \
-            libjavascriptcoregtk-4.1-dev
-
       - name: Run format check
+        if: matrix.os == 'ubuntu-24.04'
         run: cargo fmt --check
 
       - name: Run clippy
-        run: cargo clippy --all-targets --all-features -- -D warnings
+        run: cargo clippy --locked --all-targets ${{ matrix.args }} -- -D warnings
 
       - name: Run tests
-        run: cargo test
+        run: cargo test --locked ${{ matrix.args }}
+
+  dependency-policy:
+    name: Dependency policy
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Check Cargo.lock is reproducible
+        run: cargo metadata --locked --format-version 1 --no-deps > /dev/null
+
+      - name: Enforce advisory and supply-chain policy
+        uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          command: check advisories bans licenses sources
 
   launcher-smoke:
     name: Launcher Smoke Test
@@ -102,16 +123,5 @@ jobs:
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
 
-      - name: Install Linux system dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            pkg-config \
-            libgtk-3-dev \
-            libwebkit2gtk-4.1-dev \
-            libsoup-3.0-dev \
-            libjavascriptcoregtk-4.1-dev
-
       - name: Build Rust binary
-        run: cargo build --release
+        run: cargo build --locked --release --no-default-features

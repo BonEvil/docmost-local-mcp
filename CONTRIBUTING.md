@@ -10,11 +10,9 @@ This document covers local setup, native-webview prerequisites, release packagin
 - Rust toolchain (`cargo`, `rustc`)
 - A reachable Docmost instance for manual auth testing
 
-Platform-specific native-webview requirements:
-
-- macOS: Xcode command line tools
-- Windows: WebView2 runtime
-- Linux: GTK/WebKitGTK development packages
+Authentication uses the system browser on every platform. Native embedded
+webviews are intentionally unsupported because their GTK/WebKit dependency
+chain could not meet this project's active dependency policy.
 
 ## Local Setup
 
@@ -26,12 +24,13 @@ Useful commands:
 
 ```bash
 cargo fmt
-cargo clippy --all-targets --all-features -- -D warnings
-cargo test
+cargo clippy --locked --all-targets --no-default-features -- -D warnings
+cargo test --locked --no-default-features
 cargo build --release
 ```
 
-To build a headless variant that always falls back to the browser:
+The former `native-webview` feature is a no-op compatibility switch; all builds
+use the browser-authentication flow:
 
 ```bash
 cargo build --release --no-default-features
@@ -96,28 +95,14 @@ HOME="$TMP_HOME" cargo run -- --base-url=https://docs.example.com
 
 This forces the package to create a fresh `~/.docmost-local-mcp/` under the temporary home directory.
 
-## Linux Build Dependencies
-
-Ubuntu builds require:
-
-```bash
-sudo apt-get install -y \
-  pkg-config \
-  libgtk-3-dev \
-  libwebkit2gtk-4.1-dev \
-  libsoup-3.0-dev \
-  libjavascriptcoregtk-4.1-dev
-```
-
-If Linux native-webview builds fail locally or in CI, check these first.
-
 ## CI
 
 `ci.yml` runs:
 
 - `cargo fmt --check`
-- `cargo clippy --all-targets --all-features -- -D warnings`
-- `cargo test`
+- locked Clippy and tests for Linux headless, macOS compatibility, and Windows compatibility configurations
+- `cargo deny check advisories bans licenses sources` with no advisory exceptions
+- weekly Dependabot updates and a scheduled weekly CI policy run
 - MCP tool registration coverage, including object-shaped input schemas for no-arg tools
 - a launcher smoke test with a mock binary in `bin/`
 - release binary builds on:

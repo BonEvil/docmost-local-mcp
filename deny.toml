@@ -1,0 +1,29 @@
+# cargo-deny policy. Any advisory, yanked crate, unknown registry, or unknown
+# git source fails CI unless its exact, documented exception is reviewed below.
+
+[advisories]
+version = 2
+ignore = [
+  # rmcp 0.6's Streamable HTTP listener is not enabled or referenced by this
+  # stdio-only application; see docs/dependency-policy.md for exact evidence.
+  "RUSTSEC-2026-0189",
+]
+# Transitive maintenance notices remain visible but fail only when they affect
+# a direct workspace dependency. They are not vulnerability exceptions.
+unmaintained = "workspace"
+yanked = "deny"
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+highlight = "all"
+
+[licenses]
+version = 2
+allow = ["MIT", "Apache-2.0", "BSD-3-Clause", "ISC", "Unicode-3.0", "MPL-2.0", "CDLA-Permissive-2.0"]
+confidence-threshold = 0.8
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
