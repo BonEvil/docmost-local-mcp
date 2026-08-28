@@ -146,11 +146,10 @@ impl LocalAuthServer {
         debug_log(
             "local-auth",
             "Local auth page ready",
-            Some(&serde_json::json!({ "url": url, "defaults": {
-                "baseUrl": self.defaults.base_url,
-                "email": self.defaults.email,
+            Some(&serde_json::json!({
+                "loopbackAuth": true,
                 "baseUrlReadonly": self.defaults.base_url_readonly
-            }})),
+            })),
         );
 
         Ok(AuthWindowSession {
@@ -261,7 +260,7 @@ async fn auth(
             debug_log(
                 "local-auth",
                 "Auth submission failed",
-                Some(&serde_json::json!({ "error": error.to_string() })),
+                None::<&serde_json::Value>,
             );
             return (
                 StatusCode::BAD_REQUEST,
@@ -275,7 +274,7 @@ async fn auth(
             debug_log(
                 "local-auth",
                 "Auth submission succeeded",
-                Some(&serde_json::json!({ "baseUrl": parsed.base_url, "email": parsed.email })),
+                Some(&serde_json::json!({ "loopbackAuth": true })),
             );
             let shared = state.shared.clone();
             tokio::spawn(async move {
@@ -293,7 +292,7 @@ async fn auth(
             debug_log(
                 "local-auth",
                 "Auth submission failed",
-                Some(&serde_json::json!({ "error": error.to_string() })),
+                None::<&serde_json::Value>,
             );
             (
                 StatusCode::BAD_REQUEST,

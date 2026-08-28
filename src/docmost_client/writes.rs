@@ -4,6 +4,9 @@ use serde_json::Value;
 use super::{CursorListResult, normalize_cursor_list_result};
 use crate::{
     debug::debug_log,
+    network_policy::{
+        safe_transport_error, validate_json_size, validate_optional_text, validate_text,
+    },
     position::generate_jittered_key_between,
     types::{DocmostComment, DocmostPage, DocmostPageListItem, DocmostSpace},
 };
@@ -30,6 +33,20 @@ impl super::DocmostClient {
         markdown: Option<&str>,
         parent_page_id: Option<&str>,
     ) -> Result<DocmostPage> {
+        self.validate_identifier("space_id", space_id)?;
+        validate_text("title", title, self.network_policy.max_title_bytes, false)?;
+        validate_optional_text(
+            "markdown",
+            markdown,
+            self.network_policy.max_markdown_bytes,
+            true,
+        )?;
+        validate_optional_text(
+            "parent_page_id",
+            parent_page_id,
+            self.network_policy.max_identifier_bytes,
+            false,
+        )?;
         if let Some(markdown) = markdown.filter(|markdown| !markdown.trim().is_empty()) {
             // Docmost's importer takes the first level-1 heading as the page title and
             // strips it from the body, so prepend `# {title}` to set the title exactly.
@@ -58,6 +75,13 @@ impl super::DocmostClient {
         space_id: &str,
         markdown: &str,
     ) -> Result<DocmostPage> {
+        self.validate_identifier("space_id", space_id)?;
+        validate_text(
+            "markdown",
+            markdown,
+            self.network_policy.max_markdown_bytes,
+            false,
+        )?;
         let endpoint = "/api/pages/import";
         let mut session = self.auth_manager.get_authenticated_session().await?;
         let mut retry_on_unauthorized = true;
@@ -79,9 +103,9 @@ impl super::DocmostClient {
                 "api",
                 "Importing Docmost page",
                 Some(&serde_json::json!({
-                    "endpoint": endpoint,
-                    "baseUrl": session.base_url,
-                    "spaceId": space_id,
+                    "endpointClass": "pages/import",
+                    "requestBytes": markdown.len(),
+                    "fieldNames": ["file", "spaceId"],
                     "retryOnUnauthorized": retry_on_unauthorized
                 })),
             );
@@ -93,6 +117,7 @@ impl super::DocmostClient {
                 .multipart(form)
                 .send()
                 .await
+                .map_err(safe_transport_error)
                 .with_context(|| format!("Failed to call {endpoint}"))?;
 
             if response.status() == reqwest::StatusCode::UNAUTHORIZED && retry_on_unauthorized {
@@ -101,7 +126,7 @@ impl super::DocmostClient {
                 continue;
             }
 
-            return super::parse_response(response).await;
+            return super::parse_response(response, self.network_policy).await;
         }
     }
 
@@ -111,6 +136,15 @@ impl super::DocmostClient {
         title: Option<&str>,
         content: Option<&Value>,
     ) -> Result<DocmostPage> {
+        self.validate_identifier("page_id", page_id)?;
+        validate_optional_text("title", title, self.network_policy.max_title_bytes, false)?;
+        if let Some(content) = content {
+            validate_json_size(
+                "page content",
+                content,
+                self.network_policy.max_structured_content_bytes,
+            )?;
+        }
         let mut payload = serde_json::json!({ "pageId": page_id });
         if let Some(title) = title {
             payload["title"] = Value::String(title.to_string());
@@ -136,6 +170,13 @@ impl super::DocmostClient {
         page_id: &str,
         space_id: Option<&str>,
     ) -> Result<DocmostPage> {
+        self.validate_identifier("page_id", page_id)?;
+        validate_optional_text(
+            "space_id",
+            space_id,
+            self.network_policy.max_identifier_bytes,
+            false,
+        )?;
         let mut payload = serde_json::json!({ "pageId": page_id });
         if let Some(space_id) = space_id {
             payload["spaceId"] = Value::String(space_id.to_string());
@@ -147,6 +188,8 @@ impl super::DocmostClient {
     /// Move a page (and its subtree) to a different space. Docmost's `move-to-space`
     /// endpoint returns no body, so this resolves to `()` on success.
     pub async fn move_page_to_space(&self, page_id: &str, space_id: &str) -> Result<()> {
+        self.validate_identifier("page_id", page_id)?;
+        self.validate_identifier("space_id", space_id)?;
         self.request_discard(
             "/api/pages/move-to-space",
             serde_json::json!({ "pageId": page_id, "spaceId": space_id }),
@@ -163,6 +206,13 @@ impl super::DocmostClient {
         page_id: &str,
         parent_page_id: Option<&str>,
     ) -> Result<DocmostPage> {
+        self.validate_identifier("page_id", page_id)?;
+        validate_optional_text(
+            "parent_page_id",
+            parent_page_id,
+            self.network_policy.max_identifier_bytes,
+            false,
+        )?;
         let page = self
             .get_page(page_id)
             .await?
@@ -236,6 +286,19 @@ impl super::DocmostClient {
         slug: &str,
         description: Option<&str>,
     ) -> Result<DocmostSpace> {
+        validate_text("name", name, self.network_policy.max_title_bytes, false)?;
+        validate_text(
+            "slug",
+            slug,
+            self.network_policy.max_identifier_bytes,
+            false,
+        )?;
+        validate_optional_text(
+            "description",
+            description,
+            self.network_policy.max_description_bytes,
+            true,
+        )?;
         let mut payload = serde_json::json!({ "name": name, "slug": slug });
         if let Some(description) = description {
             payload["description"] = Value::String(description.to_string());
@@ -253,6 +316,20 @@ impl super::DocmostClient {
         slug: Option<&str>,
         description: Option<&str>,
     ) -> Result<DocmostSpace> {
+        self.validate_identifier("space_id", space_id)?;
+        validate_optional_text("name", name, self.network_policy.max_title_bytes, false)?;
+        validate_optional_text(
+            "slug",
+            slug,
+            self.network_policy.max_identifier_bytes,
+            false,
+        )?;
+        validate_optional_text(
+            "description",
+            description,
+            self.network_policy.max_description_bytes,
+            true,
+        )?;
         let mut payload = serde_json::json!({ "spaceId": space_id });
         if let Some(name) = name {
             payload["name"] = Value::String(name.to_string());
@@ -271,6 +348,12 @@ impl super::DocmostClient {
     /// the `content` field is validated as a JSON *string*, so the document is serialized
     /// before sending (the server `JSON.parse`s it back). `type` defaults to `page`.
     pub async fn create_comment(&self, page_id: &str, content: &Value) -> Result<DocmostComment> {
+        self.validate_identifier("page_id", page_id)?;
+        validate_json_size(
+            "comment content",
+            content,
+            self.network_policy.max_structured_content_bytes,
+        )?;
         let payload = serde_json::json!({
             "pageId": page_id,
             "content": serde_json::to_string(content).context("Failed to serialize comment content")?,
@@ -285,11 +368,21 @@ impl super::DocmostClient {
         comment_id: &str,
         content: &Value,
     ) -> Result<DocmostComment> {
+        self.validate_identifier("comment_id", comment_id)?;
+        validate_json_size(
+            "comment content",
+            content,
+            self.network_policy.max_structured_content_bytes,
+        )?;
         let payload = serde_json::json!({
             "commentId": comment_id,
             "content": serde_json::to_string(content).context("Failed to serialize comment content")?,
         });
         self.request::<DocmostComment>("/api/comments/update", payload, true)
             .await
+    }
+
+    fn validate_identifier(&self, name: &str, value: &str) -> Result<()> {
+        validate_text(name, value, self.network_policy.max_identifier_bytes, false)
     }
 }

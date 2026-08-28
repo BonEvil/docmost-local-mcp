@@ -38,7 +38,7 @@ pub async fn launch_auth_window(session: &AuthWindowSession) -> Result<AuthWindo
     debug_log(
         "auth-helper",
         "Opening system browser for authentication",
-        Some(&serde_json::json!({ "fallbackUrl": session.fallback_url })),
+        Some(&serde_json::json!({ "loopbackAuth": true })),
     );
     open::that(&session.fallback_url).context("Failed to open fallback browser window")?;
     Ok(AuthWindowHandle {

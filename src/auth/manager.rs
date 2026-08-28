@@ -11,7 +11,7 @@ use base64::{
 use chrono::{DateTime, Utc};
 use once_cell::sync::Lazy;
 use regex::Regex;
-use reqwest::{Client, Response, header::SET_COOKIE, redirect::Policy};
+use reqwest::{Client, Response, header::SET_COOKIE};
 
 use crate::{
     auth::{
@@ -22,6 +22,7 @@ use crate::{
         },
     },
     debug::debug_log,
+    network_policy::{NetworkPolicy, read_bounded_body, safe_transport_error},
     startup_config::CanonicalDocmostOrigin,
     storage::state_store::StateStore,
     types::{
@@ -41,10 +42,20 @@ pub struct AuthManager {
     pinned_origin: Arc<Mutex<Option<CanonicalDocmostOrigin>>>,
     allow_insecure_loopback_http: bool,
     http: Client,
+    network_policy: NetworkPolicy,
 }
 
 impl AuthManager {
     pub fn new(options: StartupConfig, base_dir: Option<PathBuf>) -> Result<Self> {
+        Self::new_with_network_policy(options, base_dir, NetworkPolicy::default())
+    }
+
+    /// Testable constructor; production always uses the reviewed defaults through `new`.
+    pub fn new_with_network_policy(
+        options: StartupConfig,
+        base_dir: Option<PathBuf>,
+        network_policy: NetworkPolicy,
+    ) -> Result<Self> {
         let configured_origin = options
             .base_url
             .as_deref()
@@ -58,7 +69,8 @@ impl AuthManager {
                 base_dir,
                 options.allow_insecure_credential_file,
             )?),
-            http: Client::builder().redirect(Policy::none()).build()?,
+            http: network_policy.build_http_client()?,
+            network_policy,
         })
     }
 
@@ -81,11 +93,7 @@ impl AuthManager {
                 debug_log(
                     "auth",
                     "Using saved session",
-                    Some(&serde_json::json!({
-                        "baseUrl": config.base_url,
-                        "email": config.email,
-                        "expiresAt": session.expires_at
-                    })),
+                    Some(&serde_json::json!({ "hasSession": true })),
                 );
                 return Ok(to_authenticated_session(config.clone(), session.clone()));
             }
@@ -117,10 +125,7 @@ impl AuthManager {
             debug_log(
                 "auth",
                 "Reauthenticating with saved credentials",
-                Some(&serde_json::json!({
-                    "baseUrl": origin.as_str(),
-                    "email": credentials.email
-                })),
+                Some(&serde_json::json!({ "hasCredentials": true })),
             );
             return self
                 .login(LoginInput {
@@ -138,7 +143,6 @@ impl AuthManager {
             Some(&serde_json::json!({
                 "hasConfig": has_config,
                 "hasCredentials": has_credentials,
-                "configuredBaseUrl": self.configured_origin.as_ref().map(|origin| origin.as_str())
             })),
         );
         self.prompt_for_login(config.as_ref()).await
@@ -152,7 +156,10 @@ impl AuthManager {
         debug_log(
             "auth",
             "Starting Docmost login",
-            Some(&serde_json::json!({ "baseUrl": base_url, "email": input.email })),
+            Some(&serde_json::json!({
+                "endpointClass": "auth/login",
+                "fieldNames": ["email", "password"]
+            })),
         );
 
         let response = self
@@ -164,6 +171,7 @@ impl AuthManager {
             }))
             .send()
             .await
+            .map_err(safe_transport_error)
             .context("Failed to call the Docmost login endpoint")?;
 
         debug_log(
@@ -177,7 +185,8 @@ impl AuthManager {
 
         if !response.status().is_success() {
             let status = response.status();
-            let details = safe_read_response_text(response).await;
+            let details =
+                safe_read_response_text(response, self.network_policy.max_error_body_bytes).await?;
             return Err(anyhow!(
                 format!("Docmost login failed ({}). {}", status, details)
                     .trim()
@@ -188,6 +197,14 @@ impl AuthManager {
         let token = read_auth_token_from_headers(response.headers()).ok_or_else(|| {
             anyhow!("Docmost login succeeded but no authToken cookie was returned.")
         })?;
+        // Authentication is header-based, but still consume the success body through a
+        // hard cap so a hostile login endpoint cannot stream indefinitely or oversized.
+        read_bounded_body(
+            response,
+            self.network_policy.max_error_body_bytes,
+            "authentication response body",
+        )
+        .await?;
         let expires_at = get_jwt_expiry_iso(&token);
         let now = Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Millis, true);
 
@@ -383,17 +400,14 @@ pub fn get_jwt_expiry_iso(token: &str) -> Option<String> {
         .map(|value| value.to_rfc3339_opts(chrono::SecondsFormat::Millis, true))
 }
 
-pub async fn safe_read_response_text(response: Response) -> String {
-    match response.text().await {
-        Ok(text) => {
-            let trimmed = text.trim();
-            if trimmed.is_empty() {
-                String::new()
-            } else {
-                format!("Response: {trimmed}")
-            }
-        }
-        Err(_) => String::new(),
+pub async fn safe_read_response_text(response: Response, limit: usize) -> Result<String> {
+    let body = read_bounded_body(response, limit, "error response body").await?;
+    if body.is_empty() {
+        Ok(String::new())
+    } else {
+        // Error documents can echo requests, credentials, comments, or page content.
+        // Their bytes are bounded and consumed, but never projected into diagnostics.
+        Ok(format!("Response body omitted ({} bytes).", body.len()))
     }
 }
 
