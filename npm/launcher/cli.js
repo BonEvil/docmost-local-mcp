@@ -12,10 +12,9 @@ const binaryPath = join(__dirname, "bin", `docmost-local-mcp${ext}`);
 
 if (!existsSync(binaryPath)) {
   console.error(
-    "@wisflux/docmost-local-mcp: binary not found. Try reinstalling the package:\n" +
-    "  npm install @wisflux/docmost-local-mcp\n" +
-    "or run directly with npx:\n" +
-    "  npx -y @wisflux/docmost-local-mcp",
+    "docmost-local-mcp: bundled binary not found. The npm downloader is disabled.\n" +
+    "Atlas operators must use the verified fork installer documented in " +
+    "docs/atlas-release-integrity.md.",
   );
   process.exit(1);
 }

@@ -1,3 +1,5 @@
+use std::collections::BTreeSet;
+
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -15,6 +17,8 @@ pub struct StoredConfig {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct StoredSession {
+    #[serde(default)]
+    pub origin: Option<String>,
     pub token: String,
     pub expires_at: Option<String>,
     pub saved_at: String,
@@ -22,6 +26,8 @@ pub struct StoredSession {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct StoredCredentials {
+    #[serde(default)]
+    pub origin: Option<String>,
     pub email: String,
     pub password: String,
 }
@@ -34,9 +40,20 @@ pub struct AuthenticatedSession {
     pub expires_at: Option<String>,
 }
 
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum AuthorityMode {
+    #[default]
+    ReadOnly,
+    Write,
+}
+
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct StartupConfig {
     pub base_url: Option<String>,
+    pub allow_insecure_loopback_http: bool,
+    pub allow_insecure_credential_file: bool,
+    pub authority_mode: AuthorityMode,
+    pub allowed_write_tools: BTreeSet<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -45,6 +62,8 @@ pub struct LoginInput {
     pub base_url: String,
     pub email: String,
     pub password: String,
+    #[serde(default)]
+    pub remember_password: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

@@ -1,0 +1,26 @@
+# Security-invariant coverage
+
+This ledger maps accepted automated invariants to tests and CI gates. A listed
+test is necessary evidence, not a substitute for the live and independent gates
+in `docs/operations-and-maintenance.md`.
+
+| Invariant | Automated evidence |
+| --- | --- |
+| Canonical HTTPS origin; literal-loopback-only HTTP opt-in; ambiguous URL rejection | `tests/startup_config_test.rs`: `canonical_origin_exposes_scheme_host_and_effective_port`, `loopback_http_requires_deliberate_enablement_and_literal_address`, `rejects_unsupported_or_misleading_url_components`, `startup_flag_enables_only_loopback_http` |
+| Session and remembered credentials are origin-bound; keyring failures fail closed; fallback requires acknowledgement; forget is scoped and idempotent | `tests/state_store_test.rs`: `keyring_failure_fails_closed_without_explicit_fallback`, `explicit_fallback_opt_in_persists_config_session_and_encrypted_credentials`, `never_returns_session_or_credentials_for_a_different_origin`, `legacy_unscoped_state_is_not_reused`, `forget_is_complete_idempotent_and_origin_scoped`; `tests/startup_config_test.rs`: `insecure_credential_file_requires_explicit_operator_acknowledgement` |
+| Loopback login requires secret, exact Host/Origin/header/content type and supplies restrictive response headers | `src/auth/local_server.rs`: `loopback_flow_enforces_secret_request_properties_and_security_headers`; `tests/auth_flow_test.rs` loopback/authentication cases |
+| Login and API transports share deadlines, no redirects, streaming body caps, and safe failure classes | `tests/network_safety_test.rs`: `stalled_api_and_authentication_requests_hit_the_overall_deadline`, `success_and_error_bodies_have_streaming_hard_caps_and_safe_errors`, `authentication_success_body_is_bounded_before_state_is_persisted`, `authenticated_api_redirect_is_returned_without_contacting_the_target`, `production_policy_matches_documented_fail_closed_defaults` |
+| Request fields and rendered/structured content are bounded before network or MCP output | `tests/network_safety_test.rs`: `search_list_and_markdown_bounds_accept_boundary_and_reject_one_over`; unit bounds in `src/types/mod.rs`, `src/server/tools.rs`, `src/server/tools_page_write.rs`, and `src/server/tools_write.rs` |
+| Diagnostics exclude credentials, origins, URLs, private content, payloads, and hostile response bodies | `tests/network_safety_test.rs`: `diagnostics_allow_only_reviewed_metadata`, safe-error and timeout assertions; `tests/auth_flow_test.rs` redaction assertions |
+| Default MCP authority is exactly ten read tools; writes require explicit mode plus exact nonempty allowlist; invalid/programmatic configs fail closed | `tests/startup_config_test.rs`: authority configuration cases; `tests/mcp_server_test.rs`: `default_server_lists_only_exact_read_inventory`, `write_mode_exposes_only_the_exact_allowlisted_subset`, `server_revalidates_programmatic_authority_configuration` |
+| Every persistent operation has conservative advisory annotations and valid object schema | `tests/mcp_server_test.rs`: `every_persistent_mutation_has_expected_annotations`, `all_tools_expose_object_input_schemas`, `server_required_input_fields_are_present` |
+| Tool behavior, request shapes, auth retry, errors, and Markdown/ProseMirror conversion remain functional | `tests/docmost_client_test.rs`, `tests/docmost_write_test.rs`, `tests/docmost_page_structure_test.rs`, `tests/prosemirror_test.rs`, and `tests/mcp_server_test.rs` |
+| Production Atlas example uses absolute verified binary and read-only authority | `tests/integrated_policy_test.rs`: `production_atlas_example_is_absolute_https_and_read_only` |
+| Lockfile, advisory/license/source policy, no native-webview graph, and supported feature matrix | `cargo metadata --locked`; `cargo deny check advisories bans licenses sources`; locked Clippy/tests with `--all-features` and `--no-default-features`; CI `rust-checks` and `dependency-policy` |
+| Full-SHA Actions, pinned toolchain/container inputs, signed commit-bound manifest, installer fail-closed/atomic behavior | `bash scripts/check-pinned-inputs.sh`; `bash tests/release_integrity_test.sh`; CI `release-integrity`; release workflow locked test and build steps |
+| Supported release platforms compile | CI `platform-builds`: macOS arm64/x64, Linux arm64/x64, Windows arm64/x64 |
+
+The non-automated gates are live Docmost Community v0.95.0 compatibility,
+Atlas end-to-end behavior with a restricted identity and disposable space,
+provider-side protection inspection, and independent security review. None is
+claimed by repository tests.

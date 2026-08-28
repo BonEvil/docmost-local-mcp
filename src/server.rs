@@ -23,7 +23,7 @@ impl ServerHandler for DocmostMcpServer {
     fn get_info(&self) -> ServerInfo {
         ServerInfo {
             instructions: Some(
-                "Docmost MCP server for listing spaces, searching docs, and fetching pages, plus creating and updating pages from Markdown, organizing pages (duplicate, move, and copy or move between spaces), creating or updating spaces, and adding or updating page comments."
+                "Docmost MCP server for listing spaces, searching docs, and fetching pages. Persistent mutations are exposed only when the operator explicitly starts the server in write mode with a per-tool allowlist. MCP annotations are advisory and do not replace client-side confirmation controls."
                     .into(),
             ),
             capabilities: ServerCapabilities::builder().enable_tools().build(),

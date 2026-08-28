@@ -4,11 +4,19 @@ version = "0.9.2"
 edition = "2024"
 description = "Docmost MCP server for local IDE integrations"
 license = "MIT"
-repository = "https://github.com/wisflux/docmost-local-mcp"
+repository = "https://github.com/BonEvil/docmost-local-mcp"
+
+[profile.release]
+codegen-units = 1
+lto = "thin"
+strip = "symbols"
 
 [features]
-default = ["native-webview"]
-native-webview = ["dep:tao", "dep:wry"]
+# The native GTK/WebKit webview stack was removed from supported builds because it
+# pulled an unmaintained Linux dependency chain.  The retained feature name is a
+# no-op compatibility switch; authentication always uses the system browser.
+default = []
+native-webview = []
 
 [dependencies]
 aes-gcm = "0.10.3"
@@ -29,12 +37,12 @@ rmcp = { version = "0.6.1", features = ["transport-io", "client"] }
 schemars = "1.0.4"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.145"
-tao = { version = "0.34.6", optional = true }
+sha2 = "0.10.9"
 tokio = { version = "1.47.1", features = ["full"] }
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.20", features = ["fmt"] }
+url = "2.5.8"
 urlencoding = "2.1.3"
-wry = { version = "0.54.3", optional = true }
 
 [dev-dependencies]
 tempfile = "3.23.0"
