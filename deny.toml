@@ -1,0 +1,24 @@
+# cargo-deny policy. Any advisory, yanked crate, unknown registry, or unknown
+# git source fails CI. There are intentionally no advisory ignores: an exception
+# is permitted only after the affected feature/target has been removed from the
+# supported graph and therefore from Cargo.lock.
+
+[advisories]
+version = 2
+ignore = []
+yanked = "deny"
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+highlight = "all"
+
+[licenses]
+version = 2
+allow = ["MIT", "Apache-2.0", "BSD-2-Clause", "BSD-3-Clause", "ISC", "Unicode-3.0", "Zlib"]
+confidence-threshold = 0.8
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
