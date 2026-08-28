@@ -187,6 +187,13 @@ impl DocmostMcpServer {
         &self,
         Parameters(input): Parameters<CreateCommentInput>,
     ) -> Result<String, ErrorData> {
+        crate::network_policy::validate_text(
+            "comment markdown",
+            &input.markdown,
+            self.client.network_policy().max_markdown_bytes,
+            true,
+        )
+        .map_err(internal_error)?;
         if input.markdown.trim().is_empty() {
             return Err(ErrorData::invalid_params(
                 "Comment markdown must not be empty.".to_string(),
@@ -217,6 +224,13 @@ impl DocmostMcpServer {
         &self,
         Parameters(input): Parameters<UpdateCommentInput>,
     ) -> Result<String, ErrorData> {
+        crate::network_policy::validate_text(
+            "comment markdown",
+            &input.markdown,
+            self.client.network_policy().max_markdown_bytes,
+            true,
+        )
+        .map_err(internal_error)?;
         // Guard against silently wiping a comment's body with empty content.
         if input.markdown.trim().is_empty() {
             return Err(ErrorData::invalid_params(

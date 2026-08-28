@@ -67,6 +67,11 @@ See [Authority modes](docs/authority-modes.md) for the fail-closed configuration
 the exact inventories and annotations, and the independent Atlas confirmation
 requirement.
 
+Authenticated network calls use fixed connect/request deadlines, bounded request and
+response bodies, a no-redirect policy, and content-free structured diagnostics. See
+[Network and diagnostics safety](docs/network-and-diagnostics-safety.md) for the complete
+limit and redirect decision tables.
+
 ## Roadmap
 
 All planned read and write tools are now implemented. `create_comment` adds

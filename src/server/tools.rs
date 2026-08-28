@@ -232,7 +232,15 @@ impl DocmostMcpServer {
             markdown,
         ];
 
-        Ok(lines.join("\n").trim().to_string())
+        let output = lines.join("\n").trim().to_string();
+        crate::network_policy::validate_text(
+            "page Markdown output",
+            &output,
+            self.client.network_policy().max_tool_output_bytes,
+            true,
+        )
+        .map_err(internal_error)?;
+        Ok(output)
     }
 
     #[tool(
