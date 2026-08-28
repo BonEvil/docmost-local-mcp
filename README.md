@@ -209,7 +209,17 @@ Files used there:
 
 Credentials are stored in the OS keychain when available, which is the preferred path on supported platforms.
 
-If secure OS credential storage is unavailable, the server falls back to encrypted local credential storage so it can still support login reuse without writing plain-text credentials. That fallback is intentionally secondary to keychain-backed storage.
+Passwords are not persisted by default. Interactive login stores only the resulting origin-bound session unless the operator selects **Remember password**. Remembered passwords use secure OS credential storage; keyring failures fail closed.
+
+The weaker encrypted-file fallback is disabled by default. To acknowledge that its encryption key is stored in the same protected local directory as its ciphertext, explicitly start the server with `--allow-insecure-credential-file` or `DOCMOST_ALLOW_INSECURE_CREDENTIAL_FILE=true`. This never bypasses the keyring when the keyring works.
+
+Remove authentication state for one canonical origin with:
+
+```bash
+docmost-local-mcp forget --base-url https://docs.example.com
+```
+
+For deliberately enabled literal-loopback Docmost HTTP, add `--allow-insecure-loopback-http` to the `forget` subcommand. Forget is idempotent and removes the origin's keyring entry, session, fallback ciphertext/key, matching config, legacy unscoped keyring entry, and stale/unscoped legacy files without deleting another origin's scoped state. See [Credential and loopback authentication lifecycle](docs/credential-auth-lifecycle.md).
 
 ## Platform Notes
 

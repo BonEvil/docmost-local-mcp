@@ -46,6 +46,7 @@ async fn login_extracts_auth_token_and_persists_session() -> Result<()> {
         StartupConfig {
             base_url: Some(server.base_url.clone()),
             allow_insecure_loopback_http: true,
+            allow_insecure_credential_file: true,
             ..StartupConfig::default()
         },
         Some(temp_dir.path().to_path_buf()),
@@ -56,6 +57,7 @@ async fn login_extracts_auth_token_and_persists_session() -> Result<()> {
             base_url: server.base_url.clone(),
             email: "jane@example.com".to_string(),
             password: "super-secret".to_string(),
+            remember_password: false,
         })
         .await?;
 
@@ -64,7 +66,7 @@ async fn login_extracts_auth_token_and_persists_session() -> Result<()> {
     assert!(session.token.starts_with("token-"));
     assert!(session.expires_at.is_some());
 
-    let store = StateStore::new(Some(temp_dir.path().to_path_buf()))?;
+    let store = StateStore::new(Some(temp_dir.path().to_path_buf()), true)?;
     let stored_config = store
         .read_config()
         .await?
@@ -73,14 +75,10 @@ async fn login_extracts_auth_token_and_persists_session() -> Result<()> {
         .read_session(&server.base_url)
         .await?
         .expect("session should be persisted");
-    let stored_credentials = store
-        .read_credentials(&server.base_url)
-        .await?
-        .expect("credentials should be persisted");
 
     assert_eq!(stored_config.base_url, server.base_url);
     assert_eq!(stored_session.token, session.token);
-    assert_eq!(stored_credentials.email, "jane@example.com");
+    assert_eq!(store.read_credentials(&server.base_url).await?, None);
     assert_eq!(server.state.login_count.load(Ordering::SeqCst), 1);
 
     server.shutdown.abort();
@@ -110,6 +108,7 @@ async fn process_origin_pin_blocks_cross_origin_login_until_new_explicit_flow() 
             base_url: origin_a.base_url.clone(),
             email: "origin-a@example.com".to_string(),
             password: "test-origin-a-password".to_string(),
+            remember_password: false,
         })
         .await?;
     let error = manager_a
@@ -117,6 +116,7 @@ async fn process_origin_pin_blocks_cross_origin_login_until_new_explicit_flow() 
             base_url: origin_b.base_url.clone(),
             email: "origin-b@example.com".to_string(),
             password: "test-origin-b-password".to_string(),
+            remember_password: false,
         })
         .await
         .unwrap_err();
@@ -138,6 +138,7 @@ async fn process_origin_pin_blocks_cross_origin_login_until_new_explicit_flow() 
             base_url: origin_b.base_url.clone(),
             email: "origin-b@example.com".to_string(),
             password: "test-origin-b-password".to_string(),
+            remember_password: false,
         })
         .await?;
 
@@ -181,6 +182,7 @@ async fn login_redirect_does_not_forward_credentials_to_another_origin() -> Resu
             base_url: redirect_origin,
             email: "redirect-test@example.com".to_string(),
             password: "test-redirect-password".to_string(),
+            remember_password: false,
         })
         .await
         .unwrap_err();
@@ -201,7 +203,7 @@ async fn docmost_client_retries_after_401() -> Result<()> {
 
     let server = spawn_mock_docmost().await?;
     let temp_dir = TempDir::new()?;
-    let store = StateStore::new(Some(temp_dir.path().to_path_buf()))?;
+    let store = StateStore::new(Some(temp_dir.path().to_path_buf()), true)?;
 
     store
         .write_config(&StoredConfig {
@@ -230,6 +232,7 @@ async fn docmost_client_retries_after_401() -> Result<()> {
         StartupConfig {
             base_url: Some(server.base_url.clone()),
             allow_insecure_loopback_http: true,
+            allow_insecure_credential_file: true,
             ..StartupConfig::default()
         },
         Some(temp_dir.path().to_path_buf()),
