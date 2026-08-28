@@ -14,7 +14,6 @@ use axum::{
 use docmost_local_mcp::{
     docmost_client::DocmostClient,
     prosemirror::markdown_to_prosemirror,
-    startup_config::normalize_base_url,
     storage::state_store::StateStore,
     types::{AuthenticatedSession, StartupConfig, StoredConfig, StoredCredentials, StoredSession},
 };
@@ -71,7 +70,7 @@ async fn spawn(temp: &TempDir) -> Result<(DocmostClient, CapturedState, String)>
     tokio::spawn(async move {
         let _ = axum::serve(listener, app).await;
     });
-    let base_url = normalize_base_url(&format!("http://{address}"));
+    let base_url = format!("http://{address}");
 
     // Pre-seed a valid (non-expiring) session so the client skips interactive auth.
     let store = StateStore::new(Some(temp.path().to_path_buf()))?;
@@ -84,6 +83,7 @@ async fn spawn(temp: &TempDir) -> Result<(DocmostClient, CapturedState, String)>
         .await?;
     store
         .write_session(&StoredSession {
+            origin: Some(base_url.clone()),
             // No expiry => never treated as expiring.
             token: "seed-token".to_string(),
             expires_at: None,
@@ -93,6 +93,7 @@ async fn spawn(temp: &TempDir) -> Result<(DocmostClient, CapturedState, String)>
     // Saved credentials let reauthenticate() recover a 401 headlessly via the mock login.
     store
         .write_credentials(&StoredCredentials {
+            origin: Some(base_url.clone()),
             email: "jane@example.com".to_string(),
             password: "secret".to_string(),
         })
@@ -101,6 +102,7 @@ async fn spawn(temp: &TempDir) -> Result<(DocmostClient, CapturedState, String)>
     let auth_manager = docmost_local_mcp::auth::manager::AuthManager::new(
         StartupConfig {
             base_url: Some(base_url.clone()),
+            allow_insecure_loopback_http: true,
         },
         Some(temp.path().to_path_buf()),
     )?;

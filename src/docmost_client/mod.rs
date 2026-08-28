@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use anyhow::{Context, Result, anyhow};
-use reqwest::{Client, Response};
+use reqwest::{Client, Response, redirect::Policy};
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 use tokio::sync::OnceCell;
@@ -46,9 +46,13 @@ mod writes;
 
 impl DocmostClient {
     pub fn new(auth_manager: AuthManager) -> Self {
+        let http = Client::builder()
+            .redirect(Policy::none())
+            .build()
+            .expect("a redirect-disabled HTTP client should build");
         Self {
             auth_manager,
-            http: Client::new(),
+            http,
             version: Arc::new(OnceCell::new()),
         }
     }

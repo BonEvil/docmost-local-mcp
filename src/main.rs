@@ -1,8 +1,7 @@
 use anyhow::Result;
 use clap::{Args, Parser, Subcommand};
 use docmost_local_mcp::{
-    auth::webview::run_auth_window, server::DocmostMcpServer, startup_config::normalize_base_url,
-    types::StartupConfig,
+    auth::webview::run_auth_window, server::DocmostMcpServer, types::StartupConfig,
 };
 use rmcp::{ServiceExt, transport::io::stdio};
 
@@ -12,6 +11,12 @@ use rmcp::{ServiceExt, transport::io::stdio};
 struct Cli {
     #[arg(long, env = "DOCMOST_BASE_URL")]
     base_url: Option<String>,
+    #[arg(
+        long,
+        env = "DOCMOST_ALLOW_INSECURE_LOOPBACK_HTTP",
+        default_value_t = false
+    )]
+    allow_insecure_loopback_http: bool,
     #[command(subcommand)]
     command: Option<Command>,
 }
@@ -61,7 +66,8 @@ async fn try_main() -> Result<()> {
         }
         None => {
             let startup_config = StartupConfig {
-                base_url: cli.base_url.as_deref().map(normalize_base_url),
+                base_url: cli.base_url,
+                allow_insecure_loopback_http: cli.allow_insecure_loopback_http,
             };
             let server = DocmostMcpServer::new(startup_config)?;
             server.serve(stdio()).await?.waiting().await?;

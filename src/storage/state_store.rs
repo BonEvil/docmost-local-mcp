@@ -4,7 +4,7 @@ use aes_gcm::{
     Aes256Gcm, KeyInit, Nonce,
     aead::{Aead, OsRng, rand_core::RngCore},
 };
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, bail};
 use base64::{Engine as _, engine::general_purpose::STANDARD};
 use serde::{Serialize, de::DeserializeOwned};
 use tokio::fs;
@@ -60,11 +60,17 @@ impl StateStore {
         self.write_json_file(&self.config_path, config).await
     }
 
-    pub async fn read_session(&self) -> Result<Option<StoredSession>> {
-        self.read_json_file(&self.session_path).await
+    pub async fn read_session(&self, origin: &str) -> Result<Option<StoredSession>> {
+        let session = self
+            .read_json_file::<StoredSession>(&self.session_path)
+            .await?;
+        Ok(session.filter(|session| session.origin.as_deref() == Some(origin)))
     }
 
     pub async fn write_session(&self, session: &StoredSession) -> Result<()> {
+        if session.origin.is_none() {
+            bail!("Refusing to persist a session without a canonical origin.");
+        }
         self.write_json_file(&self.session_path, session).await
     }
 
@@ -76,8 +82,8 @@ impl StateStore {
         }
     }
 
-    pub async fn read_credentials(&self) -> Result<Option<StoredCredentials>> {
-        if let Some(credentials) = self.keyring.read_credentials()? {
+    pub async fn read_credentials(&self, origin: &str) -> Result<Option<StoredCredentials>> {
+        if let Some(credentials) = self.keyring.read_credentials(origin)? {
             return Ok(Some(credentials));
         }
 
@@ -90,13 +96,16 @@ impl StateStore {
 
         let key = self.get_or_create_encryption_key().await?;
         let plaintext = decrypt_string(&payload, &key)?;
-        let credentials =
+        let credentials: StoredCredentials =
             serde_json::from_str(&plaintext).context("Failed to parse decrypted credentials")?;
-        Ok(Some(credentials))
+        Ok((credentials.origin.as_deref() == Some(origin)).then_some(credentials))
     }
 
     pub async fn write_credentials(&self, credentials: &StoredCredentials) -> Result<()> {
-        if self.keyring.write_credentials(credentials)? {
+        let Some(origin) = credentials.origin.as_deref() else {
+            bail!("Refusing to persist credentials without a canonical origin.");
+        };
+        if self.keyring.write_credentials(origin, credentials)? {
             return Ok(());
         }
 
@@ -237,4 +246,38 @@ async fn set_mode(path: &Path, mode: u32) -> Result<()> {
 #[cfg(not(unix))]
 async fn set_mode(_path: &Path, _mode: u32) -> Result<()> {
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use tempfile::TempDir;
+
+    use super::{StateStore, encrypt_string};
+
+    #[tokio::test]
+    async fn legacy_unscoped_encrypted_credentials_are_not_reused() {
+        unsafe {
+            std::env::set_var("DOCMOST_DISABLE_KEYRING", "1");
+        }
+        let temp_dir = TempDir::new().unwrap();
+        let store = StateStore::new(Some(temp_dir.path().to_path_buf())).unwrap();
+        let key = store.get_or_create_encryption_key().await.unwrap();
+        let payload = encrypt_string(
+            r#"{"email":"legacy@example.com","password":"not-a-real-secret"}"#,
+            &key,
+        )
+        .unwrap();
+        store
+            .write_json_file(&store.credentials_path, &payload)
+            .await
+            .unwrap();
+
+        assert_eq!(
+            store
+                .read_credentials("https://docs.example.com")
+                .await
+                .unwrap(),
+            None
+        );
+    }
 }
