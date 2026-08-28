@@ -21,13 +21,17 @@ Release platform builds use `cargo build --locked --release --no-default-feature
 ## Advisory disposition
 
 All high- and critical-severity advisories fail CI through `cargo-deny`. The
-two narrow RustSec dispositions in `deny.toml` are reviewed exceptions, not a
-blanket suppression:
+single narrow RustSec exception in `deny.toml` is reviewed, not a blanket
+suppression:
 
 | Advisory | Exact path | Reproducible reachability evidence | Disposition |
 | --- | --- | --- | --- |
 | RUSTSEC-2026-0189 (rmcp Streamable HTTP Host validation) | `docmost-local-mcp` → `rmcp 0.6.4`, enabled only through `transport-io`/`transport-async-rw` | `cargo tree --locked -e features -i rmcp` shows `transport-io`; source imports only `rmcp::transport::io::stdio` in `src/main.rs`; no rmcp Streamable HTTP listener is constructed. The binary's only local HTTP service is the separate Axum auth handler bound to loopback. | The advisory explicitly states stdio and child-process transports are unaffected. The affected Streamable HTTP path is unreachable in every supported build. Revisit on each rmcp update. |
-| RUSTSEC-2024-0436 (`paste` unmaintained) | `docmost-local-mcp` → `rmcp 0.6.4` → `paste 1.0.15` | `cargo tree --locked -i paste` identifies the single transitive macro path. | Informational maintenance notice with no CVE, CVSS score, or security impact. It is kept visible as an explicit deny-policy exception pending rmcp upstream removal; it is not a high/critical vulnerability exception. |
+
+`RUSTSEC-2024-0436` for transitive `paste` is not an advisory exception: it is
+an informational unmaintained notice with no CVE, CVSS score, or security
+impact. `unmaintained = "workspace"` keeps the notice visible while causing
+CI to fail if an unmaintained crate becomes a direct workspace dependency.
 
 Any new exception must identify its exact feature and target, include the
 corresponding locked dependency-tree and source-reachability evidence, and be

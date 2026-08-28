@@ -7,10 +7,10 @@ ignore = [
   # rmcp 0.6's Streamable HTTP listener is not enabled or referenced by this
   # stdio-only application; see docs/dependency-policy.md for exact evidence.
   "RUSTSEC-2026-0189",
-  # Informational unmaintained notice for rmcp's compile-time macro helper;
-  # it carries no vulnerability or severity. It is tracked until rmcp drops it.
-  "RUSTSEC-2024-0436",
 ]
+# Transitive maintenance notices remain visible but fail only when they affect
+# a direct workspace dependency. They are not vulnerability exceptions.
+unmaintained = "workspace"
 yanked = "deny"
 
 [bans]
