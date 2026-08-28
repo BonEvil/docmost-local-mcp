@@ -70,6 +70,7 @@ async fn spawn(temp: &TempDir) -> Result<(DocmostClient, Captured)> {
         StartupConfig {
             base_url: Some(base_url.clone()),
             allow_insecure_loopback_http: true,
+            ..StartupConfig::default()
         },
         Some(temp.path().to_path_buf()),
     )?;

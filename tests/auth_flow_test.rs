@@ -46,6 +46,7 @@ async fn login_extracts_auth_token_and_persists_session() -> Result<()> {
         StartupConfig {
             base_url: Some(server.base_url.clone()),
             allow_insecure_loopback_http: true,
+            ..StartupConfig::default()
         },
         Some(temp_dir.path().to_path_buf()),
     )?;
@@ -99,6 +100,7 @@ async fn process_origin_pin_blocks_cross_origin_login_until_new_explicit_flow() 
         StartupConfig {
             base_url: Some(origin_a.base_url.clone()),
             allow_insecure_loopback_http: true,
+            ..StartupConfig::default()
         },
         Some(temp_dir.path().to_path_buf()),
     )?;
@@ -127,6 +129,7 @@ async fn process_origin_pin_blocks_cross_origin_login_until_new_explicit_flow() 
         StartupConfig {
             base_url: Some(origin_b.base_url.clone()),
             allow_insecure_loopback_http: true,
+            ..StartupConfig::default()
         },
         Some(temp_dir.path().to_path_buf()),
     )?;
@@ -168,6 +171,7 @@ async fn login_redirect_does_not_forward_credentials_to_another_origin() -> Resu
         StartupConfig {
             base_url: Some(redirect_origin.clone()),
             allow_insecure_loopback_http: true,
+            ..StartupConfig::default()
         },
         Some(temp_dir.path().to_path_buf()),
     )?;
@@ -226,6 +230,7 @@ async fn docmost_client_retries_after_401() -> Result<()> {
         StartupConfig {
             base_url: Some(server.base_url.clone()),
             allow_insecure_loopback_http: true,
+            ..StartupConfig::default()
         },
         Some(temp_dir.path().to_path_buf()),
     )?;

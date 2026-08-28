@@ -11,21 +11,29 @@ use crate::{
         },
     },
     types::{
-        DocmostSearchResult, EmptyInput, GetCommentsInput, GetPageInput, GetSpaceInput,
-        ListChildPagesInput, ListPagesInput, ListWorkspaceMembersInput, SearchDocsInput,
-        StartupConfig,
+        AuthorityMode, DocmostSearchResult, EmptyInput, GetCommentsInput, GetPageInput,
+        GetSpaceInput, ListChildPagesInput, ListPagesInput, ListWorkspaceMembersInput,
+        SearchDocsInput, StartupConfig,
     },
 };
 
 impl DocmostMcpServer {
     pub fn new(startup_config: StartupConfig) -> anyhow::Result<Self> {
+        crate::startup_config::validate_authority_config(&startup_config)?;
+        let mut tool_router = Self::tool_router();
+        if startup_config.authority_mode == AuthorityMode::Write {
+            let allowed = &startup_config.allowed_write_tools;
+            let mut write_router = Self::page_write_tool_router() + Self::write_tool_router();
+            write_router
+                .map
+                .retain(|name, _| allowed.contains(name.as_ref()));
+            tool_router += write_router;
+        }
         let auth_manager = AuthManager::new(startup_config, None)?;
         let client = crate::docmost_client::DocmostClient::new(auth_manager);
         Ok(Self {
             client,
-            tool_router: Self::tool_router()
-                + Self::page_write_tool_router()
-                + Self::write_tool_router(),
+            tool_router,
         })
     }
 

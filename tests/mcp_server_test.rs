@@ -1,9 +1,28 @@
+use std::collections::BTreeSet;
+
 use anyhow::Result;
-use docmost_local_mcp::{server::DocmostMcpServer, types::StartupConfig};
+use docmost_local_mcp::{
+    server::DocmostMcpServer,
+    startup_config::WRITE_TOOL_NAMES,
+    types::{AuthorityMode, StartupConfig},
+};
 use rmcp::{
     ClientHandler, ServiceExt,
-    model::{CallToolRequestParam, ClientInfo},
+    model::{CallToolRequestParam, ClientInfo, Tool},
 };
+
+const READ_TOOL_NAMES: [&str; 10] = [
+    "list_spaces",
+    "search_docs",
+    "search_pages",
+    "get_space",
+    "get_page",
+    "list_pages",
+    "list_child_pages",
+    "get_comments",
+    "list_workspace_members",
+    "get_current_user",
+];
 
 #[derive(Debug, Clone, Default)]
 struct DummyClientHandler;
@@ -14,85 +33,98 @@ impl ClientHandler for DummyClientHandler {
     }
 }
 
-#[tokio::test]
-async fn server_lists_expected_tools() -> Result<()> {
-    let (server_transport, client_transport) = tokio::io::duplex(16 * 1024);
+fn write_config(names: &[&str]) -> StartupConfig {
+    StartupConfig {
+        authority_mode: AuthorityMode::Write,
+        allowed_write_tools: names.iter().map(|name| (*name).to_string()).collect(),
+        ..StartupConfig::default()
+    }
+}
 
+async fn listed_tools(config: StartupConfig) -> Result<Vec<Tool>> {
+    let (server_transport, client_transport) = tokio::io::duplex(16 * 1024);
     let server_handle = tokio::spawn(async move {
-        let server = DocmostMcpServer::new(StartupConfig::default())?;
+        let server = DocmostMcpServer::new(config)?;
         server.serve(server_transport).await?.waiting().await?;
         anyhow::Ok(())
     });
-
     let client = DummyClientHandler.serve(client_transport).await?;
-    let tools = client.list_tools(None).await?;
-    let tool_names = tools
-        .tools
-        .iter()
-        .map(|tool| tool.name.to_string())
-        .collect::<Vec<_>>();
-
-    for expected in [
-        "list_spaces",
-        "search_docs",
-        "search_pages",
-        "get_space",
-        "get_page",
-        "list_pages",
-        "list_child_pages",
-        "get_comments",
-        "list_workspace_members",
-        "get_current_user",
-        "create_page",
-        "update_page",
-        "duplicate_page",
-        "copy_page_to_space",
-        "move_page",
-        "move_page_to_space",
-        "create_space",
-        "update_space",
-        "create_comment",
-        "update_comment",
-    ] {
-        assert!(
-            tool_names.iter().any(|name| name == expected),
-            "missing tool {expected}"
-        );
-    }
-
-    // Exactly the expected surface: no accidental extra/duplicate registration.
-    assert_eq!(
-        tool_names.len(),
-        20,
-        "unexpected tool count: {tool_names:?}"
-    );
-    let mut unique = tool_names.clone();
-    unique.sort();
-    unique.dedup();
-    assert_eq!(
-        unique.len(),
-        tool_names.len(),
-        "duplicate tool names registered"
-    );
-
+    let tools = client.list_tools(None).await?.tools;
     client.cancel().await?;
     server_handle.await??;
+    Ok(tools)
+}
+
+fn tool_names(tools: &[Tool]) -> BTreeSet<String> {
+    tools.iter().map(|tool| tool.name.to_string()).collect()
+}
+
+#[tokio::test]
+async fn default_server_lists_only_exact_read_inventory() -> Result<()> {
+    let tools = listed_tools(StartupConfig::default()).await?;
+    let actual = tool_names(&tools);
+    let expected = READ_TOOL_NAMES.map(str::to_string).into_iter().collect();
+    assert_eq!(actual, expected);
+    assert_eq!(
+        tools.len(),
+        READ_TOOL_NAMES.len(),
+        "duplicate tool registered"
+    );
+    assert!(
+        WRITE_TOOL_NAMES.iter().all(|name| !actual.contains(*name)),
+        "default inventory exposed a persistent mutation: {actual:?}"
+    );
     Ok(())
 }
 
 #[tokio::test]
-async fn server_all_tools_expose_object_input_schemas() -> Result<()> {
-    let (server_transport, client_transport) = tokio::io::duplex(16 * 1024);
+async fn write_mode_exposes_only_the_exact_allowlisted_subset() -> Result<()> {
+    let mut allowlists = WRITE_TOOL_NAMES
+        .iter()
+        .map(|name| vec![*name])
+        .collect::<Vec<_>>();
+    allowlists.push(vec!["move_page", "update_comment"]);
+    allowlists.push(WRITE_TOOL_NAMES.to_vec());
 
-    let server_handle = tokio::spawn(async move {
-        let server = DocmostMcpServer::new(StartupConfig::default())?;
-        server.serve(server_transport).await?.waiting().await?;
-        anyhow::Ok(())
-    });
+    for allowlist in allowlists {
+        let tools = listed_tools(write_config(&allowlist)).await?;
+        let actual = tool_names(&tools);
+        let mut expected = READ_TOOL_NAMES
+            .map(str::to_string)
+            .into_iter()
+            .collect::<BTreeSet<_>>();
+        expected.extend(allowlist.iter().map(|name| (*name).to_string()));
+        assert_eq!(actual, expected, "allowlist {allowlist:?}");
+        assert_eq!(tools.len(), expected.len(), "duplicate tool registered");
+    }
+    Ok(())
+}
 
-    let client = DummyClientHandler.serve(client_transport).await?;
-    let tools = client.list_tools(None).await?;
-    for tool in tools.tools {
+#[test]
+fn server_revalidates_programmatic_authority_configuration() {
+    let allowlist_in_read_only = StartupConfig {
+        allowed_write_tools: BTreeSet::from(["create_page".to_string()]),
+        ..StartupConfig::default()
+    };
+    assert!(DocmostMcpServer::new(allowlist_in_read_only).is_err());
+
+    let empty_write_mode = StartupConfig {
+        authority_mode: AuthorityMode::Write,
+        ..StartupConfig::default()
+    };
+    assert!(DocmostMcpServer::new(empty_write_mode).is_err());
+
+    let unknown_tool = StartupConfig {
+        authority_mode: AuthorityMode::Write,
+        allowed_write_tools: BTreeSet::from(["delete_everything".to_string()]),
+        ..StartupConfig::default()
+    };
+    assert!(DocmostMcpServer::new(unknown_tool).is_err());
+}
+
+#[tokio::test]
+async fn all_tools_expose_object_input_schemas() -> Result<()> {
+    for tool in listed_tools(write_config(&WRITE_TOOL_NAMES)).await? {
         assert_eq!(
             tool.input_schema
                 .get("type")
@@ -102,22 +134,50 @@ async fn server_all_tools_expose_object_input_schemas() -> Result<()> {
             tool.name
         );
     }
+    Ok(())
+}
 
-    client.cancel().await?;
-    server_handle.await??;
+#[tokio::test]
+async fn every_persistent_mutation_has_expected_annotations() -> Result<()> {
+    let tools = listed_tools(write_config(&WRITE_TOOL_NAMES)).await?;
+    let expectations = [
+        ("create_page", false),
+        ("update_page", true),
+        ("duplicate_page", false),
+        ("copy_page_to_space", false),
+        ("move_page", true),
+        ("move_page_to_space", true),
+        ("create_space", false),
+        ("update_space", true),
+        ("create_comment", false),
+        ("update_comment", true),
+    ];
+
+    assert_eq!(expectations.len(), WRITE_TOOL_NAMES.len());
+    for (name, destructive) in expectations {
+        let tool = tools
+            .iter()
+            .find(|tool| tool.name == name)
+            .unwrap_or_else(|| panic!("missing write tool {name}"));
+        let annotations = tool
+            .annotations
+            .as_ref()
+            .unwrap_or_else(|| panic!("{name} must have annotations"));
+        assert_eq!(annotations.read_only_hint, Some(false), "{name}");
+        assert_eq!(annotations.destructive_hint, Some(destructive), "{name}");
+        assert_eq!(annotations.idempotent_hint, Some(false), "{name}");
+    }
     Ok(())
 }
 
 #[tokio::test]
 async fn server_get_page_requires_slug_id_schema() -> Result<()> {
     let (server_transport, client_transport) = tokio::io::duplex(16 * 1024);
-
     let server_handle = tokio::spawn(async move {
         let server = DocmostMcpServer::new(StartupConfig::default())?;
         server.serve(server_transport).await?.waiting().await?;
         anyhow::Ok(())
     });
-
     let client = DummyClientHandler.serve(client_transport).await?;
     let tools = client.list_tools(None).await?;
     let get_page = tools
@@ -130,7 +190,6 @@ async fn server_get_page_requires_slug_id_schema() -> Result<()> {
         .get("properties")
         .and_then(|value| value.as_object())
         .expect("get_page tool should expose properties");
-
     assert!(properties.contains_key("slug_id"));
 
     let error = client
@@ -141,7 +200,6 @@ async fn server_get_page_requires_slug_id_schema() -> Result<()> {
         .await
         .expect_err("missing slug_id should be rejected");
     assert!(error.to_string().contains("slug_id"));
-
     client.cancel().await?;
     server_handle.await??;
     Ok(())
@@ -149,17 +207,7 @@ async fn server_get_page_requires_slug_id_schema() -> Result<()> {
 
 #[tokio::test]
 async fn server_required_input_fields_are_present() -> Result<()> {
-    let (server_transport, client_transport) = tokio::io::duplex(16 * 1024);
-
-    let server_handle = tokio::spawn(async move {
-        let server = DocmostMcpServer::new(StartupConfig::default())?;
-        server.serve(server_transport).await?.waiting().await?;
-        anyhow::Ok(())
-    });
-
-    let client = DummyClientHandler.serve(client_transport).await?;
-    let tools = client.list_tools(None).await?;
-
+    let tools = listed_tools(write_config(&WRITE_TOOL_NAMES)).await?;
     for (tool_name, property_name) in [
         ("get_page", "slug_id"),
         ("get_space", "space_id"),
@@ -186,7 +234,6 @@ async fn server_required_input_fields_are_present() -> Result<()> {
         ("update_comment", "markdown"),
     ] {
         let tool = tools
-            .tools
             .iter()
             .find(|tool| tool.name == tool_name)
             .unwrap_or_else(|| panic!("{tool_name} tool should exist"));
@@ -195,13 +242,7 @@ async fn server_required_input_fields_are_present() -> Result<()> {
             .get("properties")
             .and_then(|value| value.as_object())
             .unwrap_or_else(|| panic!("{tool_name} should expose properties"));
-        assert!(
-            properties.contains_key(property_name),
-            "{tool_name} should contain property {property_name}"
-        );
+        assert!(properties.contains_key(property_name));
     }
-
-    client.cancel().await?;
-    server_handle.await??;
     Ok(())
 }
