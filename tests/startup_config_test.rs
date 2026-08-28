@@ -1,15 +1,15 @@
 use std::collections::HashMap;
 
-use docmost_local_mcp::{
-    startup_config::{normalize_base_url, parse_startup_config},
-    types::AuthorityMode,
+use docmost_local_mcp::startup_config::{
+    CanonicalDocmostOrigin, normalize_base_url, parse_startup_config,
 };
+use docmost_local_mcp::types::AuthorityMode;
 
 #[test]
-fn reads_base_url_from_cli_arguments() {
+fn reads_and_canonicalizes_base_url_from_cli_arguments() {
     let argv = vec![
         "--base-url".to_string(),
-        "https://docs.example.com/".to_string(),
+        "HTTPS://Docs.Example.COM:443/".to_string(),
     ];
     let config = parse_startup_config(&argv, &HashMap::new()).unwrap();
     assert_eq!(config.base_url.as_deref(), Some("https://docs.example.com"));
@@ -17,9 +17,12 @@ fn reads_base_url_from_cli_arguments() {
 
 #[test]
 fn supports_inline_cli_argument_syntax() {
-    let argv = vec!["--base-url=https://docs.example.com/".to_string()];
+    let argv = vec!["--base-url=https://docs.example.com:8443/".to_string()];
     let config = parse_startup_config(&argv, &HashMap::new()).unwrap();
-    assert_eq!(config.base_url.as_deref(), Some("https://docs.example.com"));
+    assert_eq!(
+        config.base_url.as_deref(),
+        Some("https://docs.example.com:8443")
+    );
 }
 
 #[test]
@@ -40,11 +43,81 @@ fn throws_when_base_url_flag_is_missing_value() {
 }
 
 #[test]
-fn removes_trailing_slashes() {
+fn canonical_origin_exposes_scheme_host_and_effective_port() {
+    let origin = CanonicalDocmostOrigin::parse("https://DOCS.example.com/", false).unwrap();
+    assert_eq!(origin.as_str(), "https://docs.example.com");
+    assert_eq!(origin.scheme(), "https");
+    assert_eq!(origin.host(), "docs.example.com");
+    assert_eq!(origin.effective_port(), 443);
     assert_eq!(
-        normalize_base_url("https://docs.example.com///"),
+        normalize_base_url("https://docs.example.com:443/").unwrap(),
         "https://docs.example.com"
     );
+}
+
+#[test]
+fn loopback_http_requires_deliberate_enablement_and_literal_address() {
+    let disabled = CanonicalDocmostOrigin::parse("http://127.0.0.1:3000", false).unwrap_err();
+    assert!(disabled.to_string().contains("Deliberately enable"));
+
+    assert_eq!(
+        CanonicalDocmostOrigin::parse("http://127.0.0.1:3000/", true)
+            .unwrap()
+            .as_str(),
+        "http://127.0.0.1:3000"
+    );
+    assert_eq!(
+        CanonicalDocmostOrigin::parse("http://[::1]:3000/", true)
+            .unwrap()
+            .as_str(),
+        "http://[::1]:3000"
+    );
+    assert!(CanonicalDocmostOrigin::parse("http://localhost:3000", true).is_err());
+    assert!(CanonicalDocmostOrigin::parse("http://2130706433:3000", true).is_err());
+    assert!(CanonicalDocmostOrigin::parse("http://0x7f000001:3000", true).is_err());
+    assert!(CanonicalDocmostOrigin::parse("http://126.0.0.1:3000", true).is_err());
+    assert!(CanonicalDocmostOrigin::parse("http://192.0.2.1:3000", true).is_err());
+}
+
+#[test]
+fn rejects_unsupported_or_misleading_url_components() {
+    for rejected in [
+        "ftp://docs.example.com",
+        "//docs.example.com",
+        "https://user@docs.example.com",
+        "https://user:password@docs.example.com",
+        "https://docs.example.com/path",
+        "https://docs.example.com/.",
+        "https://docs.example.com/path/..",
+        "https://docs.example.com/?query=value",
+        "https://docs.example.com/#fragment",
+        "https://docs.example.com\\@evil.example",
+        "https://docs.example.com///",
+        "https://",
+        "not a url",
+    ] {
+        assert!(
+            CanonicalDocmostOrigin::parse(rejected, false).is_err(),
+            "expected rejection for {rejected:?}"
+        );
+    }
+}
+
+#[test]
+fn startup_flag_enables_only_loopback_http() {
+    let argv = vec![
+        "--base-url=http://127.0.0.1:3000".to_string(),
+        "--allow-insecure-loopback-http".to_string(),
+    ];
+    let config = parse_startup_config(&argv, &HashMap::new()).unwrap();
+    assert!(config.allow_insecure_loopback_http);
+    assert_eq!(config.base_url.as_deref(), Some("http://127.0.0.1:3000"));
+
+    let remote = vec![
+        "--base-url=http://example.com".to_string(),
+        "--allow-insecure-loopback-http".to_string(),
+    ];
+    assert!(parse_startup_config(&remote, &HashMap::new()).is_err());
 }
 
 #[test]

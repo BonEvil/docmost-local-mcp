@@ -13,6 +13,8 @@ struct Cli {
     #[arg(long)]
     base_url: Option<String>,
     #[arg(long)]
+    allow_insecure_loopback_http: bool,
+    #[arg(long)]
     authority_mode: Option<String>,
     #[arg(long)]
     write_tools: Option<String>,
@@ -65,7 +67,7 @@ async fn try_main() -> Result<()> {
         }
         None => {
             // Parse the original process arguments and environment in one place so CLI and
-            // library tests enforce the same fail-closed authority rules.
+            // library tests enforce the same fail-closed origin and authority rules.
             let argv = std::env::args().skip(1).collect::<Vec<_>>();
             let startup_config = parse_runtime_startup_config(&argv)?;
             let server = DocmostMcpServer::new(startup_config)?;

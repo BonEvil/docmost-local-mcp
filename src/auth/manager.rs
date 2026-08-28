@@ -1,4 +1,7 @@
-use std::{path::PathBuf, sync::Arc};
+use std::{
+    path::PathBuf,
+    sync::{Arc, Mutex},
+};
 
 use anyhow::{Context, Result, anyhow};
 use base64::{
@@ -8,7 +11,7 @@ use base64::{
 use chrono::{DateTime, Utc};
 use once_cell::sync::Lazy;
 use regex::Regex;
-use reqwest::{Client, Response, header::SET_COOKIE};
+use reqwest::{Client, Response, header::SET_COOKIE, redirect::Policy};
 
 use crate::{
     auth::{
@@ -19,7 +22,7 @@ use crate::{
         },
     },
     debug::debug_log,
-    startup_config::normalize_base_url,
+    startup_config::CanonicalDocmostOrigin,
     storage::state_store::StateStore,
     types::{
         AuthenticatedSession, LoginInput, StartupConfig, StoredConfig, StoredCredentials,
@@ -34,30 +37,43 @@ static AUTH_TOKEN_RE: Lazy<Regex> =
 #[derive(Debug, Clone)]
 pub struct AuthManager {
     store: Arc<StateStore>,
-    configured_base_url: Option<String>,
+    configured_origin: Option<CanonicalDocmostOrigin>,
+    pinned_origin: Arc<Mutex<Option<CanonicalDocmostOrigin>>>,
+    allow_insecure_loopback_http: bool,
     http: Client,
 }
 
 impl AuthManager {
     pub fn new(options: StartupConfig, base_dir: Option<PathBuf>) -> Result<Self> {
+        let configured_origin = options
+            .base_url
+            .as_deref()
+            .map(|value| CanonicalDocmostOrigin::parse(value, options.allow_insecure_loopback_http))
+            .transpose()?;
         Ok(Self {
-            configured_base_url: options.base_url.as_deref().map(normalize_base_url),
+            pinned_origin: Arc::new(Mutex::new(configured_origin.clone())),
+            configured_origin,
+            allow_insecure_loopback_http: options.allow_insecure_loopback_http,
             store: Arc::new(StateStore::new(base_dir)?),
-            http: Client::builder().build()?,
+            http: Client::builder().redirect(Policy::none()).build()?,
         })
     }
 
     pub async fn get_authenticated_session(&self) -> Result<AuthenticatedSession> {
         let config = self.store.read_config().await?;
-        let session = self.store.read_session().await?;
-        let preferred_base_url = self
-            .get_preferred_base_url(config.as_ref())
-            .map(ToOwned::to_owned);
+        let preferred_origin = self.get_preferred_origin(config.as_ref())?;
+        let session = match preferred_origin.as_ref() {
+            Some(origin) => self.store.read_session(origin.as_str()).await?,
+            None => None,
+        };
         let has_config = config.is_some();
         let has_session = session.is_some();
 
         if let (Some(config), Some(session)) = (config.as_ref(), session.as_ref()) {
-            let url_matches = preferred_base_url.as_deref() == Some(config.base_url.as_str());
+            let url_matches = preferred_origin.as_ref().is_some_and(|origin| {
+                CanonicalDocmostOrigin::parse(&config.base_url, self.allow_insecure_loopback_http)
+                    .is_ok_and(|configured| configured == *origin)
+            });
             if url_matches && !is_session_expiring(session) {
                 debug_log(
                     "auth",
@@ -85,27 +101,27 @@ impl AuthManager {
 
     pub async fn reauthenticate(&self) -> Result<AuthenticatedSession> {
         let config = self.store.read_config().await?;
-        let credentials = self.store.read_credentials().await?;
-        let preferred_base_url = self
-            .get_preferred_base_url(config.as_ref())
-            .map(ToOwned::to_owned);
+        let preferred_origin = self.get_preferred_origin(config.as_ref())?;
+        let credentials = match preferred_origin.as_ref() {
+            Some(origin) => self.store.read_credentials(origin.as_str()).await?,
+            None => None,
+        };
         let has_config = config.is_some();
         let has_credentials = credentials.is_some();
 
-        if let (Some(base_url), Some(credentials)) =
-            (preferred_base_url.as_deref(), credentials.clone())
+        if let (Some(origin), Some(credentials)) = (preferred_origin.as_ref(), credentials.clone())
         {
             debug_log(
                 "auth",
                 "Reauthenticating with saved credentials",
                 Some(&serde_json::json!({
-                    "baseUrl": base_url,
+                    "baseUrl": origin.as_str(),
                     "email": credentials.email
                 })),
             );
             return self
                 .login(LoginInput {
-                    base_url: base_url.to_string(),
+                    base_url: origin.as_str().to_string(),
                     email: credentials.email,
                     password: credentials.password,
                 })
@@ -118,14 +134,17 @@ impl AuthManager {
             Some(&serde_json::json!({
                 "hasConfig": has_config,
                 "hasCredentials": has_credentials,
-                "configuredBaseUrl": self.configured_base_url
+                "configuredBaseUrl": self.configured_origin.as_ref().map(|origin| origin.as_str())
             })),
         );
         self.prompt_for_login(config.as_ref()).await
     }
 
     pub async fn login(&self, input: LoginInput) -> Result<AuthenticatedSession> {
-        let base_url = normalize_base_url(&input.base_url);
+        let origin =
+            CanonicalDocmostOrigin::parse(&input.base_url, self.allow_insecure_loopback_http)?;
+        self.pin_origin(&origin)?;
+        let base_url = origin.as_str().to_string();
         debug_log(
             "auth",
             "Starting Docmost login",
@@ -177,6 +196,7 @@ impl AuthManager {
             .await?;
         self.store
             .write_session(&StoredSession {
+                origin: Some(base_url.clone()),
                 token: token.clone(),
                 expires_at: expires_at.clone(),
                 saved_at: now.clone(),
@@ -184,6 +204,7 @@ impl AuthManager {
             .await?;
         self.store
             .write_credentials(&StoredCredentials {
+                origin: Some(base_url.clone()),
                 email: input.email.clone(),
                 password: input.password,
             })
@@ -197,21 +218,52 @@ impl AuthManager {
         })
     }
 
-    fn get_preferred_base_url<'a>(&'a self, config: Option<&'a StoredConfig>) -> Option<&'a str> {
-        self.configured_base_url
-            .as_deref()
-            .or_else(|| config.map(|config| config.base_url.as_str()))
+    fn get_preferred_origin(
+        &self,
+        config: Option<&StoredConfig>,
+    ) -> Result<Option<CanonicalDocmostOrigin>> {
+        if let Some(origin) = &self.configured_origin {
+            return Ok(Some(origin.clone()));
+        }
+        let origin = config
+            .map(|config| {
+                CanonicalDocmostOrigin::parse(&config.base_url, self.allow_insecure_loopback_http)
+            })
+            .transpose()?;
+        if let Some(origin) = &origin {
+            self.pin_origin(origin)?;
+        }
+        Ok(origin)
+    }
+
+    fn pin_origin(&self, origin: &CanonicalDocmostOrigin) -> Result<()> {
+        let mut pinned = self
+            .pinned_origin
+            .lock()
+            .map_err(|_| anyhow!("The process origin lock was poisoned."))?;
+        if let Some(existing) = pinned.as_ref() {
+            if existing != origin {
+                return Err(anyhow!(
+                    "This process is pinned to {} and cannot authenticate to {}. Start a new explicit authentication flow for the new origin.",
+                    existing.as_str(),
+                    origin.as_str()
+                ));
+            }
+        } else {
+            *pinned = Some(origin.clone());
+        }
+        Ok(())
     }
 
     async fn prompt_for_login(
         &self,
         config: Option<&StoredConfig>,
     ) -> Result<AuthenticatedSession> {
-        let preferred_base_url = self.get_preferred_base_url(config);
+        let preferred_base_url = self.get_preferred_origin(config)?;
         let defaults = LocalAuthDefaults {
-            base_url: preferred_base_url.map(ToOwned::to_owned),
+            base_url: preferred_base_url.map(CanonicalDocmostOrigin::into_string),
             email: config.map(|config| config.email.clone()),
-            base_url_readonly: self.configured_base_url.is_some(),
+            base_url_readonly: self.configured_origin.is_some(),
         };
 
         let auth_manager = self.clone();
@@ -242,22 +294,28 @@ impl AuthManager {
         let completion =
             wait_for_authentication_completion(&mut auth_server, &mut auth_window).await;
 
-        let result =
-            async {
-                completion?;
-                let refreshed_config =
-                    self.store.read_config().await?.ok_or_else(|| {
-                        anyhow!("Authentication completed, but no config was saved.")
-                    })?;
-                let refreshed_session = self.store.read_session().await?.ok_or_else(|| {
-                    anyhow!("Authentication completed, but no session was saved.")
-                })?;
-                Ok(to_authenticated_session(
-                    refreshed_config,
-                    refreshed_session,
-                ))
-            }
-            .await;
+        let result = async {
+            completion?;
+            let refreshed_config = self
+                .store
+                .read_config()
+                .await?
+                .ok_or_else(|| anyhow!("Authentication completed, but no config was saved."))?;
+            let refreshed_origin = CanonicalDocmostOrigin::parse(
+                &refreshed_config.base_url,
+                self.allow_insecure_loopback_http,
+            )?;
+            let refreshed_session = self
+                .store
+                .read_session(refreshed_origin.as_str())
+                .await?
+                .ok_or_else(|| anyhow!("Authentication completed, but no session was saved."))?;
+            Ok(to_authenticated_session(
+                refreshed_config,
+                refreshed_session,
+            ))
+        }
+        .await;
 
         auth_window.close().await?;
         auth_server.stop().await?;
@@ -268,7 +326,7 @@ impl AuthManager {
 
 fn to_authenticated_session(config: StoredConfig, session: StoredSession) -> AuthenticatedSession {
     AuthenticatedSession {
-        base_url: config.base_url,
+        base_url: session.origin.clone().unwrap_or(config.base_url),
         email: config.email,
         token: session.token,
         expires_at: session.expires_at,
