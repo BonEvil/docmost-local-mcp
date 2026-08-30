@@ -215,6 +215,7 @@ async fn docmost_client_retries_after_401() -> Result<()> {
     store
         .write_session(&StoredSession {
             origin: Some(server.base_url.clone()),
+            email: Some("jane@example.com".to_string()),
             token: "stale-token".to_string(),
             expires_at: Some(make_jwt_expiry(3600)),
             saved_at: "2026-03-12T00:00:00.000Z".to_string(),

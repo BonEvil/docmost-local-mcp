@@ -10,6 +10,12 @@ use serde::{Serialize, de::DeserializeOwned};
 use sha2::{Digest, Sha256};
 use tokio::fs;
 
+#[cfg(test)]
+use std::sync::{
+    Arc,
+    atomic::{AtomicBool, Ordering},
+};
+
 use crate::{
     storage::keyring_store::KeyringStore,
     types::{StoredConfig, StoredCredentials, StoredSession},
@@ -26,6 +32,8 @@ pub struct StateStore {
     key_path: PathBuf,
     allow_insecure_credential_file: bool,
     keyring: KeyringStore,
+    #[cfg(test)]
+    fail_next_session_write: Arc<AtomicBool>,
 }
 
 #[derive(Debug, Serialize, serde::Deserialize)]
@@ -52,6 +60,8 @@ impl StateStore {
             allow_insecure_credential_file,
             base_dir,
             keyring: KeyringStore,
+            #[cfg(test)]
+            fail_next_session_write: Arc::new(AtomicBool::new(false)),
         })
     }
 
@@ -71,12 +81,21 @@ impl StateStore {
     }
 
     pub async fn write_session(&self, session: &StoredSession) -> Result<()> {
+        #[cfg(test)]
+        if self.fail_next_session_write.swap(false, Ordering::SeqCst) {
+            bail!("Injected session persistence failure.");
+        }
         if session.origin.is_none() {
             bail!("Refusing to persist a session without a canonical origin.");
         }
         let origin = session.origin.as_deref().expect("checked above");
         self.write_json_file(&self.origin_path("session", origin, "json"), session)
             .await
+    }
+
+    #[cfg(test)]
+    pub(crate) fn fail_next_session_write(&self) {
+        self.fail_next_session_write.store(true, Ordering::SeqCst);
     }
 
     pub async fn clear_session(&self, origin: &str) -> Result<()> {

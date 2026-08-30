@@ -19,6 +19,8 @@ pub struct StoredConfig {
 pub struct StoredSession {
     #[serde(default)]
     pub origin: Option<String>,
+    #[serde(default)]
+    pub email: Option<String>,
     pub token: String,
     pub expires_at: Option<String>,
     pub saved_at: String,
