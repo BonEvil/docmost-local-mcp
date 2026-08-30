@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-08-30T13:04:12Z",
+  "producer": "independent-remediation-audit",
+  "source": "GitHub REST reads through the connected GitHub provider tool",
+  "repository": "BonEvil/docmost-local-mcp",
+  "publicHomepage": "https://www.npmjs.com/package/@wisflux/docmost-local-mcp",
+  "defaultBranch": "main",
+  "defaultBranchHead": "0bb296068227c9d2eb4e83731806867c2b0b98f6",
+  "defaultBranchProtected": false,
+  "requiredStatusChecksEnforcement": "off",
+  "repositoryRulesetCount": 0,
+  "webCommitSignoffRequired": false,
+  "defaultBranchHeadSignatureVerified": false,
+  "defaultBranchHeadSignatureReason": "unsigned",
+  "releaseCount": 0,
+  "branchProtectionDetail": "The branch summary directly reported protection disabled; the separate protection-detail endpoint was not readable by the connected integration.",
+  "environmentDetail": "The connected provider tool did not permit the environments endpoint, so no protected release environment is evidenced.",
+  "notes": [
+    "This file contains only public repository-control facts and no credential or private provider data.",
+    "No provider setting was changed."
+  ]
+}
