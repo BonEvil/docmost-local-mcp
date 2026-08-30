@@ -13,18 +13,20 @@
 FROM rust:1.98.0-slim-bookworm@sha256:1469a27c125cb5a3aebfa4f4e4665d935b02fb72cc093b2c974b3d740e43f157 AS builder
 WORKDIR /build
 # reqwest uses rustls (no OpenSSL). keyring links against dbus on Linux.
+COPY config/debian-snapshot.sources /etc/apt/sources.list.d/debian.sources
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        pkg-config \
-        libdbus-1-dev \
+        pkg-config=1.8.1-1 \
+        libdbus-1-dev=1.14.10-1~deb12u1 \
     && rm -rf /var/lib/apt/lists/*
 COPY . .
 RUN cargo build --locked --release --no-default-features
 
 # ---- runtime stage ----
 FROM debian:bookworm-slim@sha256:88200866dfff7ea7f5cbcb6ec7c8a701889efe6fe859fe64d6990e4b07ea4171 AS runtime
+COPY config/debian-snapshot.sources /etc/apt/sources.list.d/debian.sources
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        libdbus-1-3 \
-        ca-certificates \
+        libdbus-1-3=1.14.10-1~deb12u1 \
+        ca-certificates=20250419~deb12u1 \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /build/target/release/docmost-local-mcp /usr/local/bin/docmost-local-mcp
 # The MCP server speaks JSON-RPC over stdio.

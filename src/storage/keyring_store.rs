@@ -88,7 +88,7 @@ fn is_missing_entry(error: &keyring::Error) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::keyring_username;
+    use super::{KeyringStore, keyring_username};
 
     #[test]
     fn keyring_identity_is_origin_specific_and_never_uses_the_legacy_account() {
@@ -101,5 +101,19 @@ mod tests {
             keyring_username("https://other.example.com")
         );
         assert_ne!(keyring_username("https://docs.example.com"), "credentials");
+    }
+
+    #[test]
+    fn keyring_credential_clear_is_idempotent_for_scoped_and_legacy_entries() {
+        unsafe { std::env::remove_var("DOCMOST_DISABLE_KEYRING") };
+        keyring::set_default_credential_builder(keyring::mock::default_credential_builder());
+
+        let store = KeyringStore;
+        store
+            .delete_credentials("https://docs.example.com")
+            .unwrap();
+        store
+            .delete_credentials("https://docs.example.com")
+            .unwrap();
     }
 }

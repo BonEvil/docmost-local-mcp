@@ -10,7 +10,7 @@ Guidance for working in this repository.
 
 ## What this is
 
-`docmost-local-mcp` is a **Rust, read-only MCP server** that fronts a self-hosted [Docmost](https://docmost.com) instance for local IDE / AI tools (Cursor, Claude Desktop, etc.). It speaks MCP over **stdio** using [`rmcp`](https://docs.rs/rmcp) 0.6, authenticates to Docmost with email/password (storing the session locally), and exposes documentation as MCP tools. It is distributed as an `npx` package (`@wisflux/docmost-local-mcp`) whose Node launcher downloads the Rust binary from GitHub Releases.
+`docmost-local-mcp` is a hardened **Rust MCP server** that fronts a self-hosted [Docmost](https://docmost.com) instance for local IDE / AI tools. It speaks MCP over **stdio** using [`rmcp`](https://docs.rs/rmcp) 0.6, authenticates to Docmost with origin-scoped local state, exposes ten reads by default, and permits writes only through an explicit narrow allowlist. Atlas production uses the reviewed `BonEvil/docmost-local-mcp` binary and never the upstream npm downloader.
 
 Edition **2024**. The crate is both a binary and a library (`docmost_local_mcp`); integration tests in `tests/` consume the library.
 

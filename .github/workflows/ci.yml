@@ -103,7 +103,9 @@ jobs:
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       - name: Run installer failure-path tests
-        run: bash tests/release_integrity_test.sh
+        run: |
+          bash tests/release_integrity_test.sh
+          bash tests/release_context_test.sh
 
       - name: Enforce immutable CI inputs
         run: bash scripts/check-pinned-inputs.sh

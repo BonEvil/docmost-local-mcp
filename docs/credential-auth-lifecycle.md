@@ -4,6 +4,13 @@
 
 Interactive authentication is session-only by default. The submitted password is used for the Docmost login request and discarded after the origin-bound session is saved. Selecting **Remember password** requests persistence in the operating system credential store under an origin-specific account.
 
+Before a successful session-only login commits its config/session transition,
+every remembered credential representation for that canonical origin is cleared
+(secure keyring, explicitly acknowledged encrypted fallback, and relevant legacy
+state). Automatic reauthentication independently requires the remembered email
+to exactly match the active configured email; a mismatch is cleared and fails
+closed before any login request is sent.
+
 A missing keyring entry means no remembered password. A keyring initialization, read, or write failure does not silently activate local fallback storage. Remember-password login fails before config or session files change unless the operator has explicitly acknowledged the weaker model with `--allow-insecure-credential-file` or `DOCMOST_ALLOW_INSECURE_CREDENTIAL_FILE=true`.
 
 The acknowledged fallback uses origin-specific AES-256-GCM ciphertext and key files with directory mode `0700` and file mode `0600` on Unix. Its key and ciphertext share the same directory, so it protects against casual disclosure rather than compromise of that account or directory. A working keyring remains preferred even when fallback is enabled.
@@ -23,7 +30,9 @@ The acknowledged fallback uses origin-specific AES-256-GCM ciphertext and key fi
 | Legacy session | legacy filename and optional embedded origin | Unscoped/stale or matching state is deleted; explicitly different-origin state is preserved |
 | Legacy ciphertext/key | legacy filenames and optional encrypted embedded origin | Unscoped/stale or matching state is deleted; explicitly different-origin state is preserved |
 
-Failure to access the keyring is reported after filesystem cleanup is attempted; it is not reported as successful complete deletion.
+Failure to access the keyring is reported before filesystem state changes; it is
+not reported as successful complete deletion. This ordering prevents a partial
+session-only transition from leaving an ambiguous credential state.
 
 ## Loopback request and response security matrix
 

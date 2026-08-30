@@ -64,20 +64,34 @@ test -x /opt/atlas/mcp/docmost-local-mcp
 The example starts read-only. Any write authority remains governed by the
 separate authority-mode operating policy.
 
-## Provider-side protections still required
+## Provider-side protections required by the release gate
 
-No repository-host setting was changed or verified by this work. Before the
-first production release, an administrator must inspect and configure, as
-available on the repository's GitHub plan:
+The repository workflow cannot create its own independent provider boundary.
+Before the first production release, an administrator must configure and retain
+read-back evidence for all of these controls:
 
-- protect `main` and release tags against force updates and deletion;
-- require review and successful CI for changes to release workflow, installer,
-  lockfile, and dependency policy;
+- protect `main` against force updates/deletion and require reviewed pull requests
+  plus the exact `Integrated security and release gate` check;
+- protect `v*` release tags against update/deletion and permit their creation only
+  through the reviewed signed-tag procedure;
 - restrict Actions to approved full-SHA-pinned actions and prevent workflow
   bypass by untrusted actors;
 - enable immutable releases or an equivalent no-replacement policy;
 - retain Sigstore transparency-log access and GitHub artifact attestations; and
-- use an environment approval gate for any later deployment job.
+- configure the `protected-release` environment with required reviewer approval
+  and narrowly scoped publication authority.
 
-These are remaining setup requirements, not claims about current GitHub state.
-Publishing a release and enabling deployment are deliberately outside this card.
+The release workflow binds its privileged job to that exact environment and
+rejects lightweight/unsigned tags, commits outside `origin/main`, and missing or
+non-successful exact-commit terminal gates before building. Provider settings
+remain externally verified facts, not claims inferred from repository YAML.
+Publishing a release and enabling deployment remain separately unauthorized.
+
+## Immutable Debian inputs
+
+The container build replaces moving Debian repositories with the dated snapshot
+declared in `config/debian-snapshot.sources` and pins every directly requested apt
+package to an exact version. Apt still verifies Debian Release signatures and
+package hashes. The minimal runtime base initially lacks CA roots, so its snapshot
+bootstrap uses HTTP under that signed/hash-bound apt trust model; the pinned
+`ca-certificates` package is installed before the MCP binary runs.
