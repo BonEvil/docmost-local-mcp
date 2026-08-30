@@ -1,10 +1,16 @@
 {
-  "capturedAt": "2026-08-28T16:35:46-04:00",
-  "purpose": "sanitized non-production Atlas MCP validation",
+  "capturedAt": "2026-08-30T08:52:40-04:00",
+  "purpose": "sanitized non-production Atlas controlled MCP validation",
   "candidate": {
     "commit": "254b124ab89c6d5e3623ae99aa30583a2a43d632",
     "tree": "c481ab19824cd0d13ad2be922ed40ee8e5ae3cdc",
     "remoteBinarySha256": "78133af4492f2333f63f3ff8e673a16f8713e5fffcaaf2e0c0ba4255c5a155b1"
+  },
+  "atlasRuntime": {
+    "commit": "efad3719b67fc9949be3809a7d07b297a64de10d",
+    "tree": "58d8b8c5d330c905ef70b5be33b06883c0a57ae6",
+    "execution": "isolated in-process Atlas application from an exact read-only source export",
+    "protocolVersion": "2025-03-26"
   },
   "launch": {
     "command": "/usr/bin/ssh",
@@ -12,26 +18,43 @@
       "-o",
       "BatchMode=yes",
       "-o",
-      "ConnectTimeout=5",
+      "ConnectTimeout=8",
       "<restricted-host>",
+      "/usr/bin/env",
+      "HOME=<disposable-runtime-home>",
       "/home/danielperson/services/docmost-atlas-compat/bin/docmost-local-mcp",
       "--base-url",
       "<private-isolated-https-origin>"
     ],
     "usesShellWrapper": false,
     "usesNpmOrNpx": false,
-    "containsCredential": false,
-    "authorityMode": "read-only"
+    "containsCredential": false
+  },
+  "authority": {
+    "defaultMode": "read-only",
+    "defaultToolCount": 10,
+    "writeModeExplicitlySeparate": true,
+    "writeAllowlist": [
+      "create_page"
+    ],
+    "writeToolCountIncludingReads": 11,
+    "unallowlistedCreateSpaceExposed": false
+  },
+  "credentials": {
+    "mechanism": "session-only origin-bound state on the disposable host",
+    "passwordPersisted": false,
+    "credentialFilePersisted": false,
+    "stateFilesAfterCleanup": 0
   },
   "atlasPersistence": {
-    "persisted": false,
-    "enabled": false,
-    "probeResult": "connection_failed",
-    "matchingConfiguredServerCountAfterProbe": 0
+    "temporaryRegistrationsRemoved": true,
+    "isolatedRuntimeDatabasesRemoved": true,
+    "liveCanonicalDocmostServerCountAfterRun": 0
   },
   "productionDeployment": {
     "enabled": false,
     "productionConfigurationChanged": false,
-    "productionContentAccessed": false
+    "productionContentAccessed": false,
+    "productionContainersAfterCleanup": 3
   }
 }
