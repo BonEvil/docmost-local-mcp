@@ -250,6 +250,113 @@ async fn docmost_client_retries_after_401() -> Result<()> {
     Ok(())
 }
 
+#[tokio::test]
+async fn session_only_identity_change_clears_remembered_identity_and_blocks_401_rollback()
+-> Result<()> {
+    unsafe { std::env::set_var("DOCMOST_DISABLE_KEYRING", "1") };
+    let server = spawn_mock_docmost().await?;
+    let temp_dir = TempDir::new()?;
+    let startup = StartupConfig {
+        base_url: Some(server.base_url.clone()),
+        allow_insecure_loopback_http: true,
+        allow_insecure_credential_file: true,
+        ..StartupConfig::default()
+    };
+    let manager = AuthManager::new(startup.clone(), Some(temp_dir.path().to_path_buf()))?;
+
+    manager
+        .login(LoginInput {
+            base_url: server.base_url.clone(),
+            email: "remembered-a@example.com".to_string(),
+            password: "synthetic-a-password".to_string(),
+            remember_password: true,
+        })
+        .await?;
+    manager
+        .login(LoginInput {
+            base_url: server.base_url.clone(),
+            email: "session-b@example.com".to_string(),
+            password: "synthetic-b-password".to_string(),
+            remember_password: false,
+        })
+        .await?;
+
+    let store = StateStore::new(Some(temp_dir.path().to_path_buf()), true)?;
+    assert_eq!(store.read_credentials(&server.base_url).await?, None);
+    assert_eq!(
+        store.read_config().await?.unwrap().email,
+        "session-b@example.com"
+    );
+
+    // Even if stale A credentials are reintroduced externally, the independent identity guard
+    // must stop the first 401 recovery before any A login request is dispatched.
+    store
+        .write_credentials(&StoredCredentials {
+            origin: Some(server.base_url.clone()),
+            email: "remembered-a@example.com".to_string(),
+            password: "synthetic-a-password".to_string(),
+        })
+        .await?;
+    let restarted = AuthManager::new(startup, Some(temp_dir.path().to_path_buf()))?;
+    let client = DocmostClient::new(restarted);
+    let error = client.list_spaces().await.unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("do not match the active Docmost identity")
+    );
+    assert_eq!(server.state.login_count.load(Ordering::SeqCst), 2);
+    assert_eq!(server.state.spaces_count.load(Ordering::SeqCst), 1);
+    assert_eq!(store.read_credentials(&server.base_url).await?, None);
+
+    server.shutdown.abort();
+    Ok(())
+}
+
+#[tokio::test]
+async fn mismatched_remembered_identity_is_cleared_without_network_reauthentication() -> Result<()>
+{
+    unsafe { std::env::set_var("DOCMOST_DISABLE_KEYRING", "1") };
+    let server = spawn_mock_docmost().await?;
+    let temp_dir = TempDir::new()?;
+    let store = StateStore::new(Some(temp_dir.path().to_path_buf()), true)?;
+    store
+        .write_config(&StoredConfig {
+            base_url: server.base_url.clone(),
+            email: "active-b@example.com".to_string(),
+            last_authenticated_at: "2026-08-30T00:00:00.000Z".to_string(),
+        })
+        .await?;
+    store
+        .write_credentials(&StoredCredentials {
+            origin: Some(server.base_url.clone()),
+            email: "remembered-a@example.com".to_string(),
+            password: "synthetic-a-password".to_string(),
+        })
+        .await?;
+    let manager = AuthManager::new(
+        StartupConfig {
+            base_url: Some(server.base_url.clone()),
+            allow_insecure_loopback_http: true,
+            allow_insecure_credential_file: true,
+            ..StartupConfig::default()
+        },
+        Some(temp_dir.path().to_path_buf()),
+    )?;
+
+    let error = manager.reauthenticate().await.unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("do not match the active Docmost identity")
+    );
+    assert_eq!(server.state.login_count.load(Ordering::SeqCst), 0);
+    assert_eq!(store.read_credentials(&server.base_url).await?, None);
+
+    server.shutdown.abort();
+    Ok(())
+}
+
 #[test]
 fn extracts_auth_token_from_set_cookie_headers() {
     let mut headers = reqwest::header::HeaderMap::new();

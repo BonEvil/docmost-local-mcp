@@ -132,21 +132,31 @@ impl StateStore {
         .await
     }
 
-    pub async fn forget_origin(&self, origin: &str) -> Result<()> {
-        let keyring_result = self.keyring.delete_credentials(origin);
+    /// Remove every remembered credential representation for one canonical origin without
+    /// touching its active config or session. Session-only login uses this before committing
+    /// the new identity so a later expiry or 401 cannot revive an older remembered account.
+    pub async fn clear_credentials(&self, origin: &str) -> Result<()> {
+        // Fail before changing filesystem state if the secure-store deletion fails. A caller can
+        // then safely leave the existing config/session unchanged and report the failed login.
+        self.keyring.delete_credentials(origin)?;
         for path in [
-            self.origin_path("session", origin, "json"),
             self.origin_path("credentials", origin, "enc.json"),
             self.origin_path("credentials", origin, "key"),
         ] {
             remove_file_if_exists(&path).await?;
         }
-        if self.should_remove_legacy_session(origin).await {
-            remove_file_if_exists(&self.session_path).await?;
-        }
         if self.should_remove_legacy_credentials(origin).await {
             remove_file_if_exists(&self.credentials_path).await?;
             remove_file_if_exists(&self.key_path).await?;
+        }
+        Ok(())
+    }
+
+    pub async fn forget_origin(&self, origin: &str) -> Result<()> {
+        self.clear_credentials(origin).await?;
+        remove_file_if_exists(&self.origin_path("session", origin, "json")).await?;
+        if self.should_remove_legacy_session(origin).await {
+            remove_file_if_exists(&self.session_path).await?;
         }
         if self
             .read_config()
@@ -155,7 +165,7 @@ impl StateStore {
         {
             remove_file_if_exists(&self.config_path).await?;
         }
-        keyring_result
+        Ok(())
     }
 
     async fn should_remove_legacy_session(&self, origin: &str) -> bool {
@@ -354,9 +364,6 @@ mod tests {
 
     #[tokio::test]
     async fn legacy_unscoped_encrypted_credentials_are_not_reused() {
-        unsafe {
-            std::env::set_var("DOCMOST_DISABLE_KEYRING", "1");
-        }
         let temp_dir = TempDir::new().unwrap();
         let store = StateStore::new(Some(temp_dir.path().to_path_buf()), true).unwrap();
         let key = store

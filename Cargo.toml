@@ -5,6 +5,7 @@ edition = "2024"
 description = "Docmost MCP server for local IDE integrations"
 license = "MIT"
 repository = "https://github.com/BonEvil/docmost-local-mcp"
+homepage = "https://github.com/BonEvil/docmost-local-mcp"
 
 [profile.release]
 codegen-units = 1

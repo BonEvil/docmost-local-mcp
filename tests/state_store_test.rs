@@ -142,6 +142,41 @@ async fn clears_saved_session_without_touching_credentials() {
 }
 
 #[tokio::test]
+async fn clear_credentials_is_idempotent_and_preserves_config_and_session() {
+    unsafe { std::env::set_var("DOCMOST_DISABLE_KEYRING", "1") };
+    let temp_dir = TempDir::new().unwrap();
+    let store = StateStore::new(Some(temp_dir.path().to_path_buf()), true).unwrap();
+    let config = StoredConfig {
+        base_url: ORIGIN.to_string(),
+        email: "session-only@example.com".to_string(),
+        last_authenticated_at: "2026-08-30T00:00:00.000Z".to_string(),
+    };
+    let session = StoredSession {
+        origin: Some(ORIGIN.to_string()),
+        token: "session-only-token".to_string(),
+        expires_at: None,
+        saved_at: "2026-08-30T00:00:00.000Z".to_string(),
+    };
+    store.write_config(&config).await.unwrap();
+    store.write_session(&session).await.unwrap();
+    store
+        .write_credentials(&StoredCredentials {
+            origin: Some(ORIGIN.to_string()),
+            email: "remembered@example.com".to_string(),
+            password: "synthetic-test-value".to_string(),
+        })
+        .await
+        .unwrap();
+
+    store.clear_credentials(ORIGIN).await.unwrap();
+    store.clear_credentials(ORIGIN).await.unwrap();
+
+    assert_eq!(store.read_credentials(ORIGIN).await.unwrap(), None);
+    assert_eq!(store.read_config().await.unwrap(), Some(config));
+    assert_eq!(store.read_session(ORIGIN).await.unwrap(), Some(session));
+}
+
+#[tokio::test]
 async fn never_returns_session_or_credentials_for_a_different_origin() {
     unsafe {
         std::env::set_var("DOCMOST_DISABLE_KEYRING", "1");

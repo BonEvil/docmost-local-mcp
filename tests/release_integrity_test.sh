@@ -48,6 +48,14 @@ if [[ $name == docmost-local-mcp-* ]]; then
     mismatch) printf 'tampered binary' > "$output"; exit 0 ;;
   esac
 fi
+if [[ $name == release-manifest.json ]]; then
+  case ${TEST_SCENARIO:-success} in
+    wrong-commit) jq '.source.commit = "ffffffffffffffffffffffffffffffffffffffff"' "$FIXTURE_DIR/$name" > "$output"; exit 0 ;;
+    wrong-version) jq '.version = "v9.9.9"' "$FIXTURE_DIR/$name" > "$output"; exit 0 ;;
+    duplicate-asset) jq '.artifacts += [.artifacts[0]]' "$FIXTURE_DIR/$name" > "$output"; exit 0 ;;
+    malformed-digest) jq '.artifacts[0].sha256 = "not-a-sha256"' "$FIXTURE_DIR/$name" > "$output"; exit 0 ;;
+  esac
+fi
 cp "$FIXTURE_DIR/$name" "$output"
 MOCK_CURL
 
@@ -77,7 +85,7 @@ run_installer success >/dev/null
 cmp "$test_root/fixtures/$asset" "$test_root/install/docmost-local-mcp"
 [[ -x $test_root/install/docmost-local-mcp ]]
 
-for scenario in mismatch provenance partial oversized unapproved; do
+for scenario in mismatch provenance partial oversized unapproved wrong-commit wrong-version duplicate-asset malformed-digest; do
   printf 'known-good-before-failure\n' > "$test_root/install/docmost-local-mcp"
   if run_installer "$scenario" >/dev/null 2>&1; then
     echo "scenario unexpectedly succeeded: $scenario" >&2

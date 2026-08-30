@@ -120,8 +120,17 @@ impl AuthManager {
         let has_config = config.is_some();
         let has_credentials = credentials.is_some();
 
-        if let (Some(origin), Some(credentials)) = (preferred_origin.as_ref(), credentials.clone())
-        {
+        if let (Some(origin), Some(credentials), Some(config)) = (
+            preferred_origin.as_ref(),
+            credentials.clone(),
+            config.as_ref(),
+        ) {
+            if credentials.email != config.email {
+                self.store.clear_credentials(origin.as_str()).await?;
+                return Err(anyhow!(
+                    "Remembered credentials do not match the active Docmost identity. The stale credentials were cleared; interactive authentication is required."
+                ));
+            }
             debug_log(
                 "auth",
                 "Reauthenticating with saved credentials",
@@ -216,6 +225,11 @@ impl AuthManager {
                     password: input.password,
                 })
                 .await?;
+        } else {
+            // Clear every remembered representation before updating config/session. If clearing
+            // fails, the new session-only identity is not committed. If a later persistence step
+            // fails, the older identity can no longer be silently restored.
+            self.store.clear_credentials(&base_url).await?;
         }
         self.store
             .write_config(&StoredConfig {

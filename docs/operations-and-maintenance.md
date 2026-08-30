@@ -11,10 +11,13 @@ are recorded as passed for the exact candidate commit and lockfile.
 Use HTTPS to a canonical Docmost origin. Plain HTTP is allowed only for a
 literal loopback address and only with the explicit development flag. Use a
 restricted Docmost identity whose permissions are no broader than the required
-read operations. Do not enable remembered passwords unless unattended
-reauthentication is required and the operating-system keyring is available.
-Passwords are session-only by default. The encrypted-file fallback is weaker,
-disabled by default, and may be used only after explicit acknowledgement.
+read operations. Passwords are session-only by default; keep them that way.
+Remembered passwords require a credential store that provably retains the secret.
+The reviewed build enables no platform credential-store backend, and the supported
+headless Linux host exposes no desktop secret service, so `remember_password`
+fails closed there instead of silently discarding the password. Enabling it in
+production therefore means accepting the weaker encrypted-file fallback, which is
+disabled by default and may be used only after explicit acknowledgement.
 
 Run `docmost-local-mcp forget --base-url <canonical-origin>` when rotating the
 identity, changing the canonical origin, ending an operator session, or
