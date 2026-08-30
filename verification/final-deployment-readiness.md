@@ -2,56 +2,70 @@
 
 Date: 2026-08-30
 
-Decision: **NOT READY**
+Decision: **READY FOR PR-ONLY REPOSITORY DELIVERY**
 
 Deployment: **DISABLED**
 
 ## Verified facts
 
-- The assigned review tree `ba7a18fcd77d272ef691fa032c749d14505cf6b1`
-  contains no source or build-input drift from live-tested source commit
-  `0e67438dbf975d1818b554ec10dfbd4905b84d84` beyond three evidence files.
-- The lockfile and pinned build-input hashes match the remediation ledger; live
-  evidence binds Linux x86-64 binary `ff677008ca257de7feff1fefbddf5316d790149515a0decb618e80f05f0690d6`
-  to that source.
-- Retained exact-candidate automated and hosted checks passed. Fresh shell-based
-  release-integrity, release-context, pinned-input, and diff checks also passed.
-- Docmost Community v0.95.0 compatibility, Atlas confirmation behavior, full
-  negative/lifecycle matrix, cleanup, and bounded production non-modification
-  are directly recorded for the exact binary.
-- Provider controls are recorded as enforcing the single-maintainer terminal-gate
-  model. Remote refs independently show `main` unchanged, pull request #2's head
-  unmerged from `main`, and no candidate release tag.
+- Final-card HEAD `459c27f7a610d557995b2f4f02c271c2338760ec`
+  contains source tree `aab54d519e0bf3f32c730f5c7cf1ee0e9f272153`,
+  source-equivalent at remediation commits `e178c7d…` and `cbfea89`.
+- `Cargo.lock` is unchanged at SHA-256
+  `0db9682d4bf880bf7769e2565c8ec75b75f8d1a3820d482b0be5db3ec6374690`.
+- Fresh Linux x86-64 binary
+  `4237827500f5fd51db2ce86b767bf4aeb4cdb803a5ed28ccb2723237c6e4a90e`
+  and Linux arm64 binary
+  `f27cf1d7626f1889d77710059e60ea7995e048ad8980955fc2eac0af805f4b46`
+  are bound to the exact corrected source and pinned build image.
+- Format, warnings-denied Clippy, all-feature tests, and no-default-feature tests
+  passed; fresh independent shell release-integrity and pinned-input checks pass.
+- Docmost Community v0.95.0 compatibility exercised every read tool, default
+  write denial, the exact narrow write inventory, identity rollover, expiry,
+  401 recovery, scoped forget, loopback controls, and cleanup.
+- Exact Atlas runtime `efad3719…` recorded ten approved read dispatches, one
+  approved write dispatch, zero denied-write dispatches, no confirmation argument
+  leakage, and zero remaining registrations.
+- Direct and Atlas hostile matrices failed closed without private-value leakage.
+- Isolated cleanup read back zero containers and zero volumes. Ordinary Docmost
+  was not targeted, read, or modified.
+- The independent F-01 through F-10 re-audit found no deployment-blocking issue.
 
-## Deployment blocker
+## F-06 / IA-01 closure
 
-F-06 / IA-01 is not closed. On a session-only identity change, the code writes
-the new config before the new session. If the session write fails, the old
-same-origin session survives. A restart accepts that old token based on origin
-and expiry alone while labeling it with the new configured identity. This can
-silently restore the previous account's authority.
-
-The complete source trace and closure conditions are in
-`verification/final-independent-post-remediation-audit.md`.
+Persisted sessions now carry an authenticated identity and are reusable only
+when canonical origin and email exactly match active configuration. Legacy
+unbound and mismatched sessions fail closed. The prior session is invalidated
+before replacement config/session persistence. Deterministic failure injection
+proves a failed session replacement leaves no identity-A token or remembered
+credential that restart can reuse.
 
 ## Accepted residual risks
 
-- No durable platform credential-store backend is compiled for the reviewed
-  headless host; remembered-password requests fail closed unless the explicitly
-  acknowledged encrypted-file fallback is enabled.
-- The exact unreachable `rmcp` advisory exception and all advisory data must be
+- Remember-password fails closed on the reviewed headless build unless the
+  acknowledged encrypted-file fallback is enabled; adding a real credential
+  backend requires dependency and advisory review.
+- The exact unreachable rmcp advisory exception and advisory data must be
   refreshed for every candidate and release.
-- JSON-RPC tool errors cause generic Atlas unavailability after safe failure,
-  reducing diagnostic quality without creating an authority or data leak.
-- Synthetic content remains inside the disposable Docmost instance, which is the
-  containment boundary.
-- Release safety depends on the recorded provider controls remaining enforced;
-  no real fork release has been authorized or exercised.
+- JSON-RPC tool errors cause generic Atlas unavailability, reducing diagnostic
+  quality without weakening fail-closed behavior.
+- Synthetic content remains only inside the disposable Docmost containment
+  boundary because the reviewed surface has no delete operation.
+- Release safety depends on recorded provider controls remaining enforced; no
+  real release has been authorized or exercised.
+- A tailnet-only `:8443` proxy rule remains because disabling it requires
+  interactive sudo. It contains no data, points to a closed port, and is outside
+  the repository/runtime acceptance boundary.
 
-## Boundary
+## Remaining blockers
 
-No merge, tag, release, installation, production access, production Atlas
-registration, or deployment is authorized. Repository delivery is not cleared
-until the blocker is fixed and a new candidate passes the complete evidence
-chain and independent gate. Even then, delivery is limited to an **unmerged pull
-request targeting `BonEvil/main`**; merge and deployment remain separately gated.
+None for PR-only repository delivery of this exact candidate.
+
+## Authority boundary
+
+Repository delivery may proceed only to an **unmerged pull request targeting
+`BonEvil/main`**. This decision does not authorize merge, tag creation, release,
+installation, production access, production Atlas registration, or deployment.
+Deployment remains disabled pending separate approval. Any source, lockfile,
+dependency, workflow, or build-input change invalidates this decision and
+requires the complete evidence chain and independent gate to be rerun.
