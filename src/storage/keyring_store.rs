@@ -37,15 +37,33 @@ impl KeyringStore {
             bail!("Secure OS credential storage is unavailable.");
         }
 
-        let entry = keyring::Entry::new(KEYRING_SERVICE, &keyring_username(origin))
+        let username = keyring_username(origin);
+        let entry = keyring::Entry::new(KEYRING_SERVICE, &username)
             .context("Failed to initialize keyring entry")?;
         let value = serde_json::to_string(credentials)
             .context("Failed to encode credentials for keyring")?;
 
-        match entry.set_password(&value) {
-            Ok(()) => Ok(()),
-            Err(error) => Err(anyhow!(error)).context("Failed to write credentials to keyring"),
+        if let Err(error) = entry.set_password(&value) {
+            return Err(anyhow!(error)).context("Failed to write credentials to keyring");
         }
+        // A build or platform without a real credential store resolves to an entry-scoped
+        // store that reports success and retains nothing. Confirm through an independent
+        // handle that the secret is actually retrievable, so a remembered password can
+        // never be silently discarded: persistence must either work or fail closed.
+        if !self.stored_value_is_retrievable(&username, &value) {
+            let _ = entry.delete_credential();
+            bail!("Secure OS credential storage is unavailable.");
+        }
+        Ok(())
+    }
+
+    /// Read the just-written secret back through a separate entry handle. Any missing,
+    /// unreadable, or mismatched value means the store did not durably retain it.
+    fn stored_value_is_retrievable(&self, username: &str, expected: &str) -> bool {
+        keyring::Entry::new(KEYRING_SERVICE, username)
+            .ok()
+            .and_then(|verifier| verifier.get_password().ok())
+            .is_some_and(|stored| stored == expected)
     }
 
     pub fn delete_credentials(&self, origin: &str) -> Result<()> {
@@ -89,6 +107,7 @@ fn is_missing_entry(error: &keyring::Error) -> bool {
 #[cfg(test)]
 mod tests {
     use super::{KeyringStore, keyring_username};
+    use crate::types::StoredCredentials;
 
     #[test]
     fn keyring_identity_is_origin_specific_and_never_uses_the_legacy_account() {
@@ -101,6 +120,31 @@ mod tests {
             keyring_username("https://other.example.com")
         );
         assert_ne!(keyring_username("https://docs.example.com"), "credentials");
+    }
+
+    #[test]
+    fn non_persisting_credential_store_fails_closed_instead_of_discarding_the_password() {
+        unsafe { std::env::remove_var("DOCMOST_DISABLE_KEYRING") };
+        keyring::set_default_credential_builder(keyring::mock::default_credential_builder());
+
+        // The mock store accepts `set_password` but retains nothing outside the entry, so a
+        // remembered password would otherwise be reported as saved and silently lost.
+        let error = KeyringStore
+            .write_credentials(
+                "https://docs.example.com",
+                &StoredCredentials {
+                    origin: Some("https://docs.example.com".to_string()),
+                    email: "operator@example.com".to_string(),
+                    password: "synthetic-test-value".to_string(),
+                },
+            )
+            .unwrap_err();
+
+        assert!(
+            error
+                .to_string()
+                .contains("Secure OS credential storage is unavailable")
+        );
     }
 
     #[test]
