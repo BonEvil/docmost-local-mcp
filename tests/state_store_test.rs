@@ -60,6 +60,7 @@ async fn explicit_fallback_opt_in_persists_config_session_and_encrypted_credenti
     store
         .write_session(&StoredSession {
             origin: Some(ORIGIN.to_string()),
+            email: Some("jane@example.com".to_string()),
             token: "token-value".to_string(),
             expires_at: Some("2026-03-12T01:00:00.000Z".to_string()),
             saved_at: "2026-03-12T00:00:00.000Z".to_string(),
@@ -87,6 +88,7 @@ async fn explicit_fallback_opt_in_persists_config_session_and_encrypted_credenti
         store.read_session(ORIGIN).await.unwrap(),
         Some(StoredSession {
             origin: Some(ORIGIN.to_string()),
+            email: Some("jane@example.com".to_string()),
             token: "token-value".to_string(),
             expires_at: Some("2026-03-12T01:00:00.000Z".to_string()),
             saved_at: "2026-03-12T00:00:00.000Z".to_string(),
@@ -113,6 +115,7 @@ async fn clears_saved_session_without_touching_credentials() {
     store
         .write_session(&StoredSession {
             origin: Some(ORIGIN.to_string()),
+            email: Some("jane@example.com".to_string()),
             token: "token-value".to_string(),
             expires_at: None,
             saved_at: "2026-03-12T00:00:00.000Z".to_string(),
@@ -153,6 +156,7 @@ async fn clear_credentials_is_idempotent_and_preserves_config_and_session() {
     };
     let session = StoredSession {
         origin: Some(ORIGIN.to_string()),
+        email: Some("session-only@example.com".to_string()),
         token: "session-only-token".to_string(),
         expires_at: None,
         saved_at: "2026-08-30T00:00:00.000Z".to_string(),
@@ -187,6 +191,7 @@ async fn never_returns_session_or_credentials_for_a_different_origin() {
     store
         .write_session(&StoredSession {
             origin: Some(ORIGIN.to_string()),
+            email: Some("jane@example.com".to_string()),
             token: "origin-a-token".to_string(),
             expires_at: None,
             saved_at: "2026-03-12T00:00:00.000Z".to_string(),
@@ -260,6 +265,7 @@ async fn forget_is_complete_idempotent_and_origin_scoped() {
         store
             .write_session(&StoredSession {
                 origin: Some(origin.to_string()),
+                email: Some(email.to_string()),
                 token: token.to_string(),
                 expires_at: None,
                 saved_at: "2026-08-28T00:00:00.000Z".to_string(),

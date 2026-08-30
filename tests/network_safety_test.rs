@@ -72,6 +72,7 @@ async fn seeded_client(
     store
         .write_session(&StoredSession {
             origin: Some(origin.to_string()),
+            email: Some("fixture@example.test".to_string()),
             token: "synthetic-session-token".to_string(),
             expires_at: None,
             saved_at: "2026-08-27T00:00:00.000Z".to_string(),
