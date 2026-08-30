@@ -1,0 +1,52 @@
+{
+  "candidate": {
+    "commit": "e178c7d847987ecdca3c9bf076c0ec0cd481e83f",
+    "tree": "aab54d519e0bf3f32c730f5c7cf1ee0e9f272153",
+    "cargoLockBlob": "abe8f39adadd7dde826fa8fdd046f4ee683d0a59"
+  },
+  "binaries": {
+    "linuxX64Sha256": "4237827500f5fd51db2ce86b767bf4aeb4cdb803a5ed28ccb2723237c6e4a90e",
+    "linuxArm64Sha256": "f27cf1d7626f1889d77710059e60ea7995e048ad8980955fc2eac0af805f4b46"
+  },
+  "automated": {
+    "fmt": true,
+    "clippyAllTargetsAllFeaturesDenyWarnings": true,
+    "testNoDefaultFeatures": true,
+    "testAllFeatures": true,
+    "failureInjectionRegression": true,
+    "lockfileChanged": false
+  },
+  "docmostCompatibility": {
+    "version": "0.95.0",
+    "allTenReadToolsExercised": true,
+    "defaultInventoryExact": true,
+    "defaultMutationsUnavailable": true,
+    "narrowWriteInventoryExact": true,
+    "unallowlistedMutationsUnavailable": true,
+    "identityRollbackPrevented": true,
+    "legacyUnboundSessionRejected": true,
+    "disposableLifecycleHomesRemoved": true
+  },
+  "atlasControl": {
+    "runtimeCommit": "efad3719b67fc9949be3809a7d07b297a64de10d",
+    "approvedReadDispatches": 10,
+    "approvedWriteDispatches": 1,
+    "deniedWriteDispatches": 0,
+    "confirmationArgumentLeak": false,
+    "registrationsAfterRun": 0
+  },
+  "negativeMatrix": {
+    "directAllFailedClosed": true,
+    "atlasAllFailedClosed": true,
+    "timeoutWithinDeadline": true,
+    "redirectTargetHits": 0,
+    "anyLeak": false
+  },
+  "cleanup": {
+    "isolatedContainers": 0,
+    "isolatedVolumes": 0,
+    "ordinaryDocmostTouched": false,
+    "tailnet8443RuleDisabled": false,
+    "tailnet8443RuleContainsData": false
+  }
+}
