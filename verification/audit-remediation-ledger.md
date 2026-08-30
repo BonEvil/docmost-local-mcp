@@ -60,6 +60,15 @@ or on the host:
 - CI and release workflow YAML parsed with the expected job sets
 - `git diff --check` and a clean worktree
 
+## Hosted gate on the exact candidate
+
+Draft pull request #2 published source candidate `0e67438` and evidence commit
+`9e01947` on the card branch. All 13 hosted check runs on `9e01947` completed
+successfully in Actions run `33318452752`: six platform builds, three Rust
+check configurations, dependency policy, launcher smoke, release integrity, and
+the terminal `Integrated security and release gate`. The pull request remains
+draft, unmerged, and targeted at the protected branch.
+
 ## Refreshed live evidence
 
 The complete IA-03 matrix was re-executed on binary
