@@ -1,0 +1,15 @@
+Types: deb
+# Debian Release files and packages are signature/hash verified by apt. HTTP is required for
+# the minimal runtime stage before its pinned ca-certificates package is installed.
+URIs: http://snapshot.debian.org/archive/debian/20260829T000000Z
+Suites: bookworm bookworm-updates
+Components: main
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+Check-Valid-Until: no
+
+Types: deb
+URIs: http://snapshot.debian.org/archive/debian-security/20260829T000000Z
+Suites: bookworm-security
+Components: main
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+Check-Valid-Until: no

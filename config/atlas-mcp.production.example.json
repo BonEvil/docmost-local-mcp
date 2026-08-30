@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "docmost": {
+      "command": "/opt/atlas/mcp/docmost-local-mcp",
+      "args": [
+        "--base-url=https://docs.example.com",
+        "--authority-mode=read-only"
+      ]
+    }
+  }
+}

@@ -78,6 +78,15 @@ impl DocmostMcpServer {
         &self,
         Parameters(input): Parameters<UpdatePageInput>,
     ) -> Result<String, ErrorData> {
+        if let Some(markdown) = input.markdown.as_deref() {
+            crate::network_policy::validate_text(
+                "markdown",
+                markdown,
+                self.client.network_policy().max_markdown_bytes,
+                true,
+            )
+            .map_err(internal_error)?;
+        }
         let content = input
             .markdown
             .as_deref()

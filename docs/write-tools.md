@@ -1,5 +1,10 @@
 # Write Tools: `create_page` & `update_page`
 
+> Authority note: write tools are not exposed by default. They require explicit
+> write mode and per-tool allowlisting as described in
+> [Authority modes](authority-modes.md). MCP annotations are advisory; Atlas must
+> still require confirmation for each write.
+
 This document describes the two write tools added to the Docmost MCP server, how
 they get Markdown body content into Docmost, the exact Docmost API they call, and
 the caveats that matter when running against a self-hosted instance.

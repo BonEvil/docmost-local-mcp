@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-08-30T13:58:41Z",
+  "producer": "audit-remediation blocker resolution plus fresh Atlas provider reads",
+  "repository": "BonEvil/docmost-local-mcp",
+  "governanceModel": "single-maintainer",
+  "sourceCommit": "f398ebb0ae253933f0ae4f1f891c2f19a3921aca",
+  "evidenceCommit": "06bbe066686c3b0872c97d621e35015b6ab4291e",
+  "draftPullRequest": {
+    "number": 2,
+    "base": "main",
+    "open": true,
+    "draft": true,
+    "merged": false,
+    "checkRunCount": 13,
+    "allCheckRunsCompletedSuccessfully": true,
+    "terminalCheck": "Integrated security and release gate",
+    "platformBuildCount": 6
+  },
+  "mainProtection": {
+    "pullRequestRequired": true,
+    "humanApprovalsRequired": 0,
+    "strictRequiredCheck": "Integrated security and release gate",
+    "adminsEnforced": true,
+    "dismissStaleReviews": true,
+    "conversationResolutionRequired": true,
+    "linearHistoryRequired": true,
+    "forcePushAllowed": false,
+    "deletionAllowed": false
+  },
+  "tagProtection": {
+    "rulesetId": 21860233,
+    "active": true,
+    "pattern": "refs/tags/v*",
+    "updateAllowed": false,
+    "deletionAllowed": false,
+    "bypassCount": 0
+  },
+  "immutableReleases": true,
+  "protectedReleaseEnvironment": {
+    "name": "protected-release",
+    "requiredReviewer": "BonEvil",
+    "preventSelfReview": false,
+    "protectedBranchPolicy": true
+  },
+  "actionsPolicy": {
+    "exactReviewedFullShaReferenceCount": 9,
+    "githubOwnedBroadAllowance": false,
+    "verifiedCreatorBroadAllowance": false
+  },
+  "homepageCorrectedToFork": true,
+  "candidateBinary": {
+    "platform": "linux-x64",
+    "sha256": "a7318362aac167aead3c008ff43ab11ec9f7efdf0953e7ad4ce5a7975338c291",
+    "buildInputsPinned": true,
+    "installedOnlyOnApprovedIsolatedHost": true
+  },
+  "deploymentEnabled": false,
+  "notes": [
+    "Provider settings were applied and read back by the authorized administrator before this Card Run resumed.",
+    "The resumed Card Run independently refreshed pull-request and exact-commit hosted-check status through the bound Atlas provider connection.",
+    "This evidence contains no credentials, private origins, private addresses, or private content."
+  ]
+}

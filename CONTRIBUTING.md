@@ -1,20 +1,20 @@
 # Contributing
 
-Thanks for contributing to `@wisflux/docmost-local-mcp`.
+Thanks for contributing to the BonEvil `docmost-local-mcp` hardened fork.
 
-This document covers local setup, native-webview prerequisites, release packaging, and maintainer-facing workflow details that are intentionally kept out of the public `README.md`.
+This document covers local setup and repository checks. Security-preserving
+sync, patch, advisory, release, and Atlas procedures are in
+[`docs/operations-and-maintenance.md`](docs/operations-and-maintenance.md).
 
 ## Prerequisites
 
-- Node.js 18 or newer for npm packaging and launcher validation
+- Node.js 20 for legacy launcher syntax and smoke validation
 - Rust toolchain (`cargo`, `rustc`)
 - A reachable Docmost instance for manual auth testing
 
-Platform-specific native-webview requirements:
-
-- macOS: Xcode command line tools
-- Windows: WebView2 runtime
-- Linux: GTK/WebKitGTK development packages
+Authentication uses the system browser on every platform. Native embedded
+webviews are intentionally unsupported because their GTK/WebKit dependency
+chain could not meet this project's active dependency policy.
 
 ## Local Setup
 
@@ -26,12 +26,13 @@ Useful commands:
 
 ```bash
 cargo fmt
-cargo clippy --all-targets --all-features -- -D warnings
-cargo test
+cargo clippy --locked --all-targets --no-default-features -- -D warnings
+cargo test --locked --no-default-features
 cargo build --release
 ```
 
-To build a headless variant that always falls back to the browser:
+The former `native-webview` feature is a no-op compatibility switch; all builds
+use the browser-authentication flow:
 
 ```bash
 cargo build --release --no-default-features
@@ -40,7 +41,7 @@ cargo build --release --no-default-features
 ## Repository Layout
 
 - `src/`: Rust MCP server, auth flow, Docmost client, storage, and ProseMirror conversion
-- `npm/launcher/`: Node launcher package used by `npx`, plus postinstall binary downloader
+- `npm/launcher/`: retained legacy launcher code; not an Atlas production path
 - `.github/workflows/`: CI and release workflows
 
 ## Local npx-style test (launcher + binary)
@@ -96,28 +97,15 @@ HOME="$TMP_HOME" cargo run -- --base-url=https://docs.example.com
 
 This forces the package to create a fresh `~/.docmost-local-mcp/` under the temporary home directory.
 
-## Linux Build Dependencies
-
-Ubuntu builds require:
-
-```bash
-sudo apt-get install -y \
-  pkg-config \
-  libgtk-3-dev \
-  libwebkit2gtk-4.1-dev \
-  libsoup-3.0-dev \
-  libjavascriptcoregtk-4.1-dev
-```
-
-If Linux native-webview builds fail locally or in CI, check these first.
-
 ## CI
 
 `ci.yml` runs:
 
 - `cargo fmt --check`
-- `cargo clippy --all-targets --all-features -- -D warnings`
-- `cargo test`
+- locked Clippy and tests for Linux headless, macOS compatibility, and Windows compatibility configurations
+- `cargo deny check advisories bans licenses sources` with only the exact,
+  documented unreachable-path exception in `deny.toml`
+- weekly Dependabot updates and a scheduled weekly CI policy run
 - MCP tool registration coverage, including object-shaped input schemas for no-arg tools
 - a launcher smoke test with a mock binary in `bin/`
 - release binary builds on:
@@ -128,43 +116,10 @@ If Linux native-webview builds fail locally or in CI, check these first.
   - `windows-11-arm`
   - `windows-2025`
 
-## Making `npx @wisflux/docmost-local-mcp` work
+## Release model
 
-The command works once the npm package is published and a matching GitHub Release exists with platform binaries. To publish a release:
-
-1. Commit any changes and ensure CI passes on `main`.
-2. Create and push a version tag (version is taken from the tag; e.g. `v0.2.0` → published as `0.2.0`):
-
-   ```bash
-   git tag v0.2.0
-   git push origin v0.2.0
-   ```
-
-3. The **Release** workflow will:
-   - Build binaries for all 6 platforms
-   - Create a GitHub Release with each binary as a downloadable asset
-   - Publish the single `@wisflux/docmost-local-mcp` package to npm
-
-4. When a user runs `npx -y @wisflux/docmost-local-mcp`, the `postinstall` script downloads the correct platform binary from the GitHub Release.
-
-## Trusted Publishing
-
-This project is set up for npm trusted publishing via GitHub Actions OIDC.
-
-Before automated publishing works:
-
-1. Open the npm package settings for `@wisflux/docmost-local-mcp`
-2. Enable **Trusted publishing**
-3. Choose **GitHub Actions**
-4. Set the workflow filename to `release.yml`
-
-No long-lived `NPM_TOKEN` secret is needed when this is configured.
-
-## Packaging Model
-
-This project publishes a single npm package (`@wisflux/docmost-local-mcp`) containing:
-
-- `cli.js`: thin Node launcher that executes the platform binary
-- `postinstall.js`: downloads the correct platform binary from GitHub Releases on install
-
-Platform binaries are hosted as GitHub Release assets named `docmost-local-mcp-{platform}-{arch}` (e.g. `docmost-local-mcp-darwin-arm64`, `docmost-local-mcp-win32-x64.exe`).
+Atlas production does not use the npm launcher or downloader. The fork-owned
+release workflow builds versioned platform binaries, a commit-bound manifest,
+checksums, a Sigstore bundle, and GitHub provenance. Publication is a separately
+approved maintainer action after every repository and live gate passes. See
+[`docs/atlas-release-integrity.md`](docs/atlas-release-integrity.md).

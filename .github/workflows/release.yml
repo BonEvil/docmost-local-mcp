@@ -4,172 +4,184 @@ on:
   push:
     tags:
       - "v*"
-  workflow_dispatch:
-    inputs:
-      publish:
-        description: "Publish the package to npm"
-        type: boolean
-        default: false
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
+  verify-release-context:
+    name: Verify signed reviewed release context
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      checks: read
+    steps:
+      - name: Checkout full reviewed history
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+
+      - name: Fetch protected branch without trusting the tag ref
+        run: git fetch --no-tags origin main:refs/remotes/origin/main
+
+      - name: Capture signed tag and exact-commit gate evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag_name=${GITHUB_REF#refs/tags/}
+          ref_json=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag_name")
+          test "$(jq -r '.object.type' <<<"$ref_json")" = tag
+          tag_oid=$(jq -r '.object.sha' <<<"$ref_json")
+          tag_json=$(gh api "repos/$GITHUB_REPOSITORY/git/tags/$tag_oid")
+          tag_commit=$(jq -r '.object.sha' <<<"$tag_json")
+          checks_json=$(gh api -H 'Accept: application/vnd.github+json' \
+            "repos/$GITHUB_REPOSITORY/commits/$tag_commit/check-runs?per_page=100")
+          gate_json=$(jq -c --arg sha "$tag_commit" '
+            [.check_runs[] | select(
+              .name == "Integrated security and release gate" and
+              .head_sha == $sha and .conclusion == "success"
+            )] | if length == 1 then .[0] else error("exactly one successful security gate is required") end
+          ' <<<"$checks_json")
+          jq -S -n \
+            --arg repository "$GITHUB_REPOSITORY" \
+            --arg tag "$tag_name" \
+            --arg tag_commit "$tag_commit" \
+            --argjson verification "$(jq '.verification' <<<"$tag_json")" \
+            --argjson gate "$gate_json" \
+            '{schemaVersion:1,repository:$repository,tag:$tag,tagObjectType:"tag",
+              signature:{verified:$verification.verified,reason:$verification.reason},
+              tagCommit:$tag_commit,
+              securityGate:{name:$gate.name,conclusion:$gate.conclusion,headSha:$gate.head_sha}}' \
+            > release-context.json
+          bash scripts/verify-release-context.sh release-context.json "$GITHUB_SHA" refs/remotes/origin/main
+
+      - name: Retain non-secret release authorization evidence
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: release-context
+          path: release-context.json
+          if-no-files-found: error
+          retention-days: 30
+
   build-binaries:
-    name: Build Binary (${{ matrix.target.id }})
+    name: Build binary (${{ matrix.target.id }})
     runs-on: ${{ matrix.target.runner }}
+    needs: verify-release-context
     strategy:
       fail-fast: false
       matrix:
         target:
-          - id: darwin-arm64
-            runner: macos-15
-            binary_name: docmost-local-mcp
-          - id: darwin-x64
-            runner: macos-15-intel
-            binary_name: docmost-local-mcp
-          - id: linux-arm64
-            runner: ubuntu-24.04-arm
-            binary_name: docmost-local-mcp
-          - id: linux-x64
-            runner: ubuntu-24.04
-            binary_name: docmost-local-mcp
-          - id: win32-arm64
-            runner: windows-11-arm
-            binary_name: docmost-local-mcp.exe
-          - id: win32-x64
-            runner: windows-2025
-            binary_name: docmost-local-mcp.exe
+          - { id: darwin-arm64, runner: macos-15, binary_name: docmost-local-mcp }
+          - { id: darwin-x64, runner: macos-15-intel, binary_name: docmost-local-mcp }
+          - { id: linux-arm64, runner: ubuntu-24.04-arm, binary_name: docmost-local-mcp }
+          - { id: linux-x64, runner: ubuntu-24.04, binary_name: docmost-local-mcp }
+          - { id: win32-arm64, runner: windows-11-arm, binary_name: docmost-local-mcp.exe }
+          - { id: win32-x64, runner: windows-2025, binary_name: docmost-local-mcp.exe }
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
+      - name: Checkout reviewed source
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
-      - name: Setup Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+      - name: Install pinned Rust toolchain
+        uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable action commit
+        with:
+          toolchain: 1.98.0
 
       - name: Cache Rust dependencies
-        uses: Swatinem/rust-cache@v2
+        uses: Swatinem/rust-cache@49a0bdc70d2e1b713ca9e2869b211fcce03d3c1c # v2
 
-      - name: Install Linux system dependencies
-        if: runner.os == 'Linux'
+      - name: Set deterministic build metadata
+        shell: bash
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            pkg-config \
-            libgtk-3-dev \
-            libwebkit2gtk-4.1-dev \
-            libsoup-3.0-dev \
-            libjavascriptcoregtk-4.1-dev
+          echo "SOURCE_DATE_EPOCH=$(git show -s --format=%ct "$GITHUB_SHA")" >> "$GITHUB_ENV"
+          echo "CARGO_INCREMENTAL=0" >> "$GITHUB_ENV"
+          echo "RUSTFLAGS=--remap-path-prefix=$GITHUB_WORKSPACE=." >> "$GITHUB_ENV"
 
-      - name: Build release binary
-        run: cargo build --release
+      - name: Build release binary from lockfile
+        run: cargo build --locked --release --no-default-features
 
-      - name: Rename binary for upload
+      - name: Stage versioned binary
         shell: bash
         run: |
           ext=""
           if [[ "${{ matrix.target.binary_name }}" == *.exe ]]; then ext=".exe"; fi
           cp "target/release/${{ matrix.target.binary_name }}" "docmost-local-mcp-${{ matrix.target.id }}${ext}"
 
-      - name: Build headless binary for containers (Linux only)
-        if: runner.os == 'Linux'
-        run: |
-          cargo build --release --no-default-features
-          cp "target/release/${{ matrix.target.binary_name }}" "docmost-local-mcp-${{ matrix.target.id }}-headless"
-
       - name: Upload binary artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
         with:
           name: binary-${{ matrix.target.id }}
           path: docmost-local-mcp-${{ matrix.target.id }}*
           if-no-files-found: error
+          retention-days: 7
 
   release:
-    name: Create GitHub Release
+    name: Sign manifest and create release
     runs-on: ubuntu-24.04
-    needs: build-binaries
+    needs:
+      - verify-release-context
+      - build-binaries
+    environment: protected-release
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
+      - name: Checkout reviewed source
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
 
-      - name: Setup Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+      - name: Install pinned Rust toolchain
+        uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable action commit
+        with:
+          toolchain: 1.98.0
+          components: rustfmt, clippy
 
-      - name: Install Linux system dependencies
+      - name: Run locked release tests
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            pkg-config \
-            libgtk-3-dev \
-            libwebkit2gtk-4.1-dev \
-            libsoup-3.0-dev \
-            libjavascriptcoregtk-4.1-dev
+          cargo fmt --check
+          cargo clippy --locked --all-targets --all-features -- -D warnings
+          cargo test --locked --all-features
+          cargo test --locked --no-default-features
+          bash tests/release_integrity_test.sh
+          bash tests/release_context_test.sh
+          bash scripts/check-pinned-inputs.sh
 
-      - name: Run Rust tests
-        run: cargo test
-
-      - name: Download all binary artifacts
-        uses: actions/download-artifact@v5
+      - name: Download binary artifacts
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
           pattern: binary-*
           path: release-binaries
           merge-multiple: true
 
-      - name: Create GitHub Release
+      - name: Generate commit-bound manifest and checksums
+        shell: bash
+        run: |
+          chmod +x scripts/generate-release-manifest.sh
+          scripts/generate-release-manifest.sh release-binaries "$GITHUB_REF_NAME" "$GITHUB_SHA" release-manifest.json
+          (cd release-binaries && sha256sum docmost-local-mcp-* | LC_ALL=C sort) > SHA256SUMS
+
+      - name: Install pinned cosign
+        uses: sigstore/cosign-installer@d7543c93d881b35a8faa02e8e3605f69b7a1ce62 # v3.10.0
+        with:
+          cosign-release: v3.0.3
+
+      - name: Keyless-sign commit-bound release manifest
+        env:
+          COSIGN_YES: "true"
+        run: cosign sign-blob --bundle release-manifest.sigstore.json release-manifest.json
+
+      - name: Create GitHub build provenance
+        uses: actions/attest-build-provenance@43d14bc2b83dec42d39ecae14e916627a18bb661 # v3
+        with:
+          subject-path: release-binaries/docmost-local-mcp-*
+
+      - name: Create GitHub release assets
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${{ github.ref_name }}" \
-            --title "${{ github.ref_name }}" \
+          gh release create "$GITHUB_REF_NAME" \
+            --verify-tag \
+            --title "$GITHUB_REF_NAME" \
             --generate-notes \
-            release-binaries/*
-
-  publish:
-    name: Publish to npm
-    runs-on: ubuntu-24.04
-    needs: release
-    if: github.event_name == 'push' || inputs.publish
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24
-          registry-url: https://registry.npmjs.org
-
-      - name: Ensure npm supports Trusted Publishing
-        run: npm install -g npm@latest
-
-      - name: Prepare npm package
-        shell: bash
-        run: |
-          set -euo pipefail
-          VERSION="${GITHUB_REF_NAME#v}"
-          if [ "$VERSION" = "$GITHUB_REF_NAME" ]; then
-            VERSION="$(sed -n 's/^version = "\([^"]*\)"/\1/p' Cargo.toml | head -n 1)"
-          fi
-
-          mkdir -p release-package
-          cp npm/launcher/cli.js release-package/
-          cp npm/launcher/postinstall.js release-package/
-          cp npm/launcher/package.json release-package/
-          cp README.md LICENSE release-package/
-
-          node -e "
-            const fs = require('fs');
-            const pkgPath = 'release-package/package.json';
-            const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-            pkg.version = process.env.VERSION;
-            pkg.files = ['cli.js', 'postinstall.js', 'README.md', 'LICENSE'];
-            fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
-          "
-        env:
-          VERSION: ${{ github.ref_name }}
-
-      - name: Publish to npm
-        run: cd release-package && npm publish --access public --provenance
+            release-binaries/* SHA256SUMS release-manifest.json release-manifest.sigstore.json

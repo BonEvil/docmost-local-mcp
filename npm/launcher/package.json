@@ -1,5 +1,5 @@
 {
-  "name": "@wisflux/docmost-local-mcp",
+  "name": "@bonevil/docmost-local-mcp",
   "version": "0.9.2",
   "description": "MCP server for self-hosted Docmost (Community Edition) — read & write your wiki from Claude, Cursor, and VS Code",
   "license": "MIT",
@@ -23,11 +23,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisflux/docmost-local-mcp.git"
+    "url": "https://github.com/BonEvil/docmost-local-mcp.git"
   },
-  "homepage": "https://github.com/wisflux/docmost-local-mcp#readme",
+  "homepage": "https://github.com/BonEvil/docmost-local-mcp#readme",
   "bugs": {
-    "url": "https://github.com/wisflux/docmost-local-mcp/issues"
+    "url": "https://github.com/BonEvil/docmost-local-mcp/issues"
   },
   "bin": {
     "docmost-local-mcp": "./cli.js"
