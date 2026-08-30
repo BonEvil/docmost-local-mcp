@@ -1,12 +1,13 @@
-# @wisflux/docmost-local-mcp
+# docmost-local-mcp hardened fork
 
-[![npm version](https://img.shields.io/npm/v/@wisflux/docmost-local-mcp.svg)](https://www.npmjs.com/package/@wisflux/docmost-local-mcp)
-[![npm downloads](https://img.shields.io/npm/dm/@wisflux/docmost-local-mcp.svg)](https://www.npmjs.com/package/@wisflux/docmost-local-mcp)
-[![license](https://img.shields.io/npm/l/@wisflux/docmost-local-mcp.svg)](./LICENSE)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
 MCP server for [Docmost](https://docmost.com/) that is built for self-hosted instances, especially deployments that do not have an enterprise license but still want reliable MCP access from local IDEs and AI tools.
 
-The package is launched with `npx`, while the actual server is a Rust binary downloaded from GitHub Releases during install. That binary handles stdio MCP traffic, local authentication UX, session storage, and Docmost API access.
+Atlas production launches a reviewed Rust binary from this fork by absolute path.
+The supported installer verifies a reviewed SHA-256 digest and a keyless-signed,
+commit-bound release manifest before an atomic install. The legacy npm downloader
+is disabled. See [Atlas release integrity](docs/atlas-release-integrity.md).
 
 > The main reason this project exists: bring MCP access to self-hosted Docmost setups without making an enterprise license a prerequisite.
 
@@ -18,21 +19,24 @@ Many MCP integrations are designed around hosted or enterprise assumptions. This
 - Uses Docmost email/password authentication
 - Stores session state locally for reuse
 - Opens a local auth flow instead of requiring a separate hosted control plane
-- Ships as a simple `npx` entrypoint for easy IDE integration
+- Ships as a versioned, checksum- and provenance-verified Rust binary
 
 If you run your own Docmost and want it available inside Cursor, Claude Desktop, or another MCP client, this package is the straightforward path.
 
 ## Highlights
 
 - Strong fit for self-hosted Docmost instances without enterprise licensing
-- Rust server core with a small Node launcher for predictable local installs
-- Native auth window on supported platforms, with browser fallback
+- Rust server core distributed as provenance-verified platform binaries
+- System-browser authentication on every supported platform
 - Explicit Docmost instance selection via startup config
 - Session reuse with JWT expiry checks and automatic re-login
 - OS keychain credential storage on supported platforms
 - Clean tool surface for spaces, pages, comments, members, and current user context
 
 ## Available Tools
+
+The server starts in **read-only mode**. The default inventory is the ten read
+tools below; no persistent mutation is registered:
 
 - `list_spaces`: list available Docmost spaces
 - `get_space`: fetch details for a specific space
@@ -44,6 +48,10 @@ If you run your own Docmost and want it available inside Cursor, Claude Desktop,
 - `get_comments`: list comments for a page
 - `list_workspace_members`: list workspace members
 - `get_current_user`: fetch the authenticated user and workspace context
+
+The following write tools are unavailable unless the operator enables write
+mode and names each tool in the allowlist:
+
 - `create_page`: create a new page in a space from Markdown content
 - `update_page`: update an existing page's title and/or Markdown content
 - `duplicate_page`: duplicate a page (and its sub-pages) within its space
@@ -55,6 +63,15 @@ If you run your own Docmost and want it available inside Cursor, Claude Desktop,
 - `create_comment`: add a page-level comment to a page from Markdown
 - `update_comment`: replace an existing comment's body with new Markdown
 
+See [Authority modes](docs/authority-modes.md) for the fail-closed configuration,
+the exact inventories and annotations, and the independent Atlas confirmation
+requirement.
+
+Authenticated network calls use fixed connect/request deadlines, bounded request and
+response bodies, a no-redirect policy, and content-free structured diagnostics. See
+[Network and diagnostics safety](docs/network-and-diagnostics-safety.md) for the complete
+limit and redirect decision tables.
+
 ## Roadmap
 
 All planned read and write tools are now implemented. `create_comment` adds
@@ -64,8 +81,11 @@ scope for this REST-based server.
 
 ## Compatibility
 
-Targets Docmost from roughly the last year of releases (**v0.22+**); older
-servers work best-effort. The server detects the Docmost version (via
+The release candidate targets Docmost Community **v0.95.0**, but compatibility
+with that exact version has not yet been verified against a live instance.
+Deployment remains disabled until the live procedure in
+[Operations and maintenance](docs/operations-and-maintenance.md) passes. The
+server detects the Docmost version (via
 `POST /api/version`) once per session and adapts where behaviour differs:
 
 - **Page body edits:** `update_page` can only change an existing page's **body**
@@ -91,34 +111,47 @@ supported.
 
 ## Requirements
 
-- Node.js 18 or newer for `npx`
+- A binary installed through the verified fork procedure
 - A reachable Docmost instance
 - Email/password authentication enabled in that Docmost instance
 
 ## Quick Start
 
-Run the server directly with `npx`:
+After completing the reviewed installation procedure, run the pinned binary:
 
 ```bash
-npx -y @wisflux/docmost-local-mcp --base-url=https://docs.example.com
+/opt/atlas/mcp/docmost-local-mcp --base-url=https://docs.example.com
 ```
+
+This command is read-only. A narrowly scoped write launch must include both
+explicit write mode and a nonempty allowlist, for example:
+
+```bash
+/opt/atlas/mcp/docmost-local-mcp \
+  --base-url=https://docs.example.com \
+  --authority-mode=write \
+  --write-tools=create_page,update_page
+```
+
+Environment equivalents are `DOCMOST_AUTHORITY_MODE=write` and
+`DOCMOST_WRITE_TOOLS=create_page,update_page`.
 
 You can also provide the base URL with an environment variable:
 
 ```bash
-DOCMOST_BASE_URL=https://docs.example.com npx -y @wisflux/docmost-local-mcp
+DOCMOST_BASE_URL=https://docs.example.com /opt/atlas/mcp/docmost-local-mcp
 ```
 
 ## MCP Client Configuration
 
-Most MCP clients launch the server directly with `npx`. Add this to your client's MCP config, replacing the base URL with your own Docmost instance:
+Configure the client with the absolute verified-binary path, replacing the base URL with your own Docmost instance:
 
 ```json
 {
   "mcpServers": {
     "docmost": {
-      "command": "npx",
-      "args": ["-y", "@wisflux/docmost-local-mcp", "--base-url=https://docs.example.com"]
+      "command": "/opt/atlas/mcp/docmost-local-mcp",
+      "args": ["--base-url=https://docs.example.com"]
     }
   }
 }
@@ -131,7 +164,7 @@ Where that config lives, per client:
 - **Claude Code** — one command, no file editing:
 
   ```bash
-  claude mcp add docmost -- npx -y @wisflux/docmost-local-mcp --base-url=https://docs.example.com
+  claude mcp add docmost -- /opt/atlas/mcp/docmost-local-mcp --base-url=https://docs.example.com
   ```
 
 - **VS Code (GitHub Copilot)** — `.vscode/mcp.json`, using a top-level `servers` key instead of `mcpServers`:
@@ -140,8 +173,8 @@ Where that config lives, per client:
   {
     "servers": {
       "docmost": {
-        "command": "npx",
-        "args": ["-y", "@wisflux/docmost-local-mcp", "--base-url=https://docs.example.com"]
+        "command": "/opt/atlas/mcp/docmost-local-mcp",
+        "args": ["--base-url=https://docs.example.com"]
       }
     }
   }
@@ -164,7 +197,7 @@ Once connected, ask your AI client things like:
 
 1. Your MCP client launches the server over stdio.
 2. On the first authenticated tool call, the server starts a local HTTP login page on `127.0.0.1`.
-3. The server opens a native auth window when available, or falls back to the system browser.
+3. The server opens the system browser for the loopback authentication flow.
 4. You enter your email and password there. If `--base-url` or `DOCMOST_BASE_URL` is set, the Docmost URL is prefilled and locked.
 5. The server signs in through `/api/auth/login`, extracts the `authToken` cookie, stores the session, and optionally stores credentials for automatic re-login.
 6. Future requests reuse the saved token until it is close to expiry or rejected by Docmost.
@@ -184,21 +217,23 @@ Files used there:
 
 Credentials are stored in the OS keychain when available, which is the preferred path on supported platforms.
 
-If secure OS credential storage is unavailable, the server falls back to encrypted local credential storage so it can still support login reuse without writing plain-text credentials. That fallback is intentionally secondary to keychain-backed storage.
+Passwords are not persisted by default. Interactive login stores only the resulting origin-bound session unless the operator selects **Remember password**. Remembered passwords use secure OS credential storage; keyring failures fail closed.
+
+The weaker encrypted-file fallback is disabled by default. To acknowledge that its encryption key is stored in the same protected local directory as its ciphertext, explicitly start the server with `--allow-insecure-credential-file` or `DOCMOST_ALLOW_INSECURE_CREDENTIAL_FILE=true`. This never bypasses the keyring when the keyring works.
+
+Remove authentication state for one canonical origin with:
+
+```bash
+docmost-local-mcp forget --base-url https://docs.example.com
+```
+
+For deliberately enabled literal-loopback Docmost HTTP, add `--allow-insecure-loopback-http` to the `forget` subcommand. Forget is idempotent and removes the origin's keyring entry, session, fallback ciphertext/key, matching config, legacy unscoped keyring entry, and stale/unscoped legacy files without deleting another origin's scoped state. See [Credential and loopback authentication lifecycle](docs/credential-auth-lifecycle.md).
 
 ## Platform Notes
 
-The native auth window uses the system webview on each platform:
-
-- macOS: `WKWebView`
-- Windows: `WebView2`
-- Linux: `WebKitGTK`
-
-Important caveats:
-
-- Windows needs the WebView2 runtime available
-- Linux desktop environments need WebKitGTK packages installed
-- When the binary is built without the `native-webview` feature, browser fallback is always used
+Authentication always uses the system browser. The retained `native-webview`
+Cargo feature is a no-op compatibility switch; embedded webview dependencies
+are absent from the supported dependency graph.
 
 ## Tool Reference
 

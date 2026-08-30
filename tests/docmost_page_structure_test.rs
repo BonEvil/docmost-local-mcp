@@ -10,7 +10,6 @@ use anyhow::Result;
 use axum::{Json, Router, extract::State, routing::post};
 use docmost_local_mcp::{
     docmost_client::DocmostClient,
-    startup_config::normalize_base_url,
     storage::state_store::StateStore,
     types::{StartupConfig, StoredConfig, StoredSession},
 };
@@ -48,9 +47,9 @@ async fn spawn(temp: &TempDir) -> Result<(DocmostClient, Captured)> {
     tokio::spawn(async move {
         let _ = axum::serve(listener, app).await;
     });
-    let base_url = normalize_base_url(&format!("http://{address}"));
+    let base_url = format!("http://{address}");
 
-    let store = StateStore::new(Some(temp.path().to_path_buf()))?;
+    let store = StateStore::new(Some(temp.path().to_path_buf()), true)?;
     store
         .write_config(&StoredConfig {
             base_url: base_url.clone(),
@@ -60,6 +59,8 @@ async fn spawn(temp: &TempDir) -> Result<(DocmostClient, Captured)> {
         .await?;
     store
         .write_session(&StoredSession {
+            origin: Some(base_url.clone()),
+            email: Some("jane@example.com".to_string()),
             token: "seed-token".to_string(),
             expires_at: None,
             saved_at: "2026-03-12T00:00:00.000Z".to_string(),
@@ -69,6 +70,8 @@ async fn spawn(temp: &TempDir) -> Result<(DocmostClient, Captured)> {
     let auth_manager = docmost_local_mcp::auth::manager::AuthManager::new(
         StartupConfig {
             base_url: Some(base_url.clone()),
+            allow_insecure_loopback_http: true,
+            ..StartupConfig::default()
         },
         Some(temp.path().to_path_buf()),
     )?;

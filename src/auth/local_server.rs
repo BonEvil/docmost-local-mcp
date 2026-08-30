@@ -6,14 +6,17 @@ use std::{
     time::Duration,
 };
 
+use aes_gcm::aead::{OsRng, rand_core::RngCore};
 use anyhow::{Result, anyhow};
 use axum::{
     Json, Router,
-    extract::State,
-    http::{HeaderMap, StatusCode},
-    response::{Html, IntoResponse, Redirect},
+    extract::{Query, State},
+    http::{HeaderMap, HeaderValue, Request, StatusCode, header},
+    middleware::{self, Next},
+    response::{Html, IntoResponse, Response},
     routing::{get, post},
 };
+use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
 use futures::future::BoxFuture;
 use serde::{Deserialize, Serialize};
 use tokio::{
@@ -41,6 +44,9 @@ struct AppState {
     defaults: LocalAuthDefaults,
     on_submit: SubmitHandler,
     shared: Arc<SharedState>,
+    flow_secret: String,
+    expected_host: String,
+    expected_origin: String,
 }
 
 struct SharedState {
@@ -89,6 +95,11 @@ impl LocalAuthServer {
 
         let listener = TcpListener::bind(("127.0.0.1", 0)).await?;
         let address = listener.local_addr()?;
+        let mut secret = [0u8; 32];
+        OsRng.fill_bytes(&mut secret);
+        let flow_secret = URL_SAFE_NO_PAD.encode(secret);
+        let expected_host = format!("127.0.0.1:{}", address.port());
+        let expected_origin = format!("http://{expected_host}");
         let (shutdown_tx, shutdown_rx) = oneshot::channel::<()>();
         *self.shared.shutdown_tx.lock().await = Some(shutdown_tx);
 
@@ -96,13 +107,19 @@ impl LocalAuthServer {
             defaults: self.defaults.clone(),
             on_submit: self.on_submit.clone(),
             shared: self.shared.clone(),
+            flow_secret: flow_secret.clone(),
+            expected_host,
+            expected_origin: expected_origin.clone(),
         };
 
         let router = Router::new()
-            .route("/", get(root))
             .route("/login", get(login))
             .route("/auth", post(auth))
             .route("/success", get(success))
+            .layer(middleware::from_fn_with_state(
+                state.clone(),
+                security_headers,
+            ))
             .with_state(state);
 
         self.server_task = Some(tokio::spawn(async move {
@@ -125,21 +142,20 @@ impl LocalAuthServer {
             .await;
         }));
 
-        let url = format!("http://127.0.0.1:{}", address.port());
+        let url = expected_origin;
         debug_log(
             "local-auth",
             "Local auth page ready",
-            Some(&serde_json::json!({ "url": url, "defaults": {
-                "baseUrl": self.defaults.base_url,
-                "email": self.defaults.email,
+            Some(&serde_json::json!({
+                "loopbackAuth": true,
                 "baseUrlReadonly": self.defaults.base_url_readonly
-            }})),
+            })),
         );
 
         Ok(AuthWindowSession {
-            login_url: format!("{url}/login"),
-            success_url: format!("{url}/success"),
-            fallback_url: format!("{url}/login"),
+            login_url: format!("{url}/login?flow={flow_secret}"),
+            success_url: format!("{url}/success?flow={flow_secret}"),
+            fallback_url: format!("{url}/login?flow={flow_secret}"),
             window_title: "Docmost Sign In".to_string(),
             window_width: 500,
             window_height: 680,
@@ -177,20 +193,31 @@ impl LocalAuthServer {
     }
 }
 
-async fn root() -> impl IntoResponse {
-    Redirect::temporary("/login")
+#[derive(Debug, Deserialize)]
+struct FlowQuery {
+    flow: String,
 }
 
-async fn login(State(state): State<AppState>) -> impl IntoResponse {
-    Html(render_login_html(&state.defaults))
+async fn login(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Query(query): Query<FlowQuery>,
+) -> Response {
+    if !valid_host(&headers, &state) || !valid_flow(&query, &state) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    Html(render_login_html(&state.defaults, &state.flow_secret)).into_response()
 }
 
-async fn success(State(state): State<AppState>) -> impl IntoResponse {
-    let shared = state.shared.clone();
-    tokio::spawn(async move {
-        let _ = finish(shared, Ok(())).await;
-    });
-    Html(render_success_html())
+async fn success(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Query(query): Query<FlowQuery>,
+) -> Response {
+    if !valid_host(&headers, &state) || !valid_flow(&query, &state) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    Html(render_success_html(&state.flow_secret)).into_response()
 }
 
 async fn auth(
@@ -198,6 +225,27 @@ async fn auth(
     headers: HeaderMap,
     Json(payload): Json<PartialLoginInput>,
 ) -> impl IntoResponse {
+    if !valid_host(&headers, &state)
+        || headers
+            .get(header::ORIGIN)
+            .and_then(|value| value.to_str().ok())
+            != Some(state.expected_origin.as_str())
+        || headers
+            .get("x-docmost-auth-flow")
+            .and_then(|value| value.to_str().ok())
+            != Some(state.flow_secret.as_str())
+        || !headers
+            .get(header::CONTENT_TYPE)
+            .and_then(|value| value.to_str().ok())
+            .is_some_and(|value| value.eq_ignore_ascii_case("application/json"))
+    {
+        return (
+            StatusCode::FORBIDDEN,
+            Json(AuthResponse::error(
+                "Rejected invalid local authentication request.".to_string(),
+            )),
+        );
+    }
     debug_log(
         "local-auth",
         "Received auth form submission",
@@ -212,7 +260,7 @@ async fn auth(
             debug_log(
                 "local-auth",
                 "Auth submission failed",
-                Some(&serde_json::json!({ "error": error.to_string() })),
+                None::<&serde_json::Value>,
             );
             return (
                 StatusCode::BAD_REQUEST,
@@ -226,7 +274,7 @@ async fn auth(
             debug_log(
                 "local-auth",
                 "Auth submission succeeded",
-                Some(&serde_json::json!({ "baseUrl": parsed.base_url, "email": parsed.email })),
+                Some(&serde_json::json!({ "loopbackAuth": true })),
             );
             let shared = state.shared.clone();
             tokio::spawn(async move {
@@ -234,14 +282,17 @@ async fn auth(
             });
             (
                 StatusCode::OK,
-                Json(AuthResponse::success("/success".to_string())),
+                Json(AuthResponse::success(format!(
+                    "/success?flow={}",
+                    state.flow_secret
+                ))),
             )
         }
         Err(error) => {
             debug_log(
                 "local-auth",
                 "Auth submission failed",
-                Some(&serde_json::json!({ "error": error.to_string() })),
+                None::<&serde_json::Value>,
             );
             (
                 StatusCode::BAD_REQUEST,
@@ -251,12 +302,53 @@ async fn auth(
     }
 }
 
+fn valid_host(headers: &HeaderMap, state: &AppState) -> bool {
+    headers
+        .get(header::HOST)
+        .and_then(|value| value.to_str().ok())
+        == Some(state.expected_host.as_str())
+}
+
+fn valid_flow(query: &FlowQuery, state: &AppState) -> bool {
+    query.flow.as_bytes() == state.flow_secret.as_bytes()
+}
+
+async fn security_headers(
+    State(state): State<AppState>,
+    request: Request<axum::body::Body>,
+    next: Next,
+) -> Response {
+    let mut response = next.run(request).await;
+    let headers = response.headers_mut();
+    headers.insert(header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
+    headers.insert(header::PRAGMA, HeaderValue::from_static("no-cache"));
+    headers.insert(
+        header::REFERRER_POLICY,
+        HeaderValue::from_static("no-referrer"),
+    );
+    headers.insert(
+        "x-content-type-options",
+        HeaderValue::from_static("nosniff"),
+    );
+    headers.insert("x-frame-options", HeaderValue::from_static("DENY"));
+    let csp = format!(
+        "default-src 'none'; style-src 'nonce-{0}'; script-src 'nonce-{0}'; connect-src 'self'; form-action 'none'; frame-ancestors 'none'; base-uri 'none'",
+        state.flow_secret
+    );
+    if let Ok(value) = HeaderValue::from_str(&csp) {
+        headers.insert(header::CONTENT_SECURITY_POLICY, value);
+    }
+    response
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct PartialLoginInput {
     base_url: Option<String>,
     email: Option<String>,
     password: Option<String>,
+    #[serde(default)]
+    remember_password: bool,
 }
 
 #[derive(Debug, Serialize)]
@@ -286,6 +378,7 @@ impl AuthResponse {
 }
 
 fn parse_login_input(raw: PartialLoginInput, defaults: &LocalAuthDefaults) -> Result<LoginInput> {
+    let remember_password = raw.remember_password;
     let base_url = raw
         .base_url
         .as_deref()
@@ -306,6 +399,7 @@ fn parse_login_input(raw: PartialLoginInput, defaults: &LocalAuthDefaults) -> Re
             base_url,
             email,
             password,
+            remember_password,
         }),
         _ => Err(anyhow!("Base URL, email, and password are required.")),
     }
@@ -327,14 +421,14 @@ async fn finish(shared: Arc<SharedState>, outcome: Result<(), String>) -> Result
     Ok(())
 }
 
-fn render_success_html() -> String {
+fn render_success_html(flow_secret: &str) -> String {
     r#"<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Docmost MCP</title>
-    <style>
+    <style nonce="__NONCE__">
       :root { color-scheme: dark; }
       body {
         margin: 0; min-height: 100vh; display: grid; place-items: center;
@@ -352,17 +446,17 @@ fn render_success_html() -> String {
       <h2>Authentication Succeeded</h2>
       <p>This window can close now.</p>
     </div>
-    <script>
+    <script nonce="__NONCE__">
       setTimeout(() => {
         try { window.close(); } catch {}
       }, 400);
     </script>
   </body>
 </html>"#
-        .to_string()
+        .replace("__NONCE__", &escape_html(flow_secret))
 }
 
-fn render_login_html(defaults: &LocalAuthDefaults) -> String {
+fn render_login_html(defaults: &LocalAuthDefaults, flow_secret: &str) -> String {
     let base_url = escape_html(defaults.base_url.as_deref().unwrap_or_default());
     let email = escape_html(defaults.email.as_deref().unwrap_or_default());
     let readonly_base_url = if defaults.base_url_readonly {
@@ -376,6 +470,7 @@ fn render_login_html(defaults: &LocalAuthDefaults) -> String {
         "Use the full Docmost URL, for example https://docs.example.com."
     };
 
+    let flow_secret = escape_html(flow_secret);
     format!(
         r#"<!doctype html>
 <html lang="en">
@@ -383,7 +478,7 @@ fn render_login_html(defaults: &LocalAuthDefaults) -> String {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Docmost MCP Sign In</title>
-    <style>
+    <style nonce="{flow_secret}">
       :root {{
         color-scheme: dark;
         --bg: #0b1020;
@@ -453,11 +548,15 @@ fn render_login_html(defaults: &LocalAuthDefaults) -> String {
           Password
           <input id="password" name="password" type="password" placeholder="Your Docmost password" required />
         </label>
+        <label>
+          <input id="rememberPassword" name="rememberPassword" type="checkbox" />
+          Remember password in secure OS credential storage
+        </label>
         <button id="submit-button" type="submit">Authenticate</button>
         <div id="status" class="status" role="status"></div>
       </form>
     </main>
-    <script>
+    <script nonce="{flow_secret}">
       const form = document.getElementById("login-form");
       const status = document.getElementById("status");
       const submitButton = document.getElementById("submit-button");
@@ -471,13 +570,14 @@ fn render_login_html(defaults: &LocalAuthDefaults) -> String {
         const payload = {{
           baseUrl: document.getElementById("baseUrl").value,
           email: document.getElementById("email").value,
-          password: document.getElementById("password").value
+          password: document.getElementById("password").value,
+          rememberPassword: document.getElementById("rememberPassword").checked
         }};
 
         try {{
           const response = await fetch("/auth", {{
             method: "POST",
-            headers: {{ "content-type": "application/json" }},
+            headers: {{ "content-type": "application/json", "x-docmost-auth-flow": "{flow_secret}" }},
             body: JSON.stringify(payload)
           }});
           const result = await response.json();
@@ -512,15 +612,26 @@ fn escape_html(value: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{LocalAuthDefaults, render_login_html};
+    use std::sync::{
+        Arc,
+        atomic::{AtomicUsize, Ordering},
+    };
+
+    use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
+    use reqwest::header::{CONTENT_SECURITY_POLICY, HOST, ORIGIN};
+
+    use super::{LocalAuthDefaults, LocalAuthServer, render_login_html};
 
     #[test]
     fn login_page_prefills_and_locks_configured_base_url() {
-        let html = render_login_html(&LocalAuthDefaults {
-            base_url: Some("https://docs.example.com".to_string()),
-            email: Some("jane@example.com".to_string()),
-            base_url_readonly: true,
-        });
+        let html = render_login_html(
+            &LocalAuthDefaults {
+                base_url: Some("https://docs.example.com".to_string()),
+                email: Some("jane@example.com".to_string()),
+                base_url_readonly: true,
+            },
+            "test-flow-secret",
+        );
 
         assert!(
             html.contains(
@@ -530,5 +641,125 @@ mod tests {
         );
         assert!(html.contains(r#"value="jane@example.com""#));
         assert!(html.contains("Configured by the MCP server startup options."));
+    }
+
+    #[tokio::test]
+    async fn loopback_flow_enforces_secret_request_properties_and_security_headers() {
+        let submissions = Arc::new(AtomicUsize::new(0));
+        let seen = submissions.clone();
+        let mut server = LocalAuthServer::new(
+            LocalAuthDefaults {
+                base_url: Some("https://docs.example.com".to_string()),
+                email: None,
+                base_url_readonly: true,
+            },
+            move |_| {
+                let seen = seen.clone();
+                async move {
+                    seen.fetch_add(1, Ordering::SeqCst);
+                    Ok(())
+                }
+            },
+            Some(30_000),
+        );
+        let session = server.start().await.unwrap();
+        let login = reqwest::Url::parse(&session.login_url).unwrap();
+        let flow = login
+            .query_pairs()
+            .find(|(name, _)| name == "flow")
+            .unwrap()
+            .1
+            .into_owned();
+        assert_eq!(URL_SAFE_NO_PAD.decode(&flow).unwrap().len(), 32);
+        let origin = format!("{}://{}", login.scheme(), login.host_str().unwrap())
+            + &format!(":{}", login.port().unwrap());
+        let auth_url = format!("{origin}/auth");
+        let client = reqwest::Client::new();
+
+        let login_response = client.get(&session.login_url).send().await.unwrap();
+        assert_eq!(login_response.status(), reqwest::StatusCode::OK);
+        let headers = login_response.headers();
+        assert_eq!(headers.get("cache-control").unwrap(), "no-store");
+        assert_eq!(headers.get("x-frame-options").unwrap(), "DENY");
+        assert_eq!(headers.get("x-content-type-options").unwrap(), "nosniff");
+        assert_eq!(headers.get("referrer-policy").unwrap(), "no-referrer");
+        assert!(
+            headers
+                .get(CONTENT_SECURITY_POLICY)
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .contains("frame-ancestors 'none'")
+        );
+
+        assert_eq!(
+            client
+                .get(format!("{origin}/login?flow=wrong"))
+                .send()
+                .await
+                .unwrap()
+                .status(),
+            reqwest::StatusCode::FORBIDDEN
+        );
+        assert_eq!(
+            client
+                .get(&session.success_url)
+                .send()
+                .await
+                .unwrap()
+                .status(),
+            reqwest::StatusCode::OK
+        );
+        assert!(
+            !server.shared.settled.load(Ordering::SeqCst),
+            "display-only success route must not complete the flow"
+        );
+
+        let body = serde_json::json!({
+            "baseUrl": "https://docs.example.com",
+            "email": "operator@example.com",
+            "password": "synthetic-test-value",
+            "rememberPassword": false
+        });
+        assert_eq!(
+            client
+                .post(&auth_url)
+                .header(ORIGIN, &origin)
+                .header("x-docmost-auth-flow", "wrong")
+                .json(&body)
+                .send()
+                .await
+                .unwrap()
+                .status(),
+            reqwest::StatusCode::FORBIDDEN
+        );
+        assert_eq!(
+            client
+                .post(&auth_url)
+                .header(HOST, "attacker.invalid")
+                .header(ORIGIN, &origin)
+                .header("x-docmost-auth-flow", &flow)
+                .json(&body)
+                .send()
+                .await
+                .unwrap()
+                .status(),
+            reqwest::StatusCode::FORBIDDEN
+        );
+        assert_eq!(submissions.load(Ordering::SeqCst), 0);
+
+        let accepted = client
+            .post(&auth_url)
+            .header(ORIGIN, &origin)
+            .header("x-docmost-auth-flow", &flow)
+            .json(&body)
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(accepted.status(), reqwest::StatusCode::OK);
+        assert_eq!(accepted.headers().get("cache-control").unwrap(), "no-store");
+        server.wait_for_completion().await.unwrap();
+        assert_eq!(submissions.load(Ordering::SeqCst), 1);
+        server.stop().await.unwrap();
     }
 }
