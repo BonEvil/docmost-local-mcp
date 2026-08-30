@@ -1,0 +1,379 @@
+{
+  "atlasControlledE2E": {
+    "readMatrix": {
+      "allInventoryReadOnly": true,
+      "anyArgumentValueLeakedIntoConfirmation": false,
+      "everyCallHeldBeforeDecision": true,
+      "gatedReadToolsApprovedAndDispatched": 10,
+      "inventoryIsExactTenReads": true,
+      "protocolVersion": "2025-03-26",
+      "writeNamesAbsentFromAtlas": true
+    },
+    "registeredServersAfterRun": 0,
+    "writeMatrix": {
+      "approvedDispatchCount": 1,
+      "deniedAuthorizationError": "mcp_confirmation_denied",
+      "deniedDispatchCount": 0,
+      "independentDatabaseInspection": {
+        "atlasGatedPagesWithExactTitle": 1,
+        "createdByDisposableIdentity": 1,
+        "createdInDisposableSpace": 1,
+        "duplicatesFromDeniedCall": 0
+      },
+      "inventoryIsTenReadsPlusCreatePage": true,
+      "unallowlistedMutationsAbsent": true
+    }
+  },
+  "atlasRuntime": {
+    "commit": "efad3719b67fc9949be3809a7d07b297a64de10d",
+    "execution": "isolated in-process Atlas from an exact read-only source export; tree hash recomputed and matched",
+    "protocolVersion": "2025-03-26",
+    "tree": "58d8b8c5d330c905ef70b5be33b06883c0a57ae6"
+  },
+  "candidate": {
+    "binaryBuild": "cargo build --locked --release --no-default-features in the digest-pinned rust:1.98.0-slim-bookworm image",
+    "binaryDigestReverifiedAfterAllRuns": true,
+    "cargoLockSha256": "0db9682d4bf880bf7769e2565c8ec75b75f8d1a3820d482b0be5db3ec6374690",
+    "linuxX64BinarySha256": "ff677008ca257de7feff1fefbddf5316d790149515a0decb618e80f05f0690d6",
+    "sourceCommit": "0e67438dbf975d1818b554ec10dfbd4905b84d84",
+    "sourceTree": "f88b8117ffcf78295a00581c6a0c5264a37dada5"
+  },
+  "cleanup": {
+    "atlasSourceExportRemoved": true,
+    "disposableHomesRemoved": true,
+    "ephemeralPasswordFileMode": "0600",
+    "hostSharedStateCredentialFiles": 0,
+    "hostSharedStateDirMode": "0700",
+    "isolatedAtlasRuntimeDatabasesRemoved": true,
+    "isolatedStackContainers": 3,
+    "isolatedStackVolumes": 3,
+    "liveAtlasDocmostServerCount": 0,
+    "liveAtlasPendingAuthorizations": 0,
+    "productionConfigurationChanged": false,
+    "productionContainersBeforeAndAfter": 3,
+    "productionContentAccessed": false,
+    "remoteHarnessArtifactsRemaining": 0,
+    "temporaryAtlasRegistrationsRemaining": 0
+  },
+  "compatibility": {
+    "allTenReadToolsExercised": true,
+    "defaultInventoryIsExactTenReadOnly": true,
+    "everyMutationNameUnavailableInDefaultMode": true,
+    "freshReadProcessConfirmedWrites": {
+      "childPagesUnderParent": 1,
+      "commentsOnChild": 1,
+      "updatedBodyObserved": true,
+      "updatedTitleObserved": true
+    },
+    "independentDatabaseInspection": {
+      "nestedChild": 1,
+      "note": "comment bodies are never rendered by get_comments, so the update was confirmed by direct read-only query",
+      "syntheticComments": 1,
+      "syntheticPages": 2,
+      "updatedChildTitle": 1,
+      "updatedCommentBody": 1
+    },
+    "mutationsNotMarkedReadOnly": [
+      "create_comment",
+      "create_page",
+      "move_page",
+      "update_comment",
+      "update_page"
+    ],
+    "protocolVersion": "2025-03-26",
+    "unallowlistedMutationsUnavailable": true,
+    "writeProcessExposesExactAllowlist": true,
+    "writeProcessToolCount": 15
+  },
+  "credentialAndLoopbackLifecycle": {
+    "identity_rollback": {
+      "configEmailAfterA": true,
+      "configEmailAfterB": true,
+      "configEmailAfterForced401": true,
+      "credentialFileCountAfterForced401": 0,
+      "forced401AfterIdentityChange": {
+        "interactiveAuthenticationRequired": true,
+        "isError": false,
+        "kind": "result"
+      },
+      "identityAReauthenticationCount": 0,
+      "rememberedCredentialsClearedOnIdentityChange": true,
+      "rememberedLoginA": {
+        "isError": false,
+        "kind": "result",
+        "promptStarted": true
+      },
+      "sessionOnlyLoginB": {
+        "isError": false,
+        "kind": "result",
+        "rememberedCredentialsPresentWhenBSubmitted": 2,
+        "submitStatus": 200
+      },
+      "staleIdentityGuard": {
+        "credentialFileCountAfter": 0,
+        "credentialFileCountBefore": 2,
+        "failedClosedWithIdentityMismatch": true,
+        "identityAReauthenticationCount": 0,
+        "loopbackPromptStarted": false,
+        "outcomeKind": "protocol_error"
+      },
+      "stateAfterRememberedA": {
+        "credentialFileCount": 2,
+        "dirMode": "0o700",
+        "files": {
+          "configFile": [
+            "0o600"
+          ],
+          "credentialCiphertextFile": [
+            "0o600"
+          ],
+          "credentialKeyFile": [
+            "0o600"
+          ],
+          "sessionFile": [
+            "0o600"
+          ]
+        }
+      },
+      "stateAfterSessionOnlyB": {
+        "credentialFileCount": 0,
+        "files": {
+          "configFile": [
+            "0o600"
+          ],
+          "sessionFile": [
+            "0o600"
+          ]
+        }
+      }
+    },
+    "loopback_flow": {
+      "allInvalidRequestsRejected": true,
+      "configEmailMatchesIdentityA": true,
+      "flowSecretBytes": 32,
+      "loginPageStatus": 200,
+      "loginUrlSchemeIsHttp": true,
+      "loopbackAddressIsLiteralIpv4": true,
+      "negativeStatuses": {
+        "auth_missing_flow_header": 403,
+        "auth_wrong_content_type": 415,
+        "auth_wrong_flow_header": 403,
+        "auth_wrong_host": 403,
+        "auth_wrong_origin": 403,
+        "login_wrong_flow": 403,
+        "login_wrong_host": 403,
+        "success_valid_flow": 200,
+        "success_wrong_flow": 403
+      },
+      "passwordPersisted": false,
+      "postLoginCall": {
+        "isError": false,
+        "kind": "result"
+      },
+      "protocolVersion": "2025-03-26",
+      "securityHeaders": {
+        "cacheControl": "no-store",
+        "contentTypeOptions": "nosniff",
+        "cspHasBaseUriNone": true,
+        "cspHasFormActionNone": true,
+        "cspHasFrameAncestorsNone": true,
+        "frameOptions": "DENY",
+        "referrerPolicy": "no-referrer"
+      },
+      "state": {
+        "credentialFileCount": 0,
+        "dirMode": "0o700",
+        "exists": true,
+        "files": {
+          "configFile": [
+            "0o600"
+          ],
+          "sessionFile": [
+            "0o600"
+          ]
+        },
+        "sessionFileCount": 1
+      },
+      "successPageDidNotSettleLogin": true,
+      "validSubmissionOk": true,
+      "validSubmissionStatus": 200
+    },
+    "origin_scoped_forget": {
+      "allStateRemoved": true,
+      "forgetExitCodes": [
+        0,
+        0
+      ],
+      "forgetIsIdempotent": true,
+      "mockOriginIsLiteralLoopback": true,
+      "otherOriginStatePreserved": true,
+      "primaryCredentialFileCount": 2,
+      "primaryLogin": {
+        "kind": "result"
+      },
+      "secondaryForgetExitCode": 0,
+      "secondaryOriginLogin": {
+        "kind": "protocol_error"
+      },
+      "stateAfterAllForgets": {
+        "credentialFileCount": 0,
+        "sessionFileCount": 0
+      },
+      "stateAfterPrimaryForget": {
+        "configFilePresent": true,
+        "credentialFileCount": 2,
+        "sessionFileCount": 1
+      },
+      "stateBeforeForget": {
+        "credentialFileCount": 4,
+        "sessionFileCount": 2
+      }
+    },
+    "remembered_password_fail_closed": {
+      "credentialFilesPersisted": 0,
+      "failedClosed": true,
+      "loopbackErrorMessage": "Secure OS credential storage is unavailable.",
+      "loopbackSubmitOk": false,
+      "loopbackSubmitStatus": 400,
+      "note": "The reviewed build compiles no platform credential-store backend, so the store accepts a write but retains nothing. The read-back check turns that into an explicit fail-closed error instead of a silently discarded password.",
+      "scenario": "remember_password=true without the acknowledged encrypted-file fallback",
+      "sessionFilesPersisted": 0,
+      "sessionOnlyRetryAfterFailureSucceeded": true,
+      "stateDirectoryCreated": false
+    },
+    "session_expiry": {
+      "credentialFileCount": 0,
+      "interactiveAuthenticationRequired": true,
+      "recoveredCall": {
+        "isError": false,
+        "kind": "result"
+      },
+      "recoverySubmissionStatus": 200,
+      "stateMutated": true
+    },
+    "unauthorized_401": {
+      "credentialFileCount": 0,
+      "interactiveAuthenticationRequired": true,
+      "recoveredCall": {
+        "isError": false,
+        "kind": "result"
+      },
+      "recoverySubmissionStatus": 200,
+      "stateMutated": true
+    }
+  },
+  "networkNegativeMatrix": {
+    "allFailedClosed": true,
+    "anyLeakDetected": false,
+    "atlasAllFailedClosed": true,
+    "atlasAnyLeakDetected": false,
+    "leakTermsChecked": [
+      "content",
+      "email",
+      "password",
+      "privateDocmostHost",
+      "privateDocmostOrigin",
+      "redirectTargetUrl",
+      "token"
+    ],
+    "mcpProtocolLayer": {
+      "chunked-oversize": {
+        "elapsedSeconds": 0.2,
+        "failedClosed": true,
+        "leaks": [],
+        "processStillAliveAfterFailure": true,
+        "safeMessage": "Docmost success response body exceeded the 8388608-byte limit."
+      },
+      "declared-oversize": {
+        "elapsedSeconds": 0.6,
+        "failedClosed": true,
+        "leaks": [],
+        "processStillAliveAfterFailure": true,
+        "safeMessage": "Docmost success response body exceeded the 8388608-byte limit."
+      },
+      "permission-denied": {
+        "elapsedSeconds": 0.2,
+        "failedClosed": true,
+        "leaks": [],
+        "processStillAliveAfterFailure": true,
+        "safeMessage": "Docmost API request failed (403 Forbidden). Response body omitted (718 bytes)."
+      },
+      "redirect": {
+        "elapsedSeconds": 0.2,
+        "failedClosed": true,
+        "leaks": [],
+        "processStillAliveAfterFailure": true,
+        "safeMessage": "Docmost API request failed (302 Found)."
+      },
+      "server-error": {
+        "elapsedSeconds": 0.2,
+        "failedClosed": true,
+        "leaks": [],
+        "processStillAliveAfterFailure": true,
+        "safeMessage": "Docmost API request failed (500 Internal Server Error). Response body omitted (718 bytes)."
+      },
+      "timeout": {
+        "elapsedSeconds": 30.2,
+        "failedClosed": true,
+        "leaks": [],
+        "processStillAliveAfterFailure": true,
+        "safeMessage": "Failed to call /api/spaces"
+      }
+    },
+    "redirectTargetRequestsReceived": 0,
+    "throughAtlas": {
+      "chunked-oversize": {
+        "callFailed": true,
+        "dispatchOutcomeCode": "dispatch_failed",
+        "elapsedSeconds": 0.2,
+        "failureKind": "atlas_dispatch_error",
+        "leaksInAtlasVisibleOutput": []
+      },
+      "declared-oversize": {
+        "callFailed": true,
+        "dispatchOutcomeCode": "dispatch_failed",
+        "elapsedSeconds": 0.2,
+        "failureKind": "atlas_dispatch_error",
+        "leaksInAtlasVisibleOutput": []
+      },
+      "permission-denied": {
+        "callFailed": true,
+        "dispatchOutcomeCode": "dispatch_failed",
+        "elapsedSeconds": 0.2,
+        "failureKind": "atlas_dispatch_error",
+        "leaksInAtlasVisibleOutput": []
+      },
+      "redirect": {
+        "callFailed": true,
+        "dispatchOutcomeCode": "dispatch_failed",
+        "elapsedSeconds": 0.2,
+        "failureKind": "atlas_dispatch_error",
+        "leaksInAtlasVisibleOutput": []
+      },
+      "server-error": {
+        "callFailed": true,
+        "dispatchOutcomeCode": "dispatch_failed",
+        "elapsedSeconds": 0.2,
+        "failureKind": "atlas_dispatch_error",
+        "leaksInAtlasVisibleOutput": []
+      },
+      "timeout": {
+        "callFailed": true,
+        "dispatchOutcomeCode": "dispatch_failed",
+        "elapsedSeconds": 30.2,
+        "failureKind": "atlas_dispatch_error",
+        "leaksInAtlasVisibleOutput": []
+      }
+    },
+    "timeoutWithinDeclaredThirtySecondDeadline": true
+  },
+  "producer": "audit-remediation IA-03 refreshed live evidence",
+  "schemaVersion": 1,
+  "target": {
+    "docmostImageDigest": "docmost/docmost@sha256:41c8d777cf23c74e78f94e676aec328b7d7856f48df5e573543dac68d371e37c",
+    "docmostVersion": "0.95.0",
+    "identities": "one disposable owner plus one disposable member, both synthetic",
+    "isolationBoundary": "separate disposable Compose project on a private endpoint",
+    "productionAccessed": false
+  }
+}
