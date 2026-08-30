@@ -11,6 +11,13 @@ state). Automatic reauthentication independently requires the remembered email
 to exactly match the active configured email; a mismatch is cleared and fails
 closed before any login request is sent.
 
+Every persisted session is bound to both its canonical origin and authenticated
+email. Login removes the previous origin-scoped session before changing the
+identity-bearing config, then writes the replacement session last. A failure at
+either persistence step therefore leaves no older token that a restart can pair
+with the new config. Legacy sessions without an identity and sessions whose email
+does not exactly match the config are never reused.
+
 A missing keyring entry means no remembered password. A keyring initialization, read, or write failure does not silently activate local fallback storage. Remember-password login fails before config or session files change unless the operator has explicitly acknowledged the weaker model with `--allow-insecure-credential-file` or `DOCMOST_ALLOW_INSECURE_CREDENTIAL_FILE=true`.
 
 Persistence is never assumed from a successful write call. After storing a remembered password, the secret is read back through an independent credential handle and compared. If the value is missing, unreadable, or different, the entry is removed and the login fails closed with the same unavailable-storage error. This matters because a build or host without a real platform credential store resolves to an entry-scoped store that accepts a write and retains nothing; without the read-back check an operator would be told the password was remembered when it had been discarded.

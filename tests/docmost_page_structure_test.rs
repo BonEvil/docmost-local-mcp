@@ -60,6 +60,7 @@ async fn spawn(temp: &TempDir) -> Result<(DocmostClient, Captured)> {
     store
         .write_session(&StoredSession {
             origin: Some(base_url.clone()),
+            email: Some("jane@example.com".to_string()),
             token: "seed-token".to_string(),
             expires_at: None,
             saved_at: "2026-03-12T00:00:00.000Z".to_string(),

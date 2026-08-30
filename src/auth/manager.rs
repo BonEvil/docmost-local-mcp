@@ -85,11 +85,15 @@ impl AuthManager {
         let has_session = session.is_some();
 
         if let (Some(config), Some(session)) = (config.as_ref(), session.as_ref()) {
-            let url_matches = preferred_origin.as_ref().is_some_and(|origin| {
-                CanonicalDocmostOrigin::parse(&config.base_url, self.allow_insecure_loopback_http)
-                    .is_ok_and(|configured| configured == *origin)
+            let session_matches = preferred_origin.as_ref().is_some_and(|origin| {
+                saved_session_matches_config(
+                    config,
+                    session,
+                    origin,
+                    self.allow_insecure_loopback_http,
+                )
             });
-            if url_matches && !is_session_expiring(session) {
+            if session_matches && !is_session_expiring(session) {
                 debug_log(
                     "auth",
                     "Using saved session",
@@ -217,12 +221,39 @@ impl AuthManager {
         let expires_at = get_jwt_expiry_iso(&token);
         let now = Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Millis, true);
 
-        if input.remember_password {
+        self.persist_authenticated_state(
+            LoginInput {
+                base_url,
+                email: input.email,
+                password: input.password,
+                remember_password: input.remember_password,
+            },
+            token,
+            expires_at,
+            now,
+        )
+        .await
+    }
+
+    async fn persist_authenticated_state(
+        &self,
+        input: LoginInput,
+        token: String,
+        expires_at: Option<String>,
+        now: String,
+    ) -> Result<AuthenticatedSession> {
+        let LoginInput {
+            base_url,
+            email,
+            password,
+            remember_password,
+        } = input;
+        if remember_password {
             self.store
                 .write_credentials(&StoredCredentials {
                     origin: Some(base_url.clone()),
-                    email: input.email.clone(),
-                    password: input.password,
+                    email: email.clone(),
+                    password,
                 })
                 .await?;
         } else {
@@ -231,16 +262,20 @@ impl AuthManager {
             // fails, the older identity can no longer be silently restored.
             self.store.clear_credentials(&base_url).await?;
         }
+        // Invalidate the previous session before changing the identity-bearing config. If either
+        // following write fails, restart cannot combine the new config with an old token.
+        self.store.clear_session(&base_url).await?;
         self.store
             .write_config(&StoredConfig {
                 base_url: base_url.clone(),
-                email: input.email.clone(),
+                email: email.clone(),
                 last_authenticated_at: now.clone(),
             })
             .await?;
         self.store
             .write_session(&StoredSession {
                 origin: Some(base_url.clone()),
+                email: Some(email.clone()),
                 token: token.clone(),
                 expires_at: expires_at.clone(),
                 saved_at: now.clone(),
@@ -248,7 +283,7 @@ impl AuthManager {
             .await?;
         Ok(AuthenticatedSession {
             base_url,
-            email: input.email,
+            email,
             token,
             expires_at,
         })
@@ -351,6 +386,16 @@ impl AuthManager {
                 .read_session(refreshed_origin.as_str())
                 .await?
                 .ok_or_else(|| anyhow!("Authentication completed, but no session was saved."))?;
+            if !saved_session_matches_config(
+                &refreshed_config,
+                &refreshed_session,
+                &refreshed_origin,
+                self.allow_insecure_loopback_http,
+            ) {
+                return Err(anyhow!(
+                    "Authentication completed, but the saved session identity did not match the active config."
+                ));
+            }
             Ok(to_authenticated_session(
                 refreshed_config,
                 refreshed_session,
@@ -372,6 +417,18 @@ fn to_authenticated_session(config: StoredConfig, session: StoredSession) -> Aut
         token: session.token,
         expires_at: session.expires_at,
     }
+}
+
+fn saved_session_matches_config(
+    config: &StoredConfig,
+    session: &StoredSession,
+    preferred_origin: &CanonicalDocmostOrigin,
+    allow_insecure_loopback_http: bool,
+) -> bool {
+    CanonicalDocmostOrigin::parse(&config.base_url, allow_insecure_loopback_http)
+        .is_ok_and(|configured| configured == *preferred_origin)
+        && session.origin.as_deref() == Some(preferred_origin.as_str())
+        && session.email.as_deref() == Some(config.email.as_str())
 }
 
 fn is_session_expiring(session: &StoredSession) -> bool {
@@ -448,6 +505,104 @@ async fn wait_for_authentication_completion(
                 Err(anyhow!(helper_exit_error_message(code)))
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod identity_tests {
+    use super::*;
+    use tempfile::TempDir;
+
+    const ORIGIN: &str = "https://docs.example.com";
+
+    #[tokio::test]
+    async fn failed_session_replacement_cannot_restore_the_previous_identity() -> Result<()> {
+        unsafe { std::env::set_var("DOCMOST_DISABLE_KEYRING", "1") };
+        let temp = TempDir::new()?;
+        let manager = AuthManager::new(
+            StartupConfig {
+                base_url: Some(ORIGIN.to_string()),
+                allow_insecure_credential_file: true,
+                ..StartupConfig::default()
+            },
+            Some(temp.path().to_path_buf()),
+        )?;
+        manager
+            .store
+            .write_config(&StoredConfig {
+                base_url: ORIGIN.to_string(),
+                email: "identity-a@example.com".to_string(),
+                last_authenticated_at: "2026-08-30T00:00:00.000Z".to_string(),
+            })
+            .await?;
+        manager
+            .store
+            .write_session(&StoredSession {
+                origin: Some(ORIGIN.to_string()),
+                email: Some("identity-a@example.com".to_string()),
+                token: "identity-a-token".to_string(),
+                expires_at: None,
+                saved_at: "2026-08-30T00:00:00.000Z".to_string(),
+            })
+            .await?;
+
+        manager.store.fail_next_session_write();
+        let error = manager
+            .persist_authenticated_state(
+                LoginInput {
+                    base_url: ORIGIN.to_string(),
+                    email: "identity-b@example.com".to_string(),
+                    password: "synthetic-b-password".to_string(),
+                    remember_password: false,
+                },
+                "identity-b-token".to_string(),
+                None,
+                "2026-08-30T01:00:00.000Z".to_string(),
+            )
+            .await
+            .unwrap_err();
+
+        assert!(
+            error
+                .to_string()
+                .contains("Injected session persistence failure")
+        );
+        assert_eq!(
+            manager.store.read_config().await?.unwrap().email,
+            "identity-b@example.com"
+        );
+        assert_eq!(manager.store.read_session(ORIGIN).await?, None);
+        assert_eq!(manager.store.read_credentials(ORIGIN).await?, None);
+        Ok(())
+    }
+
+    #[test]
+    fn saved_session_requires_exact_identity_binding() {
+        let origin = CanonicalDocmostOrigin::parse(ORIGIN, false).unwrap();
+        let config = StoredConfig {
+            base_url: ORIGIN.to_string(),
+            email: "identity-b@example.com".to_string(),
+            last_authenticated_at: "2026-08-30T01:00:00.000Z".to_string(),
+        };
+        let mut session = StoredSession {
+            origin: Some(ORIGIN.to_string()),
+            email: Some("identity-a@example.com".to_string()),
+            token: "identity-a-token".to_string(),
+            expires_at: None,
+            saved_at: "2026-08-30T00:00:00.000Z".to_string(),
+        };
+
+        assert!(!saved_session_matches_config(
+            &config, &session, &origin, false
+        ));
+        session.email = None;
+        assert!(!saved_session_matches_config(
+            &config, &session, &origin, false
+        ));
+        session.email = Some(config.email.clone());
+        assert!(saved_session_matches_config(
+            &config, &session, &origin, false
+        ));
     }
 }
 
