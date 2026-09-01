@@ -1,0 +1,6 @@
+3:version = "0.9.3"
+3:  "version": "0.9.3",
+436:name = "docmost-local-mcp"
+436:name = "docmost-local-mcp"
+437-version = "0.9.3"
+438-dependencies = [
