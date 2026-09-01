@@ -1,0 +1,478 @@
+   Compiling cfg-if v1.0.4
+   Compiling smallvec v1.15.2
+   Compiling pin-project-lite v0.2.17
+   Compiling once_cell v1.21.4
+   Compiling itoa v1.0.18
+   Compiling libc v0.2.189
+   Compiling futures-core v0.3.34
+   Compiling bytes v1.12.1
+   Compiling memchr v2.8.3
+   Compiling zerofrom v0.1.8
+   Compiling stable_deref_trait v1.2.1
+   Compiling scopeguard v1.2.0
+   Compiling typenum v1.20.1
+   Compiling futures-sink v0.3.34
+   Compiling yoke v0.8.3
+   Compiling log v0.4.34
+   Compiling lock_api v0.4.14
+   Compiling futures-channel v0.3.34
+   Compiling zerovec v0.11.8
+   Compiling tracing-core v0.1.36
+   Compiling futures-io v0.3.34
+   Compiling slab v0.4.12
+   Compiling futures-task v0.3.34
+   Compiling http v1.5.0
+   Compiling serde_core v1.0.229
+   Compiling futures-util v0.3.34
+   Compiling writeable v0.6.4
+   Compiling generic-array v0.14.7
+   Compiling tinystr v0.8.4
+   Compiling litemap v0.8.3
+   Compiling getrandom v0.2.17
+   Compiling errno v0.3.14
+   Compiling parking_lot_core v0.9.12
+   Compiling signal-hook-registry v1.4.8
+   Compiling mio v1.2.2
+   Compiling socket2 v0.6.5
+   Compiling parking_lot v0.12.5
+   Compiling rand_core v0.6.4
+   Compiling http-body v1.1.0
+   Compiling crypto-common v0.1.7
+   Compiling tokio v1.53.1
+   Compiling icu_locale_core v2.3.0
+   Compiling potential_utf v0.1.6
+   Compiling tracing v0.1.44
+   Compiling zerotrie v0.2.5
+   Compiling percent-encoding v2.3.2
+   Compiling utf8_iter v1.0.4
+   Compiling subtle v2.6.1
+   Compiling icu_collections v2.3.0
+   Compiling zmij v1.0.23
+   Compiling tower-service v0.3.3
+   Compiling zeroize v1.9.0
+   Compiling strsim v0.11.1
+   Compiling rustls-pki-types v1.15.1
+   Compiling icu_normalizer_data v2.3.0
+   Compiling icu_properties_data v2.3.0
+   Compiling icu_provider v2.3.1
+   Compiling try-lock v0.2.5
+   Compiling untrusted v0.9.0
+   Compiling serde v1.0.229
+   Compiling icu_properties v2.3.0
+   Compiling icu_normalizer v2.3.0
+   Compiling ring v0.17.14
+   Compiling want v0.3.1
+   Compiling httparse v1.10.1
+   Compiling form_urlencoded v1.2.2
+   Compiling cpufeatures v0.2.17
+   Compiling sync_wrapper v1.0.2
+   Compiling httpdate v1.0.3
+   Compiling base64 v0.22.1
+   Compiling bitflags v2.13.1
+   Compiling unicase v2.9.0
+   Compiling tower-layer v0.3.3
+   Compiling atomic-waker v1.1.2
+   Compiling darling_core v0.21.3
+   Compiling serde_json v1.0.151
+   Compiling inout v0.1.4
+   Compiling utf8parse v0.2.2
+   Compiling mime v0.3.17
+   Compiling ipnet v2.12.1
+   Compiling cipher v0.4.4
+   Compiling idna_adapter v1.2.2
+   Compiling anstyle-parse v1.0.0
+   Compiling idna v1.1.0
+   Compiling rustls-webpki v0.103.15
+   Compiling num-traits v0.2.19
+   Compiling mime_guess v2.0.5
+   Compiling rustls v0.23.43
+   Compiling universal-hash v0.5.1
+   Compiling http-body-util v0.1.5
+   Compiling colorchoice v1.0.5
+   Compiling ryu v1.0.23
+   Compiling anstyle-query v1.1.5
+   Compiling opaque-debug v0.3.1
+   Compiling anstyle v1.0.14
+   Compiling iana-time-zone v0.1.65
+   Compiling is_terminal_polyfill v1.70.2
+   Compiling serde_urlencoded v0.7.1
+   Compiling polyval v0.6.2
+   Compiling chrono v0.4.45
+   Compiling anstream v1.0.0
+   Compiling ref-cast v1.0.27
+   Compiling url v2.5.8
+   Compiling futures-executor v0.3.34
+   Compiling webpki-roots v1.0.9
+   Compiling block-buffer v0.10.4
+   Compiling aho-corasick v1.1.5
+   Compiling is-docker v0.2.0
+   Compiling regex-syntax v0.8.11
+   Compiling hyper v1.11.0
+   Compiling darling_macro v0.21.3
+   Compiling tower v0.5.3
+   Compiling option-ext v0.2.0
+   Compiling clap_lex v1.1.0
+   Compiling lazy_static v1.5.0
+   Compiling darling v0.21.3
+   Compiling dyn-clone v1.0.20
+   Compiling rmcp-macros v0.6.4
+   Compiling hyper-util v0.1.20
+   Compiling clap_builder v4.6.6
+   Compiling regex-automata v0.4.18
+   Compiling tokio-rustls v0.26.4
+   Compiling schemars v1.2.2
+   Compiling sharded-slab v0.1.7
+   Compiling hyper-rustls v0.27.9
+   Compiling dirs-sys v0.5.0
+   Compiling tower-http v0.6.11
+   Compiling tokio-util v0.7.19
+   Compiling tokio-stream v0.1.19
+   Compiling thiserror v2.0.20
+   Compiling is-wsl v0.4.0
+   Compiling digest v0.10.7
+   Compiling futures v0.3.34
+   Compiling ghash v0.5.1
+   Compiling axum-core v0.5.6
+   Compiling ctr v0.9.2
+   Compiling aes v0.8.4
+   Compiling serde_path_to_error v0.1.20
+   Compiling aead v0.5.2
+   Compiling tracing-log v0.2.0
+   Compiling thread_local v1.1.10
+   Compiling matchit v0.8.4
+   Compiling nu-ansi-term v0.50.3
+   Compiling aes-gcm v0.10.3
+   Compiling regex v1.13.1
+   Compiling reqwest v0.12.28
+   Compiling tracing-subscriber v0.3.23
+   Compiling rmcp v0.6.4
+   Compiling sha2 v0.10.9
+   Compiling open v5.4.2
+   Compiling axum v0.8.9
+   Compiling clap v4.6.6
+   Compiling dirs v6.0.0
+   Compiling anyhow v1.0.104
+   Compiling pulldown-cmark v0.13.4
+   Compiling keyring v3.6.3
+   Compiling linux-raw-sys v0.12.1
+   Compiling urlencoding v2.1.3
+   Compiling rustix v1.1.4
+   Compiling getrandom v0.4.3
+   Compiling fastrand v2.5.0
+   Compiling tempfile v3.27.0
+   Compiling docmost-local-mcp v0.9.3 ($REPO)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 28.81s
+     Running unittests src/lib.rs (/tmp/target/debug/deps/docmost_local_mcp-72719f18cc8da2b8)
+
+running 25 tests
+test network_policy::tests::production_policy_matches_documented_fail_closed_defaults ... ok
+test auth::manager::identity_tests::saved_session_requires_exact_identity_binding ... ok
+test position::tests::generate_key_between_rejects_out_of_order ... ok
+test position::tests::generated_key_sorts_between_neighbors ... ok
+test position::tests::generate_key_between_matches_reference_vectors ... ok
+test position::tests::jittered_matches_reference_vectors_at_half_shift ... ok
+test position::tests::jittered_output_respects_length_and_ordering ... ok
+test debug::tests::diagnostics_allow_only_reviewed_metadata ... ok
+test server::render::tests::format_created_page_falls_back_to_requested_title ... ok
+test server::render::tests::format_created_page_marks_missing_ids_unknown ... ok
+test auth::local_server::tests::login_page_prefills_and_locks_configured_base_url ... ok
+test server::render::tests::format_created_page_uses_returned_title_and_ids ... ok
+test server::render::tests::format_updated_page_appends_body_note_when_present ... ok
+test server::render::tests::format_updated_page_has_no_caveat_when_body_note_absent ... ok
+test storage::keyring_store::tests::keyring_credential_clear_is_idempotent_for_scoped_and_legacy_entries ... ok
+test storage::keyring_store::tests::non_persisting_credential_store_fails_closed_instead_of_discarding_the_password ... ok
+test storage::keyring_store::tests::keyring_identity_is_origin_specific_and_never_uses_the_legacy_account ... ok
+test version::tests::body_update_capability_gates_on_0_70_0 ... ok
+test version::tests::version_ordering_is_numeric_not_lexical ... ok
+test server::render::tests::format_updated_page_falls_back_to_untitled ... ok
+test version::tests::parses_plain_and_decorated_versions ... ok
+test storage::state_store::tests::legacy_unscoped_encrypted_credentials_are_not_reused ... ok
+Usage: /tmp/target/debug/deps/docmost_local_mcp-72719f18cc8da2b8 [OPTIONS] [FILTERS...]
+
+Options:
+        --include-ignored
+                        Run ignored and not ignored tests
+        --ignored       Run only ignored tests
+        --force-run-in-process
+                        Forces tests to run in-process when panic=abort
+        --exclude-should-panic
+                        Excludes tests marked as should_panic
+        --test          Run tests and not benchmarks
+        --bench         Run benchmarks instead of tests
+        --list          List all tests and benchmarks
+        --fail-fast     Don't start new tests after the first failure
+    -h, --help          Display this message
+        --logfile PATH  Write logs to the specified file (deprecated)
+        --no-capture    don't capture stdout/stderr of each task, allow
+                        printing directly
+        --test-threads n_threads
+                        Number of threads used for running tests in parallel
+        --skip FILTER   Skip tests whose names contain FILTER (this flag can
+                        be used multiple times)
+    -q, --quiet         Display one character per test instead of one line.
+                        Alias to --format=terse
+        --exact         Exactly match filters rather than by substring
+        --color auto|always|never
+                        Configure coloring of output:
+                        auto = colorize if stdout is a tty and tests are run
+                        on serially (default);
+                        always = always colorize output;
+                        never = never colorize output;
+        --format pretty|terse|json|junit
+                        Configure formatting of output:
+                        pretty = Print verbose output;
+                        terse = Display one character per test;
+                        json = Output a json document;
+                        junit = Output a JUnit document
+        --show-output   Show captured stdout of successful tests
+    -Z unstable-options Enable nightly-only flags:
+                        unstable-options = Allow use of experimental features
+        --report-time   Show execution time of each test.
+                        Threshold values for colorized output can be
+                        configured via
+                        `RUST_TEST_TIME_UNIT`, `RUST_TEST_TIME_INTEGRATION`
+                        and
+                        `RUST_TEST_TIME_DOCTEST` environment variables.
+                        Expected format of environment variable is
+                        `VARIABLE=WARN_TIME,CRITICAL_TIME`.
+                        Durations must be specified in milliseconds, e.g.
+                        `500,2000` means that the warn time
+                        is 0.5 seconds, and the critical time is 2 seconds.
+                        Not available for --format=terse
+        --ensure-time   Treat excess of the test execution time limit as
+                        error.
+                        Threshold values for this option can be configured via
+                        `RUST_TEST_TIME_UNIT`, `RUST_TEST_TIME_INTEGRATION`
+                        and
+                        `RUST_TEST_TIME_DOCTEST` environment variables.
+                        Expected format of environment variable is
+                        `VARIABLE=WARN_TIME,CRITICAL_TIME`.
+                        `CRITICAL_TIME` here means the limit that should not
+                        be exceeded by test.
+        --shuffle       Run tests in random order
+        --shuffle-seed SEED
+                        Run tests in random order; seed the random number
+                        generator with SEED
+
+
+The FILTER string is tested against the name of all tests, and only those
+tests whose names contain the filter are run. Multiple filter strings may
+be passed, which will run all tests matching any of the filters.
+
+By default, all tests are run in parallel. This can be altered with the
+--test-threads flag when running tests (set it to 1).
+
+By default, the tests are run in alphabetical order. Use --shuffle to run
+the tests in random order. Pass the generated "shuffle seed" to
+--shuffle-seed to run the tests in the same order again. Note that
+--shuffle and --shuffle-seed do not affect whether the tests are run in
+parallel.
+
+All tests have their standard output and standard error captured by default.
+This can be overridden with the --no-capture flag to a value other than "0".
+Logging is not captured by default.
+
+Test Attributes:
+
+    `#[test]`        - Indicates a function is a test to be run. This function
+                       takes no arguments.
+    `#[bench]`       - Indicates a function is a benchmark to be run. This
+                       function takes one argument (test::Bencher).
+    `#[should_panic]` - This function (also labeled with `#[test]`) will only pass if
+                        the code causes a panic (an assertion failure or panic!)
+                        A message may be provided, which the failure string must
+                        contain: #[should_panic(expected = "foo")].
+    `#[ignore]`       - When applied to a function which is already attributed as a
+                        test, then the test runner will ignore these tests during
+                        normal test runs. Running with --ignored or --include-ignored will run
+                        these tests.
+test auth::manager::identity_tests::failed_session_replacement_cannot_restore_the_previous_identity ... ok
+test auth::local_server::tests::loopback_flow_enforces_secret_request_properties_and_security_headers ... ok
+test auth::manager::tests::native_success_exit_still_waits_for_auth_completion ... ok
+
+test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+     Running unittests src/main.rs (/tmp/target/debug/deps/docmost_local_mcp-220d72fe28017a89)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/auth_flow_test.rs (/tmp/target/debug/deps/auth_flow_test-58889ed3f0189aec)
+
+running 8 tests
+test decodes_jwt_expiry_without_verifying_signature ... ok
+test login_redirect_does_not_forward_credentials_to_another_origin ... ok
+test extracts_auth_token_from_set_cookie_headers ... ok
+test login_extracts_auth_token_and_persists_session ... ok
+test mismatched_remembered_identity_is_cleared_without_network_reauthentication ... ok
+test process_origin_pin_blocks_cross_origin_login_until_new_explicit_flow ... ok
+test docmost_client_retries_after_401 ... ok
+test session_only_identity_change_clears_remembered_identity_and_blocks_401_rollback ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/docmost_client_test.rs (/tmp/target/debug/deps/docmost_client_test-5c8cb155a7054236)
+
+running 5 tests
+test extracts_items_arrays_from_wrapped_responses ... ok
+test extracts_items_from_cursor_paginated_responses ... ok
+test returns_array_results_unchanged ... ok
+test returns_empty_array_for_missing_cursor_paginated_items ... ok
+test returns_empty_array_for_null_or_empty_item_collections ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/docmost_page_structure_test.rs (/tmp/target/debug/deps/docmost_page_structure_test-5fae5cab49b17b54)
+
+running 12 tests
+test create_space_sends_name_slug_and_description ... ok
+test duplicate_page_posts_page_id_only ... ok
+test copy_page_to_space_sends_target_space ... ok
+test create_space_without_description_omits_it ... ok
+test move_page_to_space_tolerates_empty_response ... ok
+test create_comment_sends_content_as_json_string ... ok
+test move_page_appends_after_last_sibling_excluding_itself ... ok
+test move_page_to_root_omits_parent_and_queries_space_root ... ok
+test update_comment_sends_comment_id_and_stringified_content ... ok
+test update_space_sends_only_provided_fields ... ok
+test move_page_resolves_slug_parent_to_uuid ... ok
+test move_page_with_no_siblings_uses_start_position ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/docmost_write_test.rs (/tmp/target/debug/deps/docmost_write_test-b4e69ae9ee93f089)
+
+running 13 tests
+test create_page_title_only_without_parent_omits_parent_field ... ok
+test create_page_with_body_ignores_parent_page_id ... ok
+test import_prepends_title_and_preserves_multiline_body ... ok
+test create_page_surfaces_server_error_without_panicking ... ok
+test create_page_blank_markdown_falls_back_to_title_only ... ok
+test create_page_title_only_uses_create_endpoint ... ok
+test create_page_with_body_uses_import_with_markdown_file ... ok
+test import_surfaces_server_error_without_panicking ... ok
+test update_page_title_only_omits_content_operation_format ... ok
+test update_page_with_no_changes_sends_only_page_id ... ok
+test update_page_sends_operation_and_format_with_content ... ok
+test create_page_retries_import_on_unauthorized ... ok
+test update_page_retries_on_unauthorized ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/integrated_policy_test.rs (/tmp/target/debug/deps/integrated_policy_test-c54a74659b58e646)
+
+running 1 test
+test production_atlas_example_is_absolute_https_and_read_only ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/mcp_server_test.rs (/tmp/target/debug/deps/mcp_server_test-9cba70351aecd81f)
+
+running 7 tests
+test server_revalidates_programmatic_authority_configuration ... ok
+test default_server_lists_only_exact_read_inventory ... ok
+test server_get_page_requires_slug_id_schema ... ok
+test server_required_input_fields_are_present ... ok
+test every_persistent_mutation_has_expected_annotations ... ok
+test all_tools_expose_object_input_schemas ... ok
+test write_mode_exposes_only_the_exact_allowlisted_subset ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/network_safety_test.rs (/tmp/target/debug/deps/network_safety_test-9f0ef034c8b4de09)
+
+running 5 tests
+test authenticated_api_redirect_is_returned_without_contacting_the_target ... ok
+test success_and_error_bodies_have_streaming_hard_caps_and_safe_errors ... ok
+test search_list_and_markdown_bounds_accept_boundary_and_reject_one_over ... ok
+test authentication_success_body_is_bounded_before_state_is_persisted ... ok
+test stalled_api_and_authentication_requests_hit_the_overall_deadline ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.32s
+
+     Running tests/prosemirror_test.rs (/tmp/target/debug/deps/prosemirror_test-fcf2833aa51e4537)
+
+running 39 tests
+test markdown_to_prosemirror_empty_input_is_empty_doc ... ok
+test markdown_to_prosemirror_empty_mention_id_is_a_link_not_a_mention ... ok
+test markdown_round_trips_ordered_start_blockquote_and_strike ... ok
+test markdown_to_prosemirror_code_block_without_language_has_empty_language ... ok
+test comment_supported_elements_convert ... ok
+test markdown_to_prosemirror_all_heading_levels ... ok
+test markdown_to_prosemirror_fenced_code_block ... ok
+test markdown_to_prosemirror_blockquote_wraps_paragraph ... ok
+test markdown_to_prosemirror_heading_carries_level_attr ... ok
+test markdown_to_prosemirror_inline_code_and_link ... ok
+test markdown_to_prosemirror_inline_code_mark_is_innermost ... ok
+test markdown_round_trips_through_prosemirror ... ok
+test markdown_to_prosemirror_link_carries_href_and_text ... ok
+test markdown_to_prosemirror_lone_image_is_a_block_node ... ok
+test markdown_to_prosemirror_mention_label_captures_inline_code ... ok
+test markdown_to_prosemirror_mixed_task_and_plain_list_homogenizes_to_task_list ... ok
+test markdown_to_prosemirror_multiple_block_paragraphs ... ok
+test markdown_to_prosemirror_multiple_mentions_get_unique_ids ... ok
+test markdown_to_prosemirror_nested_bullet_list ... ok
+test markdown_to_prosemirror_nested_ordered_list_inside_bullet ... ok
+test markdown_to_prosemirror_ordered_list_omits_default_start ... ok
+test markdown_to_prosemirror_ordered_list_records_non_default_start ... ok
+test markdown_to_prosemirror_hard_break_becomes_hard_break_node ... ok
+test markdown_to_prosemirror_ordinary_link_is_not_a_mention ... ok
+test markdown_to_prosemirror_page_mention ... ok
+test markdown_to_prosemirror_soft_break_joins_with_space ... ok
+test markdown_to_prosemirror_rule_and_image ... ok
+test markdown_to_prosemirror_table_distinguishes_header_and_cell ... ok
+test markdown_to_prosemirror_table_body_cells_are_not_headers ... ok
+test markdown_to_prosemirror_task_list_checked_states ... ok
+test markdown_to_prosemirror_user_mention ... ok
+test markdown_to_prosemirror_whitespace_only_input_is_empty_doc ... ok
+test markdown_to_prosemirror_uses_tiptap_mark_names ... ok
+test markdown_to_prosemirror_wraps_a_doc_node ... ok
+test mention_label_with_bracket_falls_back_to_plain_at ... ok
+test mention_round_trips_through_markdown ... ok
+test renders_headings_paragraphs_links_and_code_blocks ... ok
+test renders_task_lists_with_checked_states ... ok
+test renders_nested_unordered_lists_and_tables ... ok
+
+test result: ok. 39 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/startup_config_test.rs (/tmp/target/debug/deps/startup_config_test-1c833db9009153a5)
+
+running 15 tests
+test enables_only_explicitly_allowlisted_writes ... ok
+test insecure_credential_file_requires_explicit_operator_acknowledgement ... ok
+test cli_authority_configuration_overrides_environment ... ok
+test canonical_origin_exposes_scheme_host_and_effective_port ... ok
+test invalid_authority_configurations_fail_closed ... ok
+test falls_back_to_environment ... ok
+test loopback_http_requires_deliberate_enablement_and_literal_address ... ok
+test defaults_to_read_only_with_no_write_allowlist ... ok
+test reads_and_canonicalizes_base_url_from_cli_arguments ... ok
+test reads_authority_configuration_from_environment ... ok
+test reports_missing_authority_values ... ok
+test throws_when_base_url_flag_is_missing_value ... ok
+test supports_inline_cli_argument_syntax ... ok
+test rejects_unsupported_or_misleading_url_components ... ok
+test startup_flag_enables_only_loopback_http ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/state_store_test.rs (/tmp/target/debug/deps/state_store_test-a5e3585f1fdca89c)
+
+running 8 tests
+test legacy_unscoped_state_is_not_reused ... ok
+test keyring_failure_fails_closed_without_explicit_fallback ... ok
+test forget_preserves_explicitly_different_origin_legacy_session ... ok
+test never_returns_session_or_credentials_for_a_different_origin ... ok
+test forget_is_complete_idempotent_and_origin_scoped ... ok
+test explicit_fallback_opt_in_persists_config_session_and_encrypted_credentials ... ok
+test clear_credentials_is_idempotent_and_preserves_config_and_session ... ok
+test clears_saved_session_without_touching_credentials ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+   Doc-tests docmost_local_mcp
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
