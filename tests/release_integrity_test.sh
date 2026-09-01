@@ -15,7 +15,8 @@ jq -S -n \
   --arg version "$version" --arg commit "$commit" --arg name "$asset" --arg digest "$digest" \
   '{schemaVersion:1,version:$version,source:{commit:$commit},artifacts:[{name:$name,sha256:$digest,size:24}]}' \
   > "$test_root/fixtures/release-manifest.json"
-printf 'test sigstore bundle\n' > "$test_root/fixtures/release-manifest.sigstore.json"
+printf '{"mediaType":"application/vnd.dev.sigstore.bundle.v0.3+json"}\n' \
+  > "$test_root/fixtures/release-manifest.sigstore.json"
 
 cat > "$test_root/mock-bin/curl" <<'MOCK_CURL'
 #!/usr/bin/env bash
@@ -32,7 +33,8 @@ while [[ $# -gt 0 ]]; do
 done
 name=${url##*/}
 if [[ $url == https://github.com/* ]]; then
-  if [[ ${TEST_SCENARIO:-success} == unapproved && $name == docmost-local-mcp-* ]]; then
+  if [[ ${TEST_SCENARIO:-success} == unapproved && $name == docmost-local-mcp-* ]] ||
+     [[ ${TEST_SCENARIO:-success} == redirected-verification && $name == release-manifest.sigstore.json ]]; then
     printf 'HTTP/1.1 302 Found\r\nLocation: https://evil.example/%s\r\n\r\n' "$name" > "$headers"
   else
     printf 'HTTP/1.1 302 Found\r\nLocation: https://release-assets.githubusercontent.com/%s\r\n\r\n' "$name" > "$headers"
@@ -41,6 +43,15 @@ if [[ $url == https://github.com/* ]]; then
   exit 0
 fi
 printf 'HTTP/1.1 200 OK\r\n\r\n' > "$headers"
+if [[ $name == release-manifest.sigstore.json ]]; then
+  case ${TEST_SCENARIO:-success} in
+    missing-verification) rm -f "$output"; exit 22 ;;
+    malformed-verification) printf '{not-json\n' > "$output"; exit 0 ;;
+    mismatched-verification) printf '{"mediaType":"application/vnd.dev.sigstore.bundle.v0.3+json","subject":"wrong"}\n' > "$output"; exit 0 ;;
+    oversized-verification) truncate -s 1048577 "$output"; exit 0 ;;
+    unverified-verification) printf '{"mediaType":"application/vnd.dev.sigstore.bundle.v0.3+json","verified":false}\n' > "$output"; exit 0 ;;
+  esac
+fi
 if [[ $name == docmost-local-mcp-* ]]; then
   case ${TEST_SCENARIO:-success} in
     partial) printf 'partial' > "$output"; exit 18 ;;
@@ -62,7 +73,9 @@ MOCK_CURL
 cat > "$test_root/mock-bin/cosign" <<'MOCK_COSIGN'
 #!/usr/bin/env bash
 set -euo pipefail
-[[ ${TEST_SCENARIO:-success} != provenance ]] || exit 1
+case ${TEST_SCENARIO:-success} in
+  provenance|malformed-verification|mismatched-verification|unverified-verification) exit 1 ;;
+esac
 args=" $* "
 [[ $args == *" verify-blob "* ]]
 [[ $args == *" --certificate-identity https://github.com/BonEvil/docmost-local-mcp/.github/workflows/release.yml@refs/tags/v1.2.3 "* ]]
@@ -85,7 +98,11 @@ run_installer success >/dev/null
 cmp "$test_root/fixtures/$asset" "$test_root/install/docmost-local-mcp"
 [[ -x $test_root/install/docmost-local-mcp ]]
 
-for scenario in mismatch provenance partial oversized unapproved wrong-commit wrong-version duplicate-asset malformed-digest; do
+for scenario in \
+  mismatch provenance partial oversized unapproved wrong-commit wrong-version duplicate-asset malformed-digest \
+  missing-verification malformed-verification mismatched-verification redirected-verification \
+  oversized-verification unverified-verification
+do
   printf 'known-good-before-failure\n' > "$test_root/install/docmost-local-mcp"
   if run_installer "$scenario" >/dev/null 2>&1; then
     echo "scenario unexpectedly succeeded: $scenario" >&2

@@ -1,0 +1,6 @@
+# Primary source: https://github.com/sigstore/cosign/releases/tag/v3.0.3
+# Captured release asset names required by the Linux x64 release job.
+cosign-linux-amd64
+cosign-linux-amd64-kms.sigstore.json
+cosign-linux-amd64.sigstore.json
+cosign-linux-amd64_3.0.3_linux_amd64.sbom.json
