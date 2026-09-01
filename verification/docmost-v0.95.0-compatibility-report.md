@@ -27,8 +27,10 @@ repository-pinned Rust image on the accepted Ubuntu x86-64 host. Its digest was
 calculated after build, immediately before cleanup, and did not change.
 
 No source, lockfile, build-input, runtime, or policy correction was made by this
-card. The only repository changes are these refreshed evidence records, so no
-source correction exists for a downstream gate to retest.
+card. This card changes only these two refreshed evidence records. The current
+branch also mechanically integrated a sibling card's two Atlas-control evidence
+records after the first review; those files likewise change no source, lockfile,
+or build input. No source correction exists for a downstream gate to retest.
 
 ## Bounded environment
 
