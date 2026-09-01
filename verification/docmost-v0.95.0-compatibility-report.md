@@ -71,6 +71,12 @@ directory. Authentication state was session-only; the state directory was
 | Restore authority | Re-enumerate a fresh default process | Pass | Inventory returned to the exact ten reads and no writes. |
 | Session lifecycle | Force expiry, require interaction, then establish a fresh session-only login | Pass | Expired state was not silently reused; fresh login restored a successful read. |
 | Forget lifecycle | Forget the exact canonical origin | Pass | The command exited zero and the state directory contained zero entries. |
+| Redirect diagnostic | Return a redirect from a dedicated hostile loopback origin | Pass | The candidate returned the safe redirect status; the redirect target received zero requests. |
+| Timeout diagnostic | Stall a dedicated hostile loopback origin beyond the production deadline | Pass | The candidate failed closed at `30.0` seconds and retained no origin or canary. |
+| Oversized input | Submit a search query one byte above the production limit | Pass | The candidate rejected it before network dispatch; the hostile origin received zero requests. |
+| Oversized responses | Return declared-length and chunked bodies above the production limit | Pass | Both were rejected at the `8388608`-byte cap with no retained response content. |
+| Permission diagnostic | Return `403` with a 718-byte hostile body | Pass | The body was omitted; no canary, origin, URL, or response excerpt escaped. |
+| Server-error diagnostic | Return `500` with a 718-byte hostile body | Pass | The body was omitted; no canary, origin, URL, or response excerpt escaped. |
 
 All ten reads were exercised: `list_workspace_members`, `get_current_user`,
 `search_docs`, `list_pages`, `get_comments`, `list_child_pages`, `search_pages`,
@@ -107,6 +113,11 @@ session files, source archive, Cargo home, test harness, and tested binary.
 Post-cleanup inspection returned zero compatibility-labelled containers,
 volumes, and networks; the disposable loopback listener was absent; both the
 remote disposable directory and local build/harness artifacts were absent.
+
+The corrective hostile-loopback run used the same deterministic candidate
+binary digest. It also removed its source export, Cargo home, build target,
+binary, harness, temporary homes, and build/cleanup containers; post-cleanup
+inspection found all of them absent.
 
 This result establishes isolated Docmost Community v0.95.0 compatibility for
 the exact tested source tree. It does not authorize Atlas control testing,

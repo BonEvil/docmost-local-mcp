@@ -113,6 +113,38 @@ synthetic_comments=1
 updated_comment_body=1
 ```
 
+## Hostile diagnostic and input-bound observations
+
+After the first peer review identified the missing retained diagnostic cases,
+the exact `b93024c` source archive was rebuilt in the same pinned Rust image.
+The rebuilt binary had the identical SHA-256
+`7585777a8423f0b4c867331c31f250cf3aa7b0fef4f38a41c88e89287f66cd52`.
+
+Each case used a dedicated synthetic loopback origin and a disposable
+session-only home. Hostile bodies contained a synthetic canary. The harness
+checked candidate-visible errors for the canary, origin, URL, and response
+excerpt, and re-enumerated the ten-tool inventory after every failure to prove
+the process remained usable.
+
+Sanitized observed output:
+
+```text
+redirect=pass target_hits=0 elapsed_seconds=0.0
+timeout=pass elapsed_seconds=30.0
+declared_oversize_response=pass elapsed_seconds=0.0
+chunked_oversize_response=pass elapsed_seconds=0.0
+permission_denied=pass status=403 body_omitted_bytes=718 elapsed_seconds=0.0
+server_error=pass status=500 body_omitted_bytes=718 elapsed_seconds=0.0
+oversized_input=pass network_hits=0
+diagnostic_redaction=pass canary_origin_url_leaks=0 process_reusable_after_each_failure=pass
+```
+
+The redirect target received no request. Timeout occurred at the code-owned
+30-second production deadline. Both response-body forms failed at the
+8,388,608-byte production cap. The one-byte-oversized search input was rejected
+before the hostile server received a request. Both hostile 718-byte error
+bodies were omitted for `403` and `500` responses.
+
 ## Cleanup and invariance observations
 
 The disposable Compose project was stopped with its exact project name and
@@ -131,6 +163,10 @@ compat_networks=0
 remote_home_binary_credentials_harness=absent
 local_build_home_binary_credentials_harness=absent
 local_build_container=absent
+negative_cleanup=pass
+negative_remote_source_target_cargo_home_binary_harness=absent
+negative_build_cleanup_containers=0
+negative_temporary_homes=0
 ordinary_inventory_sha256=17c351c06381f653bd2332f1db47eaeefdf7c480819510ff394c924689408c80
 ordinary_started_sha256=7702be144f44fbcc5e040570cf2906f619e97e281382c9001b31e5434be6e007
 serve_config_sha256=45a54a9f3b304d934f54bb66853ebcebae88337677d65b6dfadc073c7aa11401
