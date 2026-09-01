@@ -1,78 +1,113 @@
 # Docmost Community v0.95.0 compatibility report
 
-**Status:** passed within the isolated disposable compatibility boundary on
-2026-08-28. This report is sanitized: it omits URLs, credentials, tokens,
-cookies, private identifiers, page IDs, and private content.
+**Status:** passed in the isolated disposable compatibility boundary on
+2026-08-31. This report replaces the stale candidate-bound August 28 result.
+It is sanitized: no endpoint, credential, token, cookie, session filename,
+private identifier, private content, or sensitive response value is retained.
 
-The corresponding command and observed-output record is
+The command and observed-output record is
 [`docmost-v0.95.0-live-evidence.md`](docmost-v0.95.0-live-evidence.md).
 
-## Candidate identity
+## Exact tested candidate
 
 | Field | Value |
 | --- | --- |
-| Integration commit | `ec295b1d0ba69899ae8b381599f32833cbb25b8d` |
-| Hardened candidate commit | `254b124ab89c6d5e3623ae99aa30583a2a43d632` |
-| Candidate source tree | `c481ab19824cd0d13ad2be922ed40ee8e5ae3cdc` |
-| Integration source tree | `c481ab19824cd0d13ad2be922ed40ee8e5ae3cdc` |
-| Cargo.lock SHA-256 | `0db9682d4bf880bf7769e2565c8ec75b75f8d1a3820d482b0be5db3ec6374690` |
-| Tested binary SHA-256 | `78133af4492f2333f63f3ff8e673a16f8713e5fffcaaf2e0c0ba4255c5a155b1` |
-| Tested server | Separate `docmost/docmost:0.95.0` container stack over private HTTPS |
+| Workflow integration commit | `b93024c6094abe5044b56f32991e39d650c6c9e5` |
+| Inherited v0.9.3 candidate commit | `a33895bef1c66c3bb0855c4d2ee06cef252c020f` |
+| Shared tested source tree | `327d122cf9695b586e6999142a101b86bda4f67a` |
+| `Cargo.lock` SHA-256 | `3f2a639c0bed73088017f70fe9564a7d1696c24b4884e51bccf20284ce4754b9` |
+| Linux x86-64 binary SHA-256 | `7585777a8423f0b4c867331c31f250cf3aa7b0fef4f38a41c88e89287f66cd52` |
+| Build image | `rust:1.98.0-slim-bookworm@sha256:1469a27c125cb5a3aebfa4f4e4665d935b02fb72cc093b2c974b3d740e43f157` |
+| Build command | `cargo build --locked --release --no-default-features` |
+| Docmost image | `docmost/docmost:0.95.0@sha256:41c8d777cf23c74e78f94e676aec328b7d7856f48df5e573543dac68d371e37c` |
 
-The remote binary digest was independently recalculated before testing and
-matched the supplied expected digest. The candidate and integration commits
-have the same source tree. No source change was made by this card.
+The integration and inherited candidate commits resolve to the same source
+tree. The binary was built from a read-only archive of that exact tree in the
+repository-pinned Rust image on the accepted Ubuntu x86-64 host. Its digest was
+calculated after build, immediately before cleanup, and did not change.
 
-## Authority and containment evidence
+No source, lockfile, build-input, runtime, or policy correction was made by this
+card. The only repository changes are these refreshed evidence records, so no
+source correction exists for a downstream gate to retest.
 
-- The test identity was the only member of a one-member disposable workspace
-  in the isolated instance.
-- The remote session state was origin-bound and had directory mode `0700` and
-  file modes `0600`. No credential value or session material was read.
-- Read calls used a default read-only process. Its `tools/list` response
-  contained exactly the ten read tools and no mutation tool; a direct
-  `create_page` request returned `tool not found`.
-- The write process exposed the ten read tools plus exactly five explicitly
-  allowlisted mutations: `create_page`, `update_page`, `move_page`,
-  `create_comment`, and `update_comment`. An unallowlisted `create_space`
-  request returned `tool not found`.
+## Bounded environment
 
-## Sanitized operation matrix
+The disposable Compose project contained exactly three containers and three
+project-labelled volumes:
 
-| Phase | Bounded operation | Result | Independent confirmation |
+```text
+docmost/docmost:0.95.0
+postgres:16-alpine
+redis:7.2-alpine
+```
+
+It bound only the previously unused loopback port behind the already-existing
+private HTTPS `:8443` route. The route was read, not changed. The ordinary
+Docmost stack remained a distinct three-container project behind loopback port
+`3001`; no ordinary endpoint, page, space, identity, database, volume,
+credential, configuration, or response body was accessed.
+
+The test workspace, identity, space, pages, bodies, and comment were synthetic.
+The password existed only in a host-side mode-`0600` file inside the disposable
+directory. Authentication state was session-only; the state directory was
+`0700`, its two state files were `0600`, and no credential file existed.
+
+## Complete compatibility matrix
+
+| Phase | Required case | Result | Independent evidence |
 | --- | --- | --- | --- |
-| Read-only | Initialize and enumerate tools | Pass: ten read tools only | Separate later read-only process again enumerated no writes. |
-| Read-only | Current-user, workspace-member, space, page-list, and both search tools | Pass: restricted one-member disposable scope; empty initial space; bounded no-result searches | Returned solely isolated-instance data. |
-| Write | Create a synthetic parent page and a synthetic Markdown child page | Pass | Direct isolated Docmost database inspection found two synthetic pages. |
-| Write | Update the synthetic child title and body | Pass | Fresh read-only `get_page` returned updated synthetic state. |
-| Write | Move the child beneath the parent | Pass | Fresh `list_child_pages` and direct database inspection both found one nested child. |
-| Write | Create and update one synthetic comment | Pass | Fresh `get_comments` and direct database inspection both found one comment. |
-| Read-only | `get_page`, `list_child_pages`, and `get_comments` after writes | Pass | A separately launched default read-only binary process returned the expected synthetic state. |
+| Server | Confirm Docmost Community version | Pass | The package inside the digest-pinned container reported `0.95.0`. |
+| Protocol | Initialize exact candidate | Pass | MCP negotiated `2025-03-26`. |
+| Read-only authority | Enumerate default tools and annotations | Pass | Exactly ten tools, every one `readOnlyHint: true`, and zero write tools. |
+| Read-only authority | Directly request every mutation name | Pass | All ten mutation names returned `code=-32602`, `tool not found`. |
+| Initial reads | Current user, workspace members, spaces, space details, pages, and both searches | Pass | Each call completed in the synthetic one-user/one-space boundary. |
+| Write authority | Start a separate smallest allowlisted process | Pass | Exactly ten reads plus `create_page`, `update_page`, `move_page`, `create_comment`, and `update_comment`; all five writes were annotated non-read-only. |
+| Write exclusion | Request every unallowlisted mutation | Pass | `duplicate_page`, `copy_page_to_space`, `move_page_to_space`, `create_space`, and `update_space` each returned `tool not found`. |
+| Synthetic pages | Create parent and Markdown child | Pass | Direct isolated database inspection found exactly two synthetic pages. |
+| Page update | Update child title and body | Pass | Fresh read-only `get_page` and direct database inspection both observed the update. |
+| Page move | Nest child beneath parent | Pass | Fresh `list_child_pages` and direct database inspection both found one nested child. |
+| Comment | Create and update one comment | Pass | Fresh `get_comments` found one comment; direct database inspection observed the updated body. |
+| Final reads | Exercise `get_page`, `list_child_pages`, and `get_comments` in a new default process | Pass | These completed the ten-read matrix and independently confirmed the write result. |
+| Restore authority | Re-enumerate a fresh default process | Pass | Inventory returned to the exact ten reads and no writes. |
+| Session lifecycle | Force expiry, require interaction, then establish a fresh session-only login | Pass | Expired state was not silently reused; fresh login restored a successful read. |
+| Forget lifecycle | Forget the exact canonical origin | Pass | The command exited zero and the state directory contained zero entries. |
 
-All ten read tools were exercised across the initial and post-write read-only
-phases: `list_workspace_members`, `get_current_user`, `search_docs`,
-`list_pages`, `get_comments`, `list_child_pages`, `search_pages`,
+All ten reads were exercised: `list_workspace_members`, `get_current_user`,
+`search_docs`, `list_pages`, `get_comments`, `list_child_pages`, `search_pages`,
 `list_spaces`, `get_space`, and `get_page`.
 
-## Production non-modification and cleanup
+The six successful allowlisted mutation calls were two `create_page` calls and
+one each of `update_page`, `move_page`, `create_comment`, and `update_comment`.
+Only identifiers returned by the isolated instance were used.
 
-All test traffic and direct inspection were constrained to the separate
-compatibility Compose project and its private HTTPS origin. No ordinary
-production page, space, identity, database, endpoint, or container was
-targeted or read. Before cleanup, the compatibility project contained exactly
-three containers and three project-labelled volumes; the distinct production
-project contained three containers.
+## Independent result inspection
 
-After post-write independent inspection, cleanup removed only those exact three
-compatibility containers and three compatibility-labelled volumes. A post-check
-found zero compatibility containers and volumes, while the distinct production
-project still had its three original containers. This is bounded evidence that
-the disposable artifacts were removed and this card did not modify ordinary
-production Docmost content.
+A fresh default process, distinct from the write process, observed the updated
+page title and body, one nested child, and one comment. A direct read-only SQL
+inspection of only the disposable database returned:
 
-## Failures and remaining blockers
+```text
+synthetic_pages=2
+nested_child=1
+updated_page_body=1
+synthetic_comments=1
+updated_comment_body=1
+```
 
-No compatibility operation failed. The previous missing-access blocker was
-resolved using the approved private isolated boundary. There are no remaining
-compatibility blockers; this successful isolated test does not authorize
-release, deployment, or access to the ordinary production instance.
+## Ordinary-service invariance and cleanup
+
+Before creation, during the test, and after cleanup, hashes of the ordinary
+container inventory, ordinary container IDs/start times, and complete Tailscale
+Serve configuration were identical. The ordinary `:3001` listener remained
+present. The stale `:8443` route was left intact exactly as required.
+
+Cleanup removed the three disposable containers, three volumes, project
+network, synthetic database/content, disposable runtime home, password,
+session files, source archive, Cargo home, test harness, and tested binary.
+Post-cleanup inspection returned zero compatibility-labelled containers,
+volumes, and networks; the disposable loopback listener was absent; both the
+remote disposable directory and local build/harness artifacts were absent.
+
+This result establishes isolated Docmost Community v0.95.0 compatibility for
+the exact tested source tree. It does not authorize Atlas control testing,
+release, installation, activation, or ordinary-service access.

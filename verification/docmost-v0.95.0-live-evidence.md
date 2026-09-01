@@ -1,128 +1,144 @@
-# Sanitized live compatibility execution record
+# Sanitized exact-candidate live compatibility execution record
 
-Captured during the 2026-08-28 compatibility run. This is the bounded
-execution evidence supporting `docmost-v0.95.0-compatibility-report.md`.
-It intentionally omits the private endpoint, token/session values, page IDs,
-user IDs, workspace IDs, and page/comment bodies.
+Captured on 2026-08-31 for the v0.9.3 candidate. This is the retained observed
+output supporting `docmost-v0.95.0-compatibility-report.md`. Commands that
+handled secrets or identifiers are described but not reproduced. No endpoint,
+credential, token, cookie, session filename, identifier, content canary, or
+sensitive response value is retained.
 
-## Candidate and server checks
-
-Remote command (over the approved SSH boundary):
+## Candidate and build observations
 
 ```text
-shasum -a 256 /home/danielperson/services/docmost-atlas-compat/bin/docmost-local-mcp
+integration_commit=b93024c6094abe5044b56f32991e39d650c6c9e5
+inherited_candidate_commit=a33895bef1c66c3bb0855c4d2ee06cef252c020f
+integration_tree=327d122cf9695b586e6999142a101b86bda4f67a
+candidate_tree=327d122cf9695b586e6999142a101b86bda4f67a
+cargo_lock_sha256=3f2a639c0bed73088017f70fe9564a7d1696c24b4884e51bccf20284ce4754b9
+build_host=Linux x86_64
+build_image_digest=sha256:1469a27c125cb5a3aebfa4f4e4665d935b02fb72cc093b2c974b3d740e43f157
+build_command=cargo build --locked --release --no-default-features
+binary_format=ELF 64-bit x86-64 PIE stripped
+binary_sha256=7585777a8423f0b4c867331c31f250cf3aa7b0fef4f38a41c88e89287f66cd52
 ```
 
-Observed output:
+The source was mounted read-only in the digest-pinned build container. The
+binary digest shown above was recalculated immediately before cleanup.
+
+## Disposable boundary and baseline observations
+
+Before creation:
 
 ```text
-78133af4492f2333f63f3ff8e673a16f8713e5fffcaaf2e0c0ba4255c5a155b1  docmost-local-mcp
+ordinary_project_containers=3
+ordinary_inventory_sha256=17c351c06381f653bd2332f1db47eaeefdf7c480819510ff394c924689408c80
+ordinary_started_sha256=7702be144f44fbcc5e040570cf2906f619e97e281382c9001b31e5434be6e007
+serve_config_sha256=45a54a9f3b304d934f54bb66853ebcebae88337677d65b6dfadc073c7aa11401
+ordinary_3001_listener=present
+disposable_3301_listener=absent
+compatibility_containers=0
+compatibility_volumes=0
 ```
 
-The remote container inventory, filtered to the compatibility Compose project,
-contained exactly these three images before cleanup:
+After the isolated project started:
 
 ```text
-docmost/docmost:0.95.0
-postgres:16-alpine
-redis:7.2-alpine
+server_package_version=0.95.0
+docmost_image_digest=sha256:41c8d777cf23c74e78f94e676aec328b7d7856f48df5e573543dac68d371e37c
+compatibility_containers=3
+compatibility_volumes=3
+images=docmost/docmost:0.95.0,postgres:16-alpine,redis:7.2-alpine
 ```
 
-The origin-bound local session-state directory and its two state files had
-observed modes `0700`, `0600`, and `0600`, respectively. No state filename or
-content was retained here.
+The existing private HTTPS route and the ordinary root route were not changed.
+No ordinary Docmost endpoint or content was read.
 
-## Read-only process evidence
+## MCP and compatibility observations
 
-The exact verified binary was launched without authority environment overrides.
-MCP `initialize` returned protocol version `2025-03-26`; `tools/list` returned
-exactly the following ten names, all with `readOnlyHint: true`:
+The sanitized harness output was:
 
 ```text
-list_workspace_members
-get_current_user
-search_docs
-list_pages
+server_version=0.95.0
+protocol_version=2025-03-26
+default_read_tools=10 default_write_tools=0 all_write_rejections=10
+allowlisted_write_tools=5 unallowlisted_write_rejections=5
+read_calls_exercised=10 write_calls_exercised=6
+fresh_readback=pass expiry_requires_interactive=pass session_relogin=pass
+state_modes=0700/0600 credential_files=0 origin_forget=pass
+```
+
+The exact default read inventory was:
+
+```text
 get_comments
-list_child_pages
-search_pages
-list_spaces
-get_space
+get_current_user
 get_page
+get_space
+list_child_pages
+list_pages
+list_spaces
+list_workspace_members
+search_docs
+search_pages
 ```
 
-A direct `tools/call` for `create_page` returned the MCP error:
+Every mutation name returned this error shape in the default process:
 
 ```text
 code=-32602 message=tool not found
 ```
 
-Bounded initial reads returned: one current restricted identity, one workspace
-member, one disposable space, zero initial pages in that space, and zero search
-results for the synthetic compatibility probe. `get_space` identified the
-current identity role as `admin` in the disposable space only.
-
-## Allowlisted write-process evidence
-
-A separately launched binary process used only:
+The separate write process exposed the ten reads plus exactly:
 
 ```text
-DOCMOST_AUTHORITY_MODE=write
-DOCMOST_WRITE_TOOLS=create_page,update_page,move_page,create_comment,update_comment
-```
-
-Its `tools/list` result contained the ten read tools and exactly these five
-write names:
-
-```text
-create_page
-update_page
-move_page
 create_comment
+create_page
+move_page
 update_comment
+update_page
 ```
 
-An unallowlisted `create_space` call returned:
+The other five mutation names returned the same `tool not found` result. The
+allowlisted process completed two page creations, one page update, one move,
+one comment creation, and one comment update. A new default process then
+completed `get_page`, `list_child_pages`, and `get_comments` and observed the
+expected synthetic state.
 
-```text
-code=-32602 message=tool not found
-```
-
-The following tool calls all returned successful MCP results, using only IDs
-returned by the isolated instance: two `create_page` calls (synthetic parent
-and child), one `update_page`, one `move_page` placing the child under the
-parent, one `create_comment`, and one `update_comment`.
-
-## Independent result inspection
-
-A new default read-only binary process, not the write process, confirmed the
-updated synthetic child via `get_page`, one child under the synthetic parent via
-`list_child_pages`, and one comment via `get_comments`.
-
-Separately, a direct SQL query against only the isolated compatibility database
-returned these sanitized counts before cleanup:
+Direct read-only inspection of only the isolated database returned:
 
 ```text
 synthetic_pages=2
 nested_child=1
+updated_page_body=1
 synthetic_comments=1
+updated_comment_body=1
 ```
 
-## Bounded production and cleanup evidence
+## Cleanup and invariance observations
 
-Before cleanup, Docker label filters showed exactly three compatibility-project
-containers and three compatibility-project volumes. A distinct production
-Compose project showed three containers. The cleanup command named only the
-three compatibility containers and three compatibility volumes that had just
-been enumerated; it did not name a production resource.
+The disposable Compose project was stopped with its exact project name and
+compose file, including volumes and orphans. The root-owned Cargo output was
+ownership-normalized only inside the resolved disposable directory before that
+directory was deleted. Local card-created build and harness artifacts were also
+removed.
 
-The post-cleanup assertion output was:
+Final assertions:
 
 ```text
-cleanup=pass production_project_containers=3
+cleanup=pass
+compat_containers=0
+compat_volumes=0
+compat_networks=0
+remote_home_binary_credentials_harness=absent
+local_build_home_binary_credentials_harness=absent
+local_build_container=absent
+ordinary_inventory_sha256=17c351c06381f653bd2332f1db47eaeefdf7c480819510ff394c924689408c80
+ordinary_started_sha256=7702be144f44fbcc5e040570cf2906f619e97e281382c9001b31e5434be6e007
+serve_config_sha256=45a54a9f3b304d934f54bb66853ebcebae88337677d65b6dfadc073c7aa11401
+ordinary_3001_listener=present
+disposable_3301_listener=absent
 ```
 
-The assertion checked zero remaining resources with the compatibility project
-label and exactly three remaining containers with the distinct production
-project label. No ordinary production Docmost page, space, identity, database,
-endpoint, or container was accessed by this execution record.
+The three hashes exactly match the pre-test baseline. The ordinary containers
+were neither recreated nor restarted, the ordinary listener remained present,
+and the complete Serve configuration—including the stale `:8443` route—was
+unchanged.
