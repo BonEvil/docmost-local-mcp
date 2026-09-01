@@ -1,0 +1,176 @@
+{
+  "atlasAuthorization": {
+    "approveOnce": {
+      "annotationReadOnly": true,
+      "atlasIndependentEffect": "write",
+      "concurrentExactCallsHeldBeforeDecision": 2,
+      "dispatchOutcomeCode": "dispatch_failed",
+      "firstCallOutcome": "intentional hostile read failure",
+      "oneAuthorizationSharedByExactConcurrentCalls": true,
+      "otherCallOutcome": "mcp_confirmation_already_consumed",
+      "projectionSanitized": true,
+      "projectionUsesGenericLabels": true,
+      "replayHttpStatus": 409
+    },
+    "deny": {
+      "dispatchOutcomeCode": null,
+      "outcome": "mcp_confirmation_denied",
+      "preDecisionBlocked": true,
+      "status": "denied",
+      "terminalReasonCode": "authorization_denied"
+    },
+    "expiry": {
+      "dispatchOutcomeCode": null,
+      "outcome": "mcp_confirmation_expired",
+      "status": "expired",
+      "terminalReasonCode": "authorization_expired"
+    },
+    "runtimeCommit": "efad3719b67fc9949be3809a7d07b297a64de10d",
+    "runtimeTree": "58d8b8c5d330c905ef70b5be33b06883c0a57ae6",
+    "temporaryRegistrationsAfterEachPhase": 0
+  },
+  "candidate": {
+    "binaryArchitecture": "linux-arm64",
+    "binarySha256": "5f30cba8dca4bc5ce26100f5ca835f47808e45d4599eae6c73e1b7102bb0bc9b",
+    "buildImageId": "sha256:f5b1f0a1c0d14ad3535cbca49e10513c6297f4a3ba898614cc76d16663bc1d87",
+    "buildImagePlatform": "linux-arm64",
+    "buildToolchain": "Rust 1.98.0",
+    "cargoLockSha256": "3f2a639c0bed73088017f70fe9564a7d1696c24b4884e51bccf20284ce4754b9",
+    "integrationCommit": "b93024c6094abe5044b56f32991e39d650c6c9e5",
+    "sourceCommit": "a33895bef1c66c3bb0855c4d2ee06cef252c020f",
+    "sourceTree": "327d122cf9695b586e6999142a101b86bda4f67a",
+    "treeMatchesIntegrationCommit": true,
+    "version": "0.9.3"
+  },
+  "cleanup": {
+    "atlasRuntimeExportsRemaining": 0,
+    "buildCacheDirectoriesRemaining": 0,
+    "candidateBinariesRemaining": 0,
+    "disposableContainersRemaining": 0,
+    "disposableCredentialFilesRemaining": 0,
+    "disposableHomesRemaining": 0,
+    "downloadedHarnessImageRemoved": true,
+    "hostileServersRemaining": 0,
+    "isolatedAtlasDatabasesRemaining": 0,
+    "temporaryHarnessFilesRemaining": 0,
+    "temporaryRegistrationsRemaining": 0
+  },
+  "defaultAuthority": {
+    "allInventoryReadOnly": true,
+    "inventory": [
+      "get_comments",
+      "get_current_user",
+      "get_page",
+      "get_space",
+      "list_child_pages",
+      "list_pages",
+      "list_spaces",
+      "list_workspace_members",
+      "search_docs",
+      "search_pages"
+    ],
+    "inventoryCount": 10,
+    "mutationProbeCount": 10,
+    "mutationProbeOutcome": "tool not found",
+    "protocolVersion": "2025-03-26",
+    "writeAuthorityCount": 0
+  },
+  "dispatchEffects": {
+    "approvedHostileReadDispatches": 1,
+    "deniedDispatches": 0,
+    "expiredDispatches": 0,
+    "productionAccesses": 0,
+    "productionWrites": 0,
+    "replayDispatches": 0,
+    "testWrites": 0,
+    "unauthorizedDispatches": 0
+  },
+  "focusedCandidateTests": {
+    "authFlow": 8,
+    "integratedPolicy": 1,
+    "mcpServer": 7,
+    "networkSafety": 5,
+    "startupConfig": 15,
+    "stateStore": 8,
+    "totalFailed": 0,
+    "totalPassed": 44
+  },
+  "hostilePathMatrix": {
+    "allFailedClosed": true,
+    "allProcessesAliveAfterFailure": true,
+    "anyCanaryOrAddressLeakDetected": false,
+    "redirectTargetRequests": 0,
+    "scenarios": {
+      "chunkedOversize": {
+        "elapsedSeconds": 0.0,
+        "safeClassPresent": true
+      },
+      "declaredOversize": {
+        "elapsedSeconds": 0.0,
+        "safeClassPresent": true
+      },
+      "permissionDenied": {
+        "elapsedSeconds": 0.0,
+        "safeClassPresent": true
+      },
+      "redirect": {
+        "elapsedSeconds": 0.0,
+        "safeClassPresent": true
+      },
+      "serverError": {
+        "elapsedSeconds": 0.0,
+        "safeClassPresent": true
+      },
+      "timeout": {
+        "elapsedSeconds": 30.0,
+        "safeClassPresent": true,
+        "withinDeclaredDeadline": true
+      }
+    }
+  },
+  "identityLifecycle": {
+    "expiry": {
+      "credentialFilesAfterRecovery": 0,
+      "expiryStateMutated": true,
+      "interactiveAuthenticationRequired": true,
+      "recoverySubmissionStatus": 200,
+      "sessionFilesAfterRecovery": 1
+    },
+    "focusedRegressionsPassed": [
+      "session-only identity rollover clears remembered identity",
+      "401 rollback to prior identity is blocked",
+      "mismatched remembered identity clears before network reauthentication",
+      "JWT expiry parsing",
+      "401 retry",
+      "origin-scoped idempotent forget",
+      "cross-origin state non-reuse",
+      "legacy state non-reuse"
+    ],
+    "forget": {
+      "credentialFilesBefore": 0,
+      "finalCredentialFiles": 0,
+      "finalSessionFiles": 0,
+      "firstForgetExit": 0,
+      "idempotentRepeatExit": 0,
+      "otherOriginPreservedAfterFirstForget": true,
+      "secondOriginForgetExit": 0,
+      "sessionFilesAfterFirstForget": 1,
+      "sessionFilesBefore": 2
+    },
+    "sessionOnlySeeding": {
+      "allFilesMode0600": true,
+      "allStateDirectoriesMode0700": true,
+      "credentialFiles": 0,
+      "disposableHomes": 6,
+      "sessionFiles": 6,
+      "syntheticIdentityOnly": true
+    }
+  },
+  "sanitation": {
+    "argumentValuesInAtlasProjection": false,
+    "credentialOrSessionValuesRetained": false,
+    "hostileCanariesInAtlasVisibleOutput": false,
+    "privateResponseValuesRetained": false,
+    "productionIdentifiersRetained": false
+  }
+}
