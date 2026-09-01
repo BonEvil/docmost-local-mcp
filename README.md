@@ -81,11 +81,13 @@ scope for this REST-based server.
 
 ## Compatibility
 
-The release candidate targets Docmost Community **v0.95.0**, but compatibility
-with that exact version has not yet been verified against a live instance.
-Deployment remains disabled until the live procedure in
-[Operations and maintenance](docs/operations-and-maintenance.md) passes. The
-server detects the Docmost version (via
+Compatibility with Docmost Community **v0.95.0** passed only in a bounded,
+isolated disposable environment; it is not evidence of, and does not authorize,
+ordinary production mutation. See the sanitized
+[compatibility report](verification/docmost-v0.95.0-compatibility-report.md).
+Deployment remains separately disabled until the required release gates in
+[Operations and maintenance](docs/operations-and-maintenance.md) pass for the
+exact candidate. The server detects the Docmost version (via
 `POST /api/version`) once per session and adapts where behaviour differs:
 
 - **Page body edits:** `update_page` can only change an existing page's **body**
