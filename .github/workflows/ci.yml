@@ -105,6 +105,8 @@ jobs:
       - name: Run installer failure-path tests
         run: |
           bash tests/release_integrity_test.sh
+          bash tests/cosign_installer_contract_test.sh
+          bash tests/version_consistency_test.sh
           bash tests/release_context_test.sh
 
       - name: Enforce immutable CI inputs

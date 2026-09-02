@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-09-01T23:49:54Z",
+  "repository": "BonEvil/docmost-local-mcp",
+  "sources": {
+    "tagRef": "git ls-remote https://github.com/BonEvil/docmost-local-mcp.git refs/tags/v0.9.3 refs/tags/v0.9.3^{}",
+    "tagObject": "https://api.github.com/repos/BonEvil/docmost-local-mcp/git/tags/1f431aa821c628791b6151cd561909470ecd4f65",
+    "releaseV093": "https://api.github.com/repos/BonEvil/docmost-local-mcp/releases/tags/v0.9.3",
+    "releaseV094": "https://api.github.com/repos/BonEvil/docmost-local-mcp/releases/tags/v0.9.4"
+  },
+  "main": {
+    "commit": "39ca53c187a14f58235be68c7b2a19b16e768ac2"
+  },
+  "v0.9.3": {
+    "tagObject": "1f431aa821c628791b6151cd561909470ecd4f65",
+    "targetType": "commit",
+    "targetCommit": "39ca53c187a14f58235be68c7b2a19b16e768ac2",
+    "verification": {
+      "verified": true,
+      "reason": "valid",
+      "verifiedAt": "2026-09-01T20:27:03Z"
+    },
+    "releaseHttpStatus": 404
+  },
+  "v0.9.4": {
+    "tagRefPresent": false,
+    "releaseHttpStatus": 404
+  },
+  "cardBranch": {
+    "ref": "refs/heads/atlas/card/bc86baa5-d1d4-47e7-bbfb-2878d359e7ef",
+    "remoteRefPresent": false
+  },
+  "sanitization": "The provider signature bytes, tagger email, credentials, tokens, cookies, and private service data are intentionally not retained."
+}

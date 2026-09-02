@@ -6,6 +6,10 @@ the npm launcher and upstream downloader are not part of production deployment.
 
 ## Pinned release inputs and outputs
 
+The prepared source release identity is **v0.9.4**. The annotated signed
+`v0.9.3` tag is retained unchanged as failed release evidence and has no GitHub
+release; it must not be reused or moved.
+
 The release workflow checks out an exact commit, uses Rust 1.98.0 and
 `Cargo.lock`, disables incremental compilation, remaps the checkout path, and
 sets `SOURCE_DATE_EPOCH` to the reviewed commit time. Release profile settings
@@ -26,9 +30,12 @@ additional provider-verifiable provenance record.
 1. Review the exact release commit and record the tag, full 40-character commit
    SHA, and platform-binary SHA-256 from `release-manifest.json`. Do not infer
    these values from a moving branch or from a filename.
-2. Install cosign v3.0.3 from its official release using its published signature
-   verification procedure. Ensure `curl`, `jq`, and `sha256sum` (or `shasum`) are
-   available.
+2. Install cosign v3.0.3 from its official release using
+   `sigstore/cosign-installer` v4.1.2, pinned to commit
+   `6f9f17788090df1f26f669e9d70d6ae9567deba6`. Cosign v3 release binaries use
+   `.sigstore.json` verification bundles; installer v3.10.0 incorrectly requests
+   the absent legacy `.sig` asset and is prohibited. Ensure `curl`, `jq`, and
+   `sha256sum` (or `shasum`) are available.
 3. Create the destination directory on the same filesystem as its final path,
    owned by the Atlas service account and not writable by untrusted users.
 4. Run the installer with the reviewed identities:

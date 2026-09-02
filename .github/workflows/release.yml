@@ -144,6 +144,8 @@ jobs:
           cargo test --locked --all-features
           cargo test --locked --no-default-features
           bash tests/release_integrity_test.sh
+          bash tests/cosign_installer_contract_test.sh
+          bash tests/version_consistency_test.sh
           bash tests/release_context_test.sh
           bash scripts/check-pinned-inputs.sh
 
@@ -162,7 +164,7 @@ jobs:
           (cd release-binaries && sha256sum docmost-local-mcp-* | LC_ALL=C sort) > SHA256SUMS
 
       - name: Install pinned cosign
-        uses: sigstore/cosign-installer@d7543c93d881b35a8faa02e8e3605f69b7a1ce62 # v3.10.0
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
         with:
           cosign-release: v3.0.3
 
