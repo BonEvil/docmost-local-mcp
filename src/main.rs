@@ -1,13 +1,13 @@
 use anyhow::Result;
 use clap::{Args, Parser, Subcommand};
 use docmost_local_mcp::{
-    auth::webview::run_auth_window, server::DocmostMcpServer,
+    PRODUCT_NAME, PRODUCT_VERSION, auth::webview::run_auth_window, server::DocmostMcpServer,
     startup_config::parse_runtime_startup_config, stdio_compat,
 };
 use rmcp::ServiceExt;
 
 #[derive(Parser, Debug)]
-#[command(name = "docmost-local-mcp")]
+#[command(name = PRODUCT_NAME, version = PRODUCT_VERSION)]
 #[command(about = "Docmost MCP server for local IDE integrations")]
 struct Cli {
     #[arg(long)]

@@ -128,12 +128,16 @@ identity="https://github.com/$REPOSITORY/.github/workflows/release.yml@refs/tags
 
 manifest_commit=$(jq -er '.source.commit' "$manifest") || die "manifest has no source commit"
 manifest_version=$(jq -er '.version' "$manifest") || die "manifest has no version"
+manifest_product_name=$(jq -er '.product.name' "$manifest") || die "manifest has no product name"
+manifest_product_version=$(jq -er '.product.version' "$manifest") || die "manifest has no product version"
 manifest_digest=$(jq -er --arg name "$asset_name" \
   '.artifacts | map(select(.name == $name)) | if length == 1 then .[0].sha256 else error("asset must appear exactly once") end' \
   "$manifest") || die "manifest does not identify exactly one requested artifact"
 
 [[ $manifest_commit == "$expected_commit" ]] || die "manifest commit does not match reviewed commit"
 [[ $manifest_version == "$version" ]] || die "manifest version does not match requested release"
+[[ $manifest_product_name == docmost-local-mcp ]] || die "manifest identifies the wrong product"
+[[ "v$manifest_product_version" == "$version" ]] || die "manifest product version does not match requested release"
 [[ $manifest_digest == "$expected_sha256" ]] || die "manifest digest does not match reviewed digest"
 actual_digest=$(sha256_file "$artifact")
 [[ $actual_digest == "$expected_sha256" ]] || die "artifact digest mismatch"

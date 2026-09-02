@@ -6,9 +6,15 @@ the npm launcher and upstream downloader are not part of production deployment.
 
 ## Pinned release inputs and outputs
 
-The prepared source release identity is **v0.9.4**. The annotated signed
-`v0.9.3` tag is retained unchanged as failed release evidence and has no GitHub
-release; it must not be reused or moved.
+The prepared source release identity is **v0.9.5**. The annotated signed
+`v0.9.3` tag and the released `v0.9.4` tag are immutable historical evidence;
+neither may be reused or moved.
+
+Every supported binary reports `docmost-local-mcp 0.9.5` for `--version`, and
+its MCP initialize response reports the product-owned name `docmost-local-mcp`,
+title `Docmost MCP`, and version `0.9.5`. Release builds reject a tag that does
+not equal the Cargo package version before staging binaries. The manifest binds
+that same product identity to the tag and source commit.
 
 The release workflow checks out an exact commit, uses Rust 1.98.0 and
 `Cargo.lock`, disables incremental compilation, remaps the checkout path, and

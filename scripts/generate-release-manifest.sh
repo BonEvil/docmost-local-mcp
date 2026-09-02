@@ -10,6 +10,8 @@ artifact_dir=$1
 version=$2
 commit=$3
 output=$4
+product_name=$(sed -n '/^\[package\]$/,/^\[/s/^name = "\([^"]*\)"$/\1/p' Cargo.toml)
+product_version=$(sed -n '/^\[package\]$/,/^\[/s/^version = "\([^"]*\)"$/\1/p' Cargo.toml)
 
 [[ $version =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9.-]+)?$ ]] || {
   echo "version must be a v-prefixed release tag" >&2
@@ -17,6 +19,14 @@ output=$4
 }
 [[ $commit =~ ^[0-9a-f]{40}$ ]] || {
   echo "commit must be a full lowercase Git commit SHA" >&2
+  exit 65
+}
+[[ $product_name == docmost-local-mcp ]] || {
+  echo "Cargo package name must be docmost-local-mcp" >&2
+  exit 65
+}
+[[ $version == "v$product_version" ]] || {
+  echo "release tag $version does not match Cargo product version v$product_version" >&2
   exit 65
 }
 command -v jq >/dev/null || { echo "jq is required" >&2; exit 69; }
@@ -48,6 +58,9 @@ done
 
 jq -S -n \
   --arg version "$version" \
+  --arg product_name "$product_name" \
+  --arg product_title "Docmost MCP" \
+  --arg product_version "$product_version" \
   --arg commit "$commit" \
   --arg repository "https://github.com/BonEvil/docmost-local-mcp" \
   --arg rust "1.98.0" \
@@ -59,6 +72,7 @@ jq -S -n \
     schemaVersion: 1,
     repository: $repository,
     version: $version,
+    product: {name: $product_name, title: $product_title, version: $product_version},
     source: {commit: $commit, workflow: $workflow},
     build: {rust: $rust, command: $cargo, cargoLockSha256: $lock_sha256},
     artifacts: $artifacts

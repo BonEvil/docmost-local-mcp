@@ -102,6 +102,10 @@ jobs:
       - name: Stage versioned binary
         shell: bash
         run: |
+          product_version=$(sed -n '/^\[package\]$/,/^\[/s/^version = "\([^"]*\)"$/\1/p' Cargo.toml)
+          test "$GITHUB_REF_NAME" = "v$product_version"
+          binary_identity=$("target/release/${{ matrix.target.binary_name }}" --version)
+          test "$binary_identity" = "docmost-local-mcp $product_version"
           ext=""
           if [[ "${{ matrix.target.binary_name }}" == *.exe ]]; then ext=".exe"; fi
           cp "target/release/${{ matrix.target.binary_name }}" "docmost-local-mcp-${{ matrix.target.id }}${ext}"

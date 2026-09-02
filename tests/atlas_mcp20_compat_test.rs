@@ -1,7 +1,9 @@
 use std::{collections::BTreeSet, path::PathBuf, process::Stdio, time::Duration};
 
 use anyhow::{Context, Result, bail};
-use docmost_local_mcp::{server::DocmostMcpServer, types::StartupConfig};
+use docmost_local_mcp::{
+    PRODUCT_NAME, PRODUCT_TITLE, PRODUCT_VERSION, server::DocmostMcpServer, types::StartupConfig,
+};
 use rmcp::ServiceExt;
 use serde_json::{Value, json};
 use tokio::{
@@ -153,6 +155,44 @@ fn assert_read_only_inventory(tools: &[Value]) {
     }));
 }
 
+fn assert_product_identity(initialized: &Value) {
+    assert_eq!(
+        initialized
+            .pointer("/result/serverInfo/name")
+            .and_then(Value::as_str),
+        Some(PRODUCT_NAME)
+    );
+    assert_eq!(
+        initialized
+            .pointer("/result/serverInfo/title")
+            .and_then(Value::as_str),
+        Some(PRODUCT_TITLE)
+    );
+    assert_eq!(
+        initialized
+            .pointer("/result/serverInfo/version")
+            .and_then(Value::as_str),
+        Some(PRODUCT_VERSION),
+        "MCP metadata must identify the product, never the rmcp dependency"
+    );
+}
+
+#[test]
+fn cli_version_is_exact_product_identity() -> Result<()> {
+    let output = std::process::Command::new(env!("CARGO_BIN_EXE_docmost-local-mcp"))
+        .arg("--version")
+        .output()
+        .context("run candidate --version")?;
+    assert!(output.status.success());
+    assert_eq!(
+        String::from_utf8(output.stdout)?,
+        format!("{PRODUCT_NAME} {PRODUCT_VERSION}\n"),
+        "binary output must not contain a stale or dependency-derived version"
+    );
+    assert!(output.stderr.is_empty());
+    Ok(())
+}
+
 #[tokio::test]
 async fn inherited_2bf01855_rmcp_boundary_closes_on_atlas_discovery() -> Result<()> {
     // Commit 2bf01855 passed stdio directly to this rmcp service path. Exercise that
@@ -224,6 +264,7 @@ async fn atlas_mcp20_add_flow_negotiates_enumerates_persists_and_tears_down() ->
     );
 
     let initialized = server.initialize().await?;
+    assert_product_identity(&initialized);
     assert_eq!(
         initialized
             .pointer("/result/protocolVersion")
@@ -253,6 +294,7 @@ async fn atlas_mcp20_add_flow_negotiates_enumerates_persists_and_tears_down() ->
 async fn ordinary_initialize_first_client_remains_standards_compliant() -> Result<()> {
     let mut server = ServerProcess::spawn()?;
     let initialized = server.initialize().await?;
+    assert_product_identity(&initialized);
     assert_eq!(
         initialized
             .pointer("/result/protocolVersion")
