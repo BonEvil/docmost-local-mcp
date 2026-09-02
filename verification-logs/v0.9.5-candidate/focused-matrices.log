@@ -1,0 +1,75 @@
+record=focused-candidate-matrices
+source_commit=98b328da6819735e1da44fa736cb37383c389b5d
+source_tree=c57b88f9f56adfa7836cd7df32cf3488b5b6c745
+info: syncing channel updates for 1.98.0-aarch64-unknown-linux-gnu
+info: latest update on 2026-08-20 for version 1.98.0 (88d9e12ae 2026-08-18)
+info: downloading component clippy
+   Compiling docmost-local-mcp v0.9.5 (/src)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.82s
+     Running tests/network_safety_test.rs (/target/debug/deps/network_safety_test-985f2a7a8cb2a5c3)
+
+running 5 tests
+test authenticated_api_redirect_is_returned_without_contacting_the_target ... ok
+test success_and_error_bodies_have_streaming_hard_caps_and_safe_errors ... ok
+test search_list_and_markdown_bounds_accept_boundary_and_reject_one_over ... ok
+test authentication_success_body_is_bounded_before_state_is_persisted ... ok
+test stalled_api_and_authentication_requests_hit_the_overall_deadline ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.33s
+
+   Compiling docmost-local-mcp v0.9.5 (/src)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.77s
+     Running tests/startup_config_test.rs (/target/debug/deps/startup_config_test-ca807858dc6dda82)
+
+running 4 tests
+test reports_missing_authority_values ... ok
+test reads_authority_configuration_from_environment ... ok
+test invalid_authority_configurations_fail_closed ... ok
+test cli_authority_configuration_overrides_environment ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.00s
+
+   Compiling docmost-local-mcp v0.9.5 (/src)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.94s
+     Running tests/mcp_server_test.rs (/target/debug/deps/mcp_server_test-8349da54f8f23187)
+
+running 9 tests
+test supported_write_allowlist_is_locked_to_exact_thirteen_names ... ok
+test server_revalidates_programmatic_authority_configuration ... ok
+test default_server_lists_only_exact_read_inventory ... ok
+test server_get_page_requires_slug_id_schema ... ok
+test server_required_input_fields_are_present ... ok
+test every_persistent_mutation_has_expected_annotations ... ok
+test delete_metadata_names_stable_targets_and_consequences ... ok
+test all_tools_expose_object_input_schemas ... ok
+test write_mode_exposes_only_the_exact_allowlisted_subset ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+   Compiling docmost-local-mcp v0.9.5 (/src)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.13s
+     Running tests/docmost_delete_test.rs (/target/debug/deps/docmost_delete_test-a978491ed95d4bf5)
+
+running 8 tests
+test malformed_targets_fail_before_dispatch ... ok
+test oversized_success_response_fails_after_one_dispatch ... ok
+test redirect_is_not_followed ... ok
+test duplicate_explicit_invocation_deletes_once_then_fails_absent ... ok
+test delete_contracts_use_exact_v0950_endpoints_and_payloads ... ok
+test absent_unauthorized_conflict_and_server_errors_never_retry ... ok
+test interrupted_call_is_not_replayed ... ok
+test timeout_after_dispatch_is_ambiguous_but_never_retried ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s
+
+   Compiling docmost-local-mcp v0.9.5 (/src)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.68s
+     Running tests/atlas_mcp20_compat_test.rs (/target/debug/deps/atlas_mcp20_compat_test-7f26d2e1679f40b5)
+
+running 4 tests
+test inherited_2bf01855_rmcp_boundary_closes_on_atlas_discovery ... ok
+test cli_version_is_exact_product_identity ... ok
+test ordinary_initialize_first_client_remains_standards_compliant ... ok
+test atlas_mcp20_add_flow_negotiates_enumerates_persists_and_tears_down ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
