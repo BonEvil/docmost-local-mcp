@@ -41,6 +41,28 @@ fn write_config(names: &[&str]) -> StartupConfig {
     }
 }
 
+#[test]
+fn supported_write_allowlist_is_locked_to_exact_thirteen_names() {
+    assert_eq!(
+        WRITE_TOOL_NAMES,
+        [
+            "create_page",
+            "update_page",
+            "duplicate_page",
+            "copy_page_to_space",
+            "move_page",
+            "move_page_to_space",
+            "create_space",
+            "update_space",
+            "create_comment",
+            "update_comment",
+            "delete_page",
+            "delete_space",
+            "delete_comment",
+        ]
+    );
+}
+
 async fn listed_tools(config: StartupConfig) -> Result<Vec<Tool>> {
     let (server_transport, client_transport) = tokio::io::duplex(16 * 1024);
     let server_handle = tokio::spawn(async move {
@@ -151,6 +173,9 @@ async fn every_persistent_mutation_has_expected_annotations() -> Result<()> {
         ("update_space", true),
         ("create_comment", false),
         ("update_comment", true),
+        ("delete_page", true),
+        ("delete_space", true),
+        ("delete_comment", true),
     ];
 
     assert_eq!(expectations.len(), WRITE_TOOL_NAMES.len());
@@ -166,6 +191,43 @@ async fn every_persistent_mutation_has_expected_annotations() -> Result<()> {
         assert_eq!(annotations.read_only_hint, Some(false), "{name}");
         assert_eq!(annotations.destructive_hint, Some(destructive), "{name}");
         assert_eq!(annotations.idempotent_hint, Some(false), "{name}");
+    }
+    Ok(())
+}
+
+#[tokio::test]
+async fn delete_metadata_names_stable_targets_and_consequences() -> Result<()> {
+    let tools = listed_tools(write_config(&WRITE_TOOL_NAMES)).await?;
+    for (name, field, consequences) in [
+        ("delete_page", "page_id", ["descendant", "trash"]),
+        ("delete_space", "space_id", ["cascade", "attachment"]),
+        ("delete_comment", "comment_id", ["repl", "cascade"]),
+    ] {
+        let tool = tools
+            .iter()
+            .find(|tool| tool.name == name)
+            .unwrap_or_else(|| panic!("missing delete tool {name}"));
+        let description = tool.description.as_deref().unwrap_or_default();
+        assert!(description.contains("stable") && description.contains("UUID"));
+        assert!(
+            consequences
+                .iter()
+                .all(|needle| description.to_ascii_lowercase().contains(needle)),
+            "{name} must disclose its cascade consequence: {description}"
+        );
+        let properties = tool.input_schema["properties"]
+            .as_object()
+            .expect("delete input properties");
+        let field_schema = properties
+            .get(field)
+            .unwrap_or_else(|| panic!("{name} missing {field}"));
+        let field_description = field_schema["description"].as_str().unwrap_or_default();
+        assert!(field_description.contains("Stable") && field_description.contains("UUID"));
+        assert!(
+            tool.input_schema["required"]
+                .as_array()
+                .is_some_and(|required| required.iter().any(|value| value == field))
+        );
     }
     Ok(())
 }
@@ -232,6 +294,9 @@ async fn server_required_input_fields_are_present() -> Result<()> {
         ("create_comment", "markdown"),
         ("update_comment", "comment_id"),
         ("update_comment", "markdown"),
+        ("delete_page", "page_id"),
+        ("delete_space", "space_id"),
+        ("delete_comment", "comment_id"),
     ] {
         let tool = tools
             .iter()
