@@ -15,6 +15,7 @@ env:
 
 jobs:
   build:
+    if: github.event.pull_request.head.sha == 'c852b38cef32392bb85598f6c45e873f935d9b71'
     name: Evidence (${{ matrix.id }})
     runs-on: ${{ matrix.runner }}
     strategy:
@@ -151,6 +152,7 @@ jobs:
           retention-days: 1
 
   retain-evidence:
+    if: github.event.pull_request.head.sha == 'c852b38cef32392bb85598f6c45e873f935d9b71'
     name: Retain sanitized platform records
     needs: build
     runs-on: ubuntu-24.04
