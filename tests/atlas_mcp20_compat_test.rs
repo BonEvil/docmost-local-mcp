@@ -1,10 +1,12 @@
 use std::{collections::BTreeSet, path::PathBuf, process::Stdio, time::Duration};
 
 use anyhow::{Context, Result, bail};
+use docmost_local_mcp::{server::DocmostMcpServer, types::StartupConfig};
+use rmcp::ServiceExt;
 use serde_json::{Value, json};
 use tokio::{
     fs,
-    io::{AsyncBufReadExt, AsyncWriteExt, BufReader},
+    io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader},
     process::{Child, ChildStdin, ChildStdout, Command},
     time::timeout,
 };
@@ -149,6 +151,54 @@ fn assert_read_only_inventory(tools: &[Value]) {
             .and_then(Value::as_bool)
             == Some(true)
     }));
+}
+
+#[tokio::test]
+async fn inherited_2bf01855_rmcp_boundary_closes_on_atlas_discovery() -> Result<()> {
+    // Commit 2bf01855 passed stdio directly to this rmcp service path. Exercise that
+    // inherited boundary without the new compatibility preflight and prove the exact
+    // discovery-first frame terminates it before an initialize request can be sent.
+    let (server_transport, mut atlas_transport) = tokio::io::duplex(16 * 1024);
+    let server_task = tokio::spawn(async move {
+        let server = DocmostMcpServer::new(StartupConfig::default())?;
+        server.serve(server_transport).await?.waiting().await?;
+        anyhow::Ok(())
+    });
+    let discovery = json!({
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "server/discover",
+        "params": {"_meta": {
+            "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+            "io.modelcontextprotocol/clientInfo": {"name": "Atlas", "version": "current-contract-test"},
+            "io.modelcontextprotocol/clientCapabilities": {}
+        }}
+    });
+    atlas_transport
+        .write_all(format!("{discovery}\n").as_bytes())
+        .await?;
+    atlas_transport.flush().await?;
+
+    let mut response = Vec::new();
+    let bytes = timeout(
+        Duration::from_secs(1),
+        atlas_transport.read_to_end(&mut response),
+    )
+    .await
+    .context("inherited boundary did not close")??;
+    assert_eq!(
+        bytes, 0,
+        "inherited boundary unexpectedly returned a response"
+    );
+    let result = timeout(Duration::from_secs(1), server_task)
+        .await
+        .context("inherited server task did not stop")??;
+    let error = result.expect_err("inherited rmcp boundary unexpectedly stayed healthy");
+    assert!(
+        error.to_string().contains("initialized request"),
+        "unexpected inherited close diagnostic: {error}"
+    );
+    Ok(())
 }
 
 #[tokio::test]
