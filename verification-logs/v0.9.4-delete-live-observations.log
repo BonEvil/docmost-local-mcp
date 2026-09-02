@@ -1,0 +1,39 @@
+DISPOSABLE DOCMOST v0.95.0 DELETE OBSERVATIONS
+source_commit=eed531af611739141986dbb62907db8416bce5d6
+source_tree=a2172f86dfa44b717d6291eea97554c54dc7ef65
+compose_project=docmost-v094-deletes
+origin=http://127.0.0.1:3401
+ordinary_origin_accessed=false
+docmost_image=docmost/docmost@sha256:41c8d777cf23c74e78f94e676aec328b7d7856f48df5e573543dac68d371e37c
+running_package_version=0.95.0
+setup_http=200
+identity=synthetic disposable administrator
+workspace=synthetic disposable workspace
+
+COMMAND
+cargo test --locked --no-default-features --test live_docmost_delete_test every_delete_tool_has_an_independently_observed_disposable_effect -- --ignored --exact --nocapture
+
+OUTPUT
+running 1 test
+delete_page structured outcome=moved_to_trash permanent=false automatic_retry=false
+delete_page independent_readback trashed_pages=2
+delete_comment structured outcome=permanently_deleted cascade=threaded_replies automatic_retry=false
+delete_comment independent_readback absent_comments=2
+delete_space structured outcome=permanently_deleted follow_up=attachment_cleanup_queued_by_docmost automatic_retry=false
+delete_space independent_readback absent_space_page_comment=3
+cleanup attempted_remaining_synthetic_spaces=3
+test every_delete_tool_has_an_independently_observed_disposable_effect ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+exit=0
+
+INDEPENDENT DATABASE READBACK AFTER HARNESS CLEANUP
+synthetic_workspaces=1
+synthetic_spaces=0
+synthetic_pages=0
+synthetic_comments=0
+
+The sole synthetic workspace and administrator existed only inside the disposable
+stack and are removed with its database volume during teardown. Exact teardown
+counts and the before/after ordinary-container inventory are retained in the
+boundary observation log.
+

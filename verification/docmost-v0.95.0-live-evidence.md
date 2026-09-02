@@ -1,5 +1,9 @@
 # Sanitized exact-candidate live compatibility execution record
 
+> Superseded for v0.9.4 by
+> [`v0.9.4-refresh-evidence-r2.md`](v0.9.4-refresh-evidence-r2.md). The record
+> below remains the historical v0.9.3 execution.
+
 Captured on 2026-08-31 for the v0.9.3 candidate. This is the retained observed
 output supporting `docmost-v0.95.0-compatibility-report.md`. Commands that
 handled secrets or identifiers are described but not reproduced. No endpoint,

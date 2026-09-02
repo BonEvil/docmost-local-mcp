@@ -1,0 +1,48 @@
+V0.9.4 DESTRUCTIVE DELETE CARD BOUNDARY OBSERVATIONS
+workflow_id=e2e4291f-350c-43c9-bae8-0d9ce57498e8
+card_id=8819948a-87b2-46df-ae89-79d4bc789f8a
+source_candidate_commit=eed531af611739141986dbb62907db8416bce5d6
+source_candidate_tree=a2172f86dfa44b717d6291eea97554c54dc7ef65
+card_branch=atlas/card/8819948a-87b2-46df-ae89-79d4bc789f8a
+
+PROVIDER READBACK
+remote=https://github.com/BonEvil/docmost-local-mcp.git
+remote_exact_candidate_refs=0
+remote_exact_card_branch_refs=0
+local_tags_containing_candidate=0
+branch_publication=false
+pull_request_creation_or_update=false
+merge=false
+tag_creation_or_update=false
+release_creation_or_update=false
+
+DISPOSABLE RESOURCE LIFECYCLE
+compose_project=docmost-v094-deletes
+during_containers=3
+during_volumes=3
+during_networks=1
+during_listener_3401=1
+after_containers=0
+after_volumes=0
+after_networks=0
+after_listener_3401=0
+downloaded_docmost_image_remaining=0
+synthetic_database_volume_remaining=0
+synthetic_credentials_remaining=0
+
+ORDINARY RUNNING CONTAINERS AFTER CLEANUP
+elegant_aryabhata|a3535ab419a1|running
+kind_golick|rust:1.98.0-slim-bookworm|running
+project-tracker-tracker-1|project-tracker|running
+sleepy_goldberg|a3535ab419a1|running
+stable_running_inventory_sha256=1195f1ebb670d2ad24cb2383ae90cac5404ab72a8709e1680ff208ed589d80a0
+These are the same four name/image pairs observed before this fresh disposable run.
+
+PROHIBITED ACTIONS
+ordinary_docmost_origin_access=false
+ordinary_docmost_content_access=false
+ordinary_docmost_deletion=false
+installation=false
+atlas_registration_or_activation=false
+deployment=false
+

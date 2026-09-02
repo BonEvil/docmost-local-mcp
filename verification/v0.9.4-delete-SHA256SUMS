@@ -1,0 +1,6 @@
+f79bccaad484c3e677e35bb647423e4a2d0998073b4dfe044e90905f69526117  verification-logs/v0.9.4-delete-primary-source.log
+2ae128dbe946dcf4f7cc5676d24bfd554bee3b4045aeafdb6d42c7f8dd5562d8  verification-logs/v0.9.4-delete-live-observations.log
+58db2fb6a56eec54f2188b80277b3189f4d2449f7f42ef566a31433195f57a25  verification-logs/v0.9.4-delete-candidate-checks.log
+a7f842b63c0b999b51ee8f89c099d1564a7a7b7f486b8cd655b8eedccf178e0b  verification-logs/v0.9.4-delete-boundary-observations.log
+1ee717caacd0044afc9f9485cd9a474ce054e7a85a4e88f09f391303dc468cc8  verification/v0.9.4-delete-no-publication-ledger.json
+a543067a9d614d4eda6471d16616919c4a2e4352a2173101f67e837ffcffc0c8  verification/v0.9.4-destructive-delete-evidence.md

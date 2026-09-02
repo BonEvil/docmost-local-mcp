@@ -1,0 +1,116 @@
+DOCMOST DELETE PRIMARY-SOURCE OBSERVATIONS
+retrieved_during_card_run=2026-09-02
+repository=https://github.com/docmost/docmost
+tag=v0.95.0
+commit=4132dd597c956a27423607d008708c0e214690da
+tree=2da55313c0d99912764eebf82a138c305271420d
+transport=raw.githubusercontent.com HTTPS at exact commit
+
+FILE apps/server/src/core/page/page.controller.ts
+sha256=0755a12b5821eb0db89b0fb41aaccbe34a91cf4fa91ac15c824a8f8be2bd987b
+307 @HttpCode(HttpStatus.OK)
+308 @Post('delete')
+309 async delete(
+310   @Body() deletePageDto: DeletePageDto,
+314   const page = await this.pageRepo.findById(deletePageDto.pageId);
+316   if (!page) throw new NotFoundException('Page not found');
+322   if (deletePageDto.permanentlyDelete) {
+329     await this.pageService.forceDelete(deletePageDto.pageId, workspace.id);
+345   } else {
+347     await this.pageAccessService.validateCanEdit(page, user);
+349     await this.pageService.removePage(
+350       deletePageDto.pageId,
+351       user.id,
+352       workspace.id,
+
+FILE apps/server/src/core/page/dto/page.dto.ts
+sha256=59d510e6573c4cc4bdd6af28ec8f771a32660078f1f2cce5ec902590ac3c4f8a
+44 export class DeletePageDto extends PageIdDto {
+45   @IsOptional()
+46   @IsBoolean()
+47   permanentlyDelete?: boolean;
+48 }
+
+FILE apps/server/src/database/repos/page/page.repo.ts
+sha256=e19acbda32cb9b5c8ec76a286231e875c65534f351effc7e31dada0d94d76d0e
+195 async removePage(pageId, deletedById, workspaceId): Promise<void> {
+202   const descendants = await this.db
+203     .withRecursive('page_descendants', ...)
+207     .where('id', '=', pageId)
+208     .where('deletedAt', 'is', null)
+213     .innerJoin('page_descendants as pd', 'pd.id', 'p.parentPageId')
+214     .where('p.deletedAt', 'is', null)
+221   const pageIds = descendants.map((d) => d.id);
+226   .updateTable('pages')
+228   deletedById: deletedById,
+229   deletedAt: currentDate,
+231   .where('id', 'in', pageIds)
+232   .where('deletedAt', 'is', null)
+235   await trx.deleteFrom('shares').where('pageId', 'in', pageIds).execute();
+
+FILE apps/server/src/core/space/space.controller.ts
+sha256=3cc66962458d582bcb42aa98ddff39ae9e40ee4500af3823202b45a9e8e2d817
+163 @HttpCode(HttpStatus.OK)
+164 @Post('delete')
+165 async deleteSpace(
+166   @Body() spaceIdDto: SpaceIdDto,
+170   const ability = await this.spaceAbility.createForUser(user, spaceIdDto.spaceId);
+174   if (ability.cannot(SpaceCaslAction.Manage, SpaceCaslSubject.Settings)) {
+175     throw new ForbiddenException();
+177   return this.spaceService.deleteSpace(spaceIdDto.spaceId, workspace.id);
+
+FILE apps/server/src/core/space/services/space.service.ts
+sha256=db8b99502cedc7e04dcd08cd2b06398f309fc4141fbf6fc6391ecf7111dbda4c
+275 async deleteSpace(spaceId: string, workspaceId: string): Promise<void> {
+276   const space = await this.spaceRepo.findById(spaceId, workspaceId);
+277   if (!space) {
+278     throw new NotFoundException('Space not found');
+281   await this.spaceRepo.deleteSpace(spaceId, workspaceId);
+282   await this.attachmentQueue.add(QueueJob.DELETE_SPACE_ATTACHMENTS, space);
+
+FILE apps/server/src/database/repos/space/space.repo.ts
+sha256=27cab9529634018e31778eff7f87d6fc53250da8f91e127b2721829c44d343d5
+224 async deleteSpace(spaceId: string, workspaceId: string): Promise<void> {
+225   await this.db
+226     .deleteFrom('spaces')
+227     .where('id', '=', spaceId)
+228     .where('workspaceId', '=', workspaceId)
+229     .execute();
+
+FILE apps/server/src/core/comment/comment.controller.ts
+sha256=558268e98b3b06862ad33f22a717a4515669dd76d633ee8f76b348117e1d4cd3
+142 @HttpCode(HttpStatus.OK)
+143 @Post('delete')
+144 async delete(@Body() input: CommentIdDto, ...)
+145   const comment = await this.commentRepo.findById(input.commentId);
+146   if (!comment) throw new NotFoundException('Comment not found');
+155   await this.pageAccessService.validateCanComment(page, user, workspace.id);
+160   if (isOwner) {
+161     await this.commentRepo.deleteComment(comment.id);
+168     // Space admin can delete any comment
+174     await this.commentRepo.deleteComment(comment.id);
+
+FILE apps/server/src/database/repos/comment/comment.repo.ts
+sha256=056d532c6b9cd3469b0fe67ce96e31a57893d8a16f6dd914f69d8c5434b4f2c9
+94 async deleteComment(commentId: string): Promise<void> {
+95   await this.db.deleteFrom('comments').where('id', '=', commentId).execute();
+96 }
+
+FILE apps/server/src/database/migrations/20240324T086300-pages.ts
+sha256=a0ed8833debf4e818fe3537731108857306c5dc5fa47603c66a2f78f98ea7a71
+18 .addColumn('parent_page_id', 'uuid', (col) =>
+19   col.references('pages.id').onDelete('cascade'),
+26 .addColumn('space_id', 'uuid', (col) =>
+27   col.references('spaces.id').onDelete('cascade').notNull(),
+
+FILE apps/server/src/database/migrations/20240324T086600-comments.ts
+sha256=b034e2090db1b4d3f8ca16f79f5494ff2434e652f9c92da7ec996d80e1ea2dde
+13 .addColumn('page_id', 'uuid', (col) =>
+14   col.references('pages.id').onDelete('cascade').notNull(),
+16 .addColumn('parent_comment_id', 'uuid', (col) =>
+17   col.references('comments.id').onDelete('cascade'),
+
+DERIVED CONTRACTS
+delete_page=POST /api/pages/delete body={pageId,permanentlyDelete:false}; active target and descendants are soft-deleted and shares removed
+delete_space=POST /api/spaces/delete body={spaceId}; exact space row is deleted, page/comment records cascade, attachment cleanup is queued
+delete_comment=POST /api/comments/delete body={commentId}; exact comment row is deleted and threaded replies cascade

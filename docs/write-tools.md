@@ -224,8 +224,5 @@ To re-run an equivalent check by hand, point the MCP server at your instance and
 call the `create_page` tool with a `space_id`, `title`, and `markdown` body, then
 open the returned page in Docmost.
 
-## Roadmap
-
-Remaining planned write tools (not yet implemented): `duplicate_page`,
-`copy_page_to_space`, `move_page`, `move_page_to_space`, `create_space`,
-`update_space`, `create_comment`, `update_comment`.
+The three destructive tools are documented separately in
+[Destructive delete tools](delete-tools.md).

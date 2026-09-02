@@ -389,7 +389,22 @@ impl DocmostClient {
 
     /// POST a write that returns no meaningful body (e.g. move-to-space); succeeds on 2xx.
     async fn request_discard(&self, endpoint: &str, payload: Value) -> Result<()> {
-        let response = self.send_json(endpoint, payload, true).await?;
+        self.request_discard_with_retry(endpoint, payload, true)
+            .await
+    }
+
+    /// POST a write whose response body is discarded, with explicit control over the
+    /// single-401 replay used by ordinary writes. Destructive deletes pass `false`: an
+    /// authorization refresh must never replay a deletion behind a stale confirmation.
+    async fn request_discard_with_retry(
+        &self,
+        endpoint: &str,
+        payload: Value,
+        retry_on_unauthorized: bool,
+    ) -> Result<()> {
+        let response = self
+            .send_json(endpoint, payload, retry_on_unauthorized)
+            .await?;
         if !response.status().is_success() {
             let status = response.status();
             let details =

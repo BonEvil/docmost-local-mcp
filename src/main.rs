@@ -2,9 +2,9 @@ use anyhow::Result;
 use clap::{Args, Parser, Subcommand};
 use docmost_local_mcp::{
     auth::webview::run_auth_window, server::DocmostMcpServer,
-    startup_config::parse_runtime_startup_config,
+    startup_config::parse_runtime_startup_config, stdio_compat,
 };
-use rmcp::{ServiceExt, transport::io::stdio};
+use rmcp::ServiceExt;
 
 #[derive(Parser, Debug)]
 #[command(name = "docmost-local-mcp")]
@@ -95,8 +95,14 @@ async fn try_main() -> Result<()> {
             // library tests enforce the same fail-closed origin and authority rules.
             let argv = std::env::args().skip(1).collect::<Vec<_>>();
             let startup_config = parse_runtime_startup_config(&argv)?;
+
+            // Run the bounded, side-effect-free Atlas compatibility preflight before
+            // constructing the server. Server construction opens the origin-scoped state
+            // store, so this ordering is the credential-access boundary.
+            let mut stdout = tokio::io::stdout();
+            let stdin = stdio_compat::negotiate(tokio::io::stdin(), &mut stdout).await?;
             let server = DocmostMcpServer::new(startup_config)?;
-            server.serve(stdio()).await?.waiting().await?;
+            server.serve((stdin, stdout)).await?.waiting().await?;
             Ok(())
         }
     }

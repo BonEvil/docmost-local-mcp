@@ -1,0 +1,21 @@
+$ bash tests/cosign_installer_contract_test.sh
+cosign v3 bundle installer contract and v0.9.3 missing-signature regression: ok
+$ bash tests/release_integrity_test.sh
+release installer success and rejection paths: ok
+$ bash tests/version_consistency_test.sh
+v0.9.4 source, package, manifest, workflow, test, and documentation identity: ok
+$ bash tests/release_context_test.sh
+release context success and rejection paths: ok
+$ bash scripts/check-pinned-inputs.sh
+immutable release inputs: ok
+$ node --check npm/launcher/cli.js
+$ node --check npm/launcher/postinstall.js
+launcher smoke: ok
+integrated evidence presence: ok
+git diff --check: ok
+39ca53c187a14f58235be68c7b2a19b16e768ac2	refs/heads/main
+1f431aa821c628791b6151cd561909470ecd4f65	refs/tags/v0.9.3
+39ca53c187a14f58235be68c7b2a19b16e768ac2	refs/tags/v0.9.3^{}
+releases/tags/v0.9.3 http_status=404
+releases/tags/v0.9.4 http_status=404
+exit_status=0

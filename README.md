@@ -62,6 +62,9 @@ mode and names each tool in the allowlist:
 - `update_space`: update a space's name, slug, and/or description
 - `create_comment`: add a page-level comment to a page from Markdown
 - `update_comment`: replace an existing comment's body with new Markdown
+- `delete_page`: move a page and all active descendants to trash
+- `delete_space`: permanently delete a space and its space-owned content
+- `delete_comment`: permanently delete a comment and threaded replies
 
 See [Authority modes](docs/authority-modes.md) for the fail-closed configuration,
 the exact inventories and annotations, and the independent Atlas confirmation
@@ -197,7 +200,7 @@ Once connected, ask your AI client things like:
 
 ## Authentication Flow
 
-1. Your MCP client launches the server over stdio.
+1. Your MCP client launches the server over stdio. Initialize-first clients use the standard MCP handshake unchanged. Atlas MCP 2.0 may first send `server/discover`; the server returns the legacy JSON-RPC fallback and keeps stdio open so Atlas can initialize and enumerate the same inventory. This bounded preflight runs before credential state or the Docmost client is opened.
 2. On the first authenticated tool call, the server starts a local HTTP login page on `127.0.0.1`.
 3. The server opens the system browser for the loopback authentication flow.
 4. You enter your email and password there. If `--base-url` or `DOCMOST_BASE_URL` is set, the Docmost URL is prefilled and locked.
@@ -339,6 +342,16 @@ applied. To set body content reliably there, create a new page with `create_page
 
 For the full design, Markdown→ProseMirror conversion details, verified Docmost API
 fields, and version caveats, see [docs/write-tools.md](docs/write-tools.md).
+
+### Destructive deletes
+
+`delete_page`, `delete_space`, and `delete_comment` each require the target's
+stable UUID. Their tool metadata states the cascade consequence before dispatch,
+and each successful result is sanitized JSON containing `outcome`, `target`,
+`consequence`, and `automaticRetry: false`. Delete requests are never retried
+automatically, including after HTTP 401: an interrupted or timed-out request can
+have committed remotely, so inspect the target before authorizing another call.
+See [Destructive delete tools](docs/delete-tools.md).
 
 ## Development
 
