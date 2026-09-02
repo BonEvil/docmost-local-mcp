@@ -25,7 +25,8 @@ The allowlist is exact and comma-separated. Its only valid names are:
 
 `create_page`, `update_page`, `duplicate_page`, `copy_page_to_space`,
 `move_page`, `move_page_to_space`, `create_space`, `update_space`,
-`create_comment`, and `update_comment`.
+`create_comment`, `update_comment`, `delete_page`, `delete_space`, and
+`delete_comment`.
 
 Write mode with an empty allowlist, an allowlist in read-only mode, unknown or
 read-tool names, duplicates, and empty entries are startup errors. The server
@@ -48,12 +49,17 @@ Annotations describe effects; they do not authorize them.
 | `update_space` | false | true | false |
 | `create_comment` | false | false | false |
 | `update_comment` | false | true | false |
+| `delete_page` | false | true | false |
+| `delete_space` | false | true | false |
+| `delete_comment` | false | true | false |
 
 Creation and copy operations add data without overwriting existing data, so
 their destructive hint is false. Move and update operations change or replace
 existing persistent state, so their destructive hint is true. Idempotency is
 conservatively false for every mutation: retries can duplicate created data or
 can alter timestamps, ordering, and other server-maintained state.
+Deletes are also conservatively non-idempotent. They never automatically retry,
+because an interrupted response can leave the remote outcome ambiguous.
 
 ## Atlas control remains mandatory
 

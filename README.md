@@ -62,6 +62,9 @@ mode and names each tool in the allowlist:
 - `update_space`: update a space's name, slug, and/or description
 - `create_comment`: add a page-level comment to a page from Markdown
 - `update_comment`: replace an existing comment's body with new Markdown
+- `delete_page`: move a page and all active descendants to trash
+- `delete_space`: permanently delete a space and its space-owned content
+- `delete_comment`: permanently delete a comment and threaded replies
 
 See [Authority modes](docs/authority-modes.md) for the fail-closed configuration,
 the exact inventories and annotations, and the independent Atlas confirmation
@@ -339,6 +342,16 @@ applied. To set body content reliably there, create a new page with `create_page
 
 For the full design, Markdown→ProseMirror conversion details, verified Docmost API
 fields, and version caveats, see [docs/write-tools.md](docs/write-tools.md).
+
+### Destructive deletes
+
+`delete_page`, `delete_space`, and `delete_comment` each require the target's
+stable UUID. Their tool metadata states the cascade consequence before dispatch,
+and each successful result is sanitized JSON containing `outcome`, `target`,
+`consequence`, and `automaticRetry: false`. Delete requests are never retried
+automatically, including after HTTP 401: an interrupted or timed-out request can
+have committed remotely, so inspect the target before authorizing another call.
+See [Destructive delete tools](docs/delete-tools.md).
 
 ## Development
 

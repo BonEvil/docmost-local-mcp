@@ -194,3 +194,27 @@ pub struct UpdateCommentInput {
     )]
     pub markdown: String,
 }
+
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
+pub struct DeletePageInput {
+    #[schemars(
+        description = "Stable Docmost page UUID to move to trash. The page and all active descendant pages are affected."
+    )]
+    pub page_id: String,
+}
+
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
+pub struct DeleteSpaceInput {
+    #[schemars(
+        description = "Stable Docmost space UUID to permanently delete. All pages, comments, memberships, shares, and other space-owned records are cascaded; attachment cleanup is queued by Docmost."
+    )]
+    pub space_id: String,
+}
+
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
+pub struct DeleteCommentInput {
+    #[schemars(
+        description = "Stable Docmost comment UUID to permanently delete. Any threaded replies below the comment are cascade-deleted."
+    )]
+    pub comment_id: String,
+}
