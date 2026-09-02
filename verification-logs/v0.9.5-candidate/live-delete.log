@@ -1,0 +1,22 @@
+record=disposable-live-delete
+source_commit=98b328da6819735e1da44fa736cb37383c389b5d
+source_tree=c57b88f9f56adfa7836cd7df32cf3488b5b6c745
+docmost_version=0.95.0
+info: syncing channel updates for 1.98.0-aarch64-unknown-linux-gnu
+info: latest update on 2026-08-20 for version 1.98.0 (88d9e12ae 2026-08-18)
+info: downloading component clippy
+   Compiling docmost-local-mcp v0.9.5 (/src)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 13.03s
+     Running tests/live_docmost_delete_test.rs (/target/debug/deps/live_docmost_delete_test-ee72932af5da47bf)
+
+running 1 test
+delete_page structured outcome=moved_to_trash permanent=false automatic_retry=false
+delete_page independent_readback trashed_pages=2
+delete_comment structured outcome=permanently_deleted cascade=threaded_replies automatic_retry=false
+delete_comment independent_readback absent_comments=2
+delete_space structured outcome=permanently_deleted follow_up=attachment_cleanup_queued_by_docmost automatic_retry=false
+delete_space independent_readback absent_space_page_comment=3
+cleanup attempted_remaining_synthetic_spaces=3
+test every_delete_tool_has_an_independently_observed_disposable_effect ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.60s

@@ -1,0 +1,36 @@
+record=cleanup-and-invariance
+source_commit=98b328da6819735e1da44fa736cb37383c389b5d
+source_tree=c57b88f9f56adfa7836cd7df32cf3488b5b6c745
+ Container docmost-v095-e3ef-docmost-1 Stopping
+ Container docmost-v095-e3ef-docmost-1 Stopped
+ Container docmost-v095-e3ef-docmost-1 Removing
+ Container docmost-v095-e3ef-docmost-1 Removed
+ Container docmost-v095-e3ef-db-1 Stopping
+ Container docmost-v095-e3ef-redis-1 Stopping
+ Container docmost-v095-e3ef-db-1 Stopped
+ Container docmost-v095-e3ef-db-1 Removing
+ Container docmost-v095-e3ef-db-1 Removed
+ Container docmost-v095-e3ef-redis-1 Stopped
+ Container docmost-v095-e3ef-redis-1 Removing
+ Container docmost-v095-e3ef-redis-1 Removed
+ Volume docmost-v095-e3ef_db_data Removing
+ Volume docmost-v095-e3ef_docmost_data Removing
+ Volume docmost-v095-e3ef_redis_data Removing
+ Network docmost-v095-e3ef_default Removing
+ Volume docmost-v095-e3ef_docmost_data Removed
+ Volume docmost-v095-e3ef_redis_data Removed
+ Volume docmost-v095-e3ef_db_data Removed
+ Network docmost-v095-e3ef_default Removed
+disposable_containers=0
+disposable_volumes=0
+disposable_networks=0
+disposable_listener_3501=absent
+non_card_running_containers_before=4
+non_card_running_containers_after=4
+non_card_inventory_sha256_before=8178ba6f68e526fb65032d7996b4967959b6764be336c8f55db4413a9821e210
+non_card_inventory_sha256_after=8178ba6f68e526fb65032d7996b4967959b6764be336c8f55db4413a9821e210
+ordinary_non_card_inventory_unchanged=pass
+card_execution_workspace=absent
+credentials_sessions_homes_harnesses_downloaded_binaries_caches=absent
+docmost_v0950_test_image=absent
+cleanup=pass
