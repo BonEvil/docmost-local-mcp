@@ -123,7 +123,7 @@ jobs:
             exit 1
           fi
           (cd "$out" && sha256sum artifact-manifest.txt provider-*.json records/*.log | LC_ALL=C sort) > "$out/SHA256SUMS"
-          git add "$out"
+          git add -f "$out"
           git diff --cached --check
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
