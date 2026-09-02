@@ -13,7 +13,9 @@ printf '#!/bin/sh\necho verified\n' > "$test_root/fixtures/$asset"
 digest=$(sha256sum "$test_root/fixtures/$asset" | awk '{print $1}')
 jq -S -n \
   --arg version "$version" --arg commit "$commit" --arg name "$asset" --arg digest "$digest" \
-  '{schemaVersion:1,version:$version,source:{commit:$commit},artifacts:[{name:$name,sha256:$digest,size:24}]}' \
+  '{schemaVersion:1,version:$version,
+    product:{name:"docmost-local-mcp",title:"Docmost MCP",version:"1.2.3"},
+    source:{commit:$commit},artifacts:[{name:$name,sha256:$digest,size:24}]}' \
   > "$test_root/fixtures/release-manifest.json"
 printf '{"mediaType":"application/vnd.dev.sigstore.bundle.v0.3+json"}\n' \
   > "$test_root/fixtures/release-manifest.sigstore.json"
@@ -63,6 +65,8 @@ if [[ $name == release-manifest.json ]]; then
   case ${TEST_SCENARIO:-success} in
     wrong-commit) jq '.source.commit = "ffffffffffffffffffffffffffffffffffffffff"' "$FIXTURE_DIR/$name" > "$output"; exit 0 ;;
     wrong-version) jq '.version = "v9.9.9"' "$FIXTURE_DIR/$name" > "$output"; exit 0 ;;
+    wrong-product) jq '.product.name = "rmcp"' "$FIXTURE_DIR/$name" > "$output"; exit 0 ;;
+    wrong-product-version) jq '.product.version = "0.6.4"' "$FIXTURE_DIR/$name" > "$output"; exit 0 ;;
     duplicate-asset) jq '.artifacts += [.artifacts[0]]' "$FIXTURE_DIR/$name" > "$output"; exit 0 ;;
     malformed-digest) jq '.artifacts[0].sha256 = "not-a-sha256"' "$FIXTURE_DIR/$name" > "$output"; exit 0 ;;
   esac
@@ -99,7 +103,8 @@ cmp "$test_root/fixtures/$asset" "$test_root/install/docmost-local-mcp"
 [[ -x $test_root/install/docmost-local-mcp ]]
 
 for scenario in \
-  mismatch provenance partial oversized unapproved wrong-commit wrong-version duplicate-asset malformed-digest \
+  mismatch provenance partial oversized unapproved wrong-commit wrong-version wrong-product \
+  wrong-product-version duplicate-asset malformed-digest \
   missing-verification malformed-verification mismatched-verification redirected-verification \
   oversized-verification unverified-verification
 do

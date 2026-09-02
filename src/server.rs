@@ -1,11 +1,11 @@
 use rmcp::{
     ServerHandler,
     handler::server::router::tool::ToolRouter,
-    model::{ErrorData, ServerCapabilities, ServerInfo},
+    model::{ErrorData, Implementation, ServerCapabilities, ServerInfo},
     tool_handler,
 };
 
-use crate::docmost_client::DocmostClient;
+use crate::{PRODUCT_NAME, PRODUCT_TITLE, PRODUCT_VERSION, docmost_client::DocmostClient};
 
 mod render;
 mod tools;
@@ -28,6 +28,13 @@ impl ServerHandler for DocmostMcpServer {
                     .into(),
             ),
             capabilities: ServerCapabilities::builder().enable_tools().build(),
+            server_info: Implementation {
+                name: PRODUCT_NAME.to_owned(),
+                title: Some(PRODUCT_TITLE.to_owned()),
+                version: PRODUCT_VERSION.to_owned(),
+                icons: None,
+                website_url: Some(env!("CARGO_PKG_HOMEPAGE").to_owned()),
+            },
             ..Default::default()
         }
     }
