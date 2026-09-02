@@ -46,9 +46,9 @@ PowerShell transcript end
 End time: 20260902032140
 **********************
 retention_inspection_schema_version=1
-retention_provider_run_id=33587464469
+retention_provider_run_id=33587741209
 retention_provider_run_attempt=1
-retention_runner_name=GitHub Actions 1000000271
+retention_runner_name=GitHub Actions 1000000309
 retention_runner_os=Linux
 retention_runner_arch=X64
 retention_rustc=rustc 1.98.0 (88d9e12ae 2026-08-18)
@@ -158,3 +158,12 @@ DOSHeader {
   OEMinfo: 0
   AddressOfNewExeHeader: 240
 }
+original_provider_job_id=100111656396
+original_provider_job_excerpt_begin
+2026-09-02T03:18:22.3762003Z   Write-Output "artifact_sha256=$hash"
+2026-09-02T03:21:40.3078939Z     Finished `release` profile [optimized] target(s) in 3m 11s
+2026-09-02T03:21:40.4548222Z artifact_sha256=49a995f32d31652920916516999a83468ac6d71f89c266de51b308064f82c816
+2026-09-02T03:21:40.5455968Z Format: COFF-x86-64
+2026-09-02T03:21:40.5456337Z Arch: x86_64
+2026-09-02T03:21:40.5457669Z   Machine: IMAGE_FILE_MACHINE_AMD64 (0x8664)
+original_provider_job_excerpt_end

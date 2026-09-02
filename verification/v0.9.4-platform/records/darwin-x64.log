@@ -436,9 +436,9 @@ MachHeader {
   Reserved: 0x0
 }
 retention_inspection_schema_version=1
-retention_provider_run_id=33587464469
+retention_provider_run_id=33587741209
 retention_provider_run_attempt=1
-retention_runner_name=GitHub Actions 1000000271
+retention_runner_name=GitHub Actions 1000000309
 retention_runner_os=Linux
 retention_runner_arch=X64
 retention_rustc=rustc 1.98.0 (88d9e12ae 2026-08-18)
@@ -464,3 +464,11 @@ MachHeader {
   ]
   Reserved: 0x0
 }
+original_provider_job_id=100111656247
+original_provider_job_excerpt_begin
+2026-09-02T03:18:37.1560340Z echo "artifact_sha256=$(shasum -a 256 "$binary" | awk '{print $1}')"
+2026-09-02T03:24:40.2363150Z     Finished `release` profile [optimized] target(s) in 6m 01s
+2026-09-02T03:24:41.7148390Z artifact_sha256=f543ef5b205679f9e734da19c1cbd9b65cb19e8b417a1609fab926734557b69d
+2026-09-02T03:24:41.9840310Z Format: Mach-O 64-bit x86-64
+2026-09-02T03:24:41.9841280Z Arch: x86_64
+original_provider_job_excerpt_end
