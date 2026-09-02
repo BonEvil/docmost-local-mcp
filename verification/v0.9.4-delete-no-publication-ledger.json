@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "workflowId": "e2e4291f-350c-43c9-bae8-0d9ce57498e8",
+  "cardId": "8819948a-87b2-46df-ae89-79d4bc789f8a",
+  "sourceCandidate": {
+    "commit": "eed531af611739141986dbb62907db8416bce5d6",
+    "tree": "a2172f86dfa44b717d6291eea97554c54dc7ef65"
+  },
+  "providerReadback": {
+    "remote": "https://github.com/BonEvil/docmost-local-mcp.git",
+    "exactCandidateRefs": 0,
+    "exactCardBranchRefs": 0,
+    "localTagsContainingCandidate": 0
+  },
+  "disposableResourcesAfterCleanup": {
+    "containers": 0,
+    "volumes": 0,
+    "networks": 0,
+    "loopbackPort3401Listeners": 0,
+    "downloadedDocmostImages": 0
+  },
+  "prohibitedActions": {
+    "ordinaryDocmostAccess": false,
+    "ordinaryDocmostDeletion": false,
+    "branchPublication": false,
+    "pullRequestCreationOrUpdate": false,
+    "merge": false,
+    "tagCreationOrUpdate": false,
+    "releaseCreationOrUpdate": false,
+    "installation": false,
+    "atlasRegistrationOrActivation": false,
+    "deployment": false
+  }
+}
+
