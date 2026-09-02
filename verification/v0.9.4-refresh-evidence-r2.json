@@ -97,5 +97,10 @@
     "privateResponseValuesRetained": false,
     "ordinaryPrivateContentAccessed": false,
     "syntheticCanariesRetained": false
-  }
+  },
+  "directEvidence": [
+    "verification-logs/docmost-direct-observations.log",
+    "verification-logs/atlas-direct-observations.log",
+    "verification-logs/cleanup-direct-observations.log"
+  ]
 }

@@ -1,0 +1,100 @@
+record=direct sanitized observations captured before teardown
+candidate_source_tree=37744d4f533fc1c55b37e86497a6b799fe4b4f2a
+candidate_binary_sha256=a28539da4bd086f9a0d6b137a6525b77171b87fa986ac5f26b6d0f792e5d15a0
+docmost_image=docmost/docmost@sha256:41c8d777cf23c74e78f94e676aec328b7d7856f48df5e573543dac68d371e37c
+compose_project=docmost-v094-r2
+compose_containers_before_test=3
+compose_volumes_before_test=3
+compose_images=docmost/docmost:0.95.0,postgres:16-alpine,redis:7.2-alpine
+loopback_listener_before_test_3301=absent
+loopback_listener_during_test_3301=present
+server_package_version_observation=0.95.0
+
+[mcp-default-initialize]
+request.method=initialize
+request.protocolVersion=2025-03-26
+response.protocolVersion=2025-03-26
+response.error=none
+
+[mcp-default-tools-list]
+request.method=tools/list
+response.count=10
+response.tools=get_comments,get_current_user,get_page,get_space,list_child_pages,list_pages,list_spaces,list_workspace_members,search_docs,search_pages
+response.readOnlyHint=true,true,true,true,true,true,true,true,true,true
+response.writeToolCount=0
+
+[mcp-default-direct-mutation-probes]
+create_page => code=-32602 message=tool not found
+update_page => code=-32602 message=tool not found
+duplicate_page => code=-32602 message=tool not found
+copy_page_to_space => code=-32602 message=tool not found
+move_page => code=-32602 message=tool not found
+move_page_to_space => code=-32602 message=tool not found
+create_space => code=-32602 message=tool not found
+update_space => code=-32602 message=tool not found
+create_comment => code=-32602 message=tool not found
+update_comment => code=-32602 message=tool not found
+
+[initial-direct-read-results]
+get_current_user => isError=false synthetic_identity_count=1
+list_workspace_members limit=20 => isError=false showing=1 total=1
+list_spaces => isError=false synthetic_space_count=1
+get_space isolated_space_id=<redacted-synthetic-id> => isError=false role=admin
+list_pages isolated_space_id=<redacted-synthetic-id> limit=10 => isError=false showing=0 total=0
+search_docs query=synthetic-2ade46fe isolated_space_id=<redacted-synthetic-id> => isError=false results=0
+search_pages query=synthetic-2ade46fe isolated_space_id=<redacted-synthetic-id> => isError=false results=0
+
+[allowlisted-process-tools-list]
+request.method=tools/list
+response.count=15
+response.readTools=get_comments,get_current_user,get_page,get_space,list_child_pages,list_pages,list_spaces,list_workspace_members,search_docs,search_pages
+response.writeTools=create_comment,create_page,move_page,update_comment,update_page
+response.writeReadOnlyHint=false,false,false,false,false
+duplicate_page => code=-32602 message=tool not found
+copy_page_to_space => code=-32602 message=tool not found
+move_page_to_space => code=-32602 message=tool not found
+create_space => code=-32602 message=tool not found
+update_space => code=-32602 message=tool not found
+
+[direct-synthetic-write-results]
+create_page title=Synthetic Parent synthetic-2ade46fe => isError=false page_id=<redacted-synthetic-id>
+create_page title=Synthetic Child synthetic-2ade46fe markdown=<synthetic-before> => isError=false page_id=<redacted-synthetic-id> slug_id=<redacted-synthetic-id>
+update_page page_id=<redacted-synthetic-id> title=Synthetic Child Updated synthetic-2ade46fe markdown=<synthetic-after> => isError=false
+move_page page_id=<redacted-synthetic-id> parent_page_id=<redacted-synthetic-id> => isError=false
+create_comment page_id=<redacted-synthetic-id> markdown=<synthetic-before> => isError=false comment_id=<redacted-synthetic-id>
+update_comment comment_id=<redacted-synthetic-id> markdown=<synthetic-after> => isError=false
+
+[fresh-default-process-readback]
+tools/list => count=10 writeToolCount=0
+get_page slug_id=<redacted-synthetic-id> => isError=false title_match=true updated_body_match=true
+list_child_pages page_id=<redacted-synthetic-id> limit=10 => isError=false text="Showing 1 of 1 pages."
+get_comments page_id=<redacted-synthetic-id> limit=10 => isError=false text="Showing 1 of 1 comments."
+
+[direct-disposable-database-inspection]
+target=docmost-v094-r2-db-1 database=docmost access=read-only-query
+query_scope=rows whose synthetic title marker equals synthetic-2ade46fe
+synthetic_pages=2
+nested_child=1
+updated_page_body=1
+synthetic_comments=1
+updated_comment_body=1
+
+[session-lifecycle]
+before_expiry state_directories=1 state_files=2 credential_files=0 directory_mode=0700 file_modes=0600,0600
+forced_expiry=2000-01-01T00:00:00.000Z
+expired_get_current_user => interactive_authentication_required=true silent_reuse=false
+fresh_session_only_login => submission_status=success
+fresh_get_current_user => isError=false
+after_relogin state_directories=1 session_files=1 config_files=1 credential_files=0 directory_mode=0700 file_modes=0600,0600
+forget exact_origin => exit=0
+after_forget state_entries=0 credential_files=0 session_files=0
+
+[hostile-direct-observations]
+redirect response_status=302 safe_class="302 Found" target_hits=0 process_tools_after_failure=10 elapsed_seconds=0.0
+timeout server_stall_seconds=35 candidate_safe_class="Failed to call /api/spaces" candidate_elapsed_seconds=30.0 process_tools_after_failure=10
+declared_oversize response_content_length=8388609 candidate_safe_class="exceeded the 8388608-byte limit" process_tools_after_failure=10
+chunked_oversize response_stream_bytes_greater_than=8388608 candidate_safe_class="exceeded the 8388608-byte limit" process_tools_after_failure=10
+oversized_input query_bytes=4097 allowed_bytes=4096 hostile_server_hits=0 process_tools_after_failure=10
+permission_denied response_status=403 hostile_body_bytes=718 candidate_safe_class="403 Forbidden" body_excerpt_retained=false process_tools_after_failure=10
+server_error response_status=500 hostile_body_bytes=718 candidate_safe_class="500 Internal Server Error" body_excerpt_retained=false process_tools_after_failure=10
+redaction_search canary_matches=0 origin_matches=0 url_matches=0 response_excerpt_matches=0
