@@ -197,7 +197,7 @@ Once connected, ask your AI client things like:
 
 ## Authentication Flow
 
-1. Your MCP client launches the server over stdio.
+1. Your MCP client launches the server over stdio. Initialize-first clients use the standard MCP handshake unchanged. Atlas MCP 2.0 may first send `server/discover`; the server returns the legacy JSON-RPC fallback and keeps stdio open so Atlas can initialize and enumerate the same inventory. This bounded preflight runs before credential state or the Docmost client is opened.
 2. On the first authenticated tool call, the server starts a local HTTP login page on `127.0.0.1`.
 3. The server opens the system browser for the loopback authentication flow.
 4. You enter your email and password there. If `--base-url` or `DOCMOST_BASE_URL` is set, the Docmost URL is prefilled and locked.
