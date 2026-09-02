@@ -1,0 +1,13 @@
+35f6aabcecf7f626097bb37786c94578dbae20f1921691c9f5594cf6a56d7496  ../verification-logs/v0.9.4-r4-delete-live.log
+5494098cc78e26e359c9bcf3820b4262921df8dcc9376b3fa2ee39542677deae  ../verification-logs/v0.9.4-r4-cargo-deny.log
+689bd8e4ab8a873554d98097875208e0a12e29d704053fa617ef4f2334dd9fe7  v0.9.4-refresh-evidence-r4.md
+696df264f599cdbad664a0c74c307f073c22c6beacfa9372aa954883b99e259c  ../verification-logs/v0.9.4-r4-hostile-matrix.log
+76288f8ddde24ba537f3ec55e4e65fd732d1132424d8aaf376b6406817047b34  ../verification-logs/v0.9.4-r4-atlas-destructive-matrix.log
+7a7c72c0b953a72eadd6a35e61c1fbda6b087ccc974974adff0e2607597e2b1b  ../verification-logs/v0.9.4-r4-docmost-matrix.log
+7e14daaf3116152efc1b6119a5e932d2b2d2cddf8e6c36f1629552cd8223ecad  ../verification-logs/v0.9.4-r4-direct-observations.log
+8a2d558fe6bbb28dbc2f02fcf0f361bb0c1afb21ba4580c6b7aab26be03c4b7a  ../verification-logs/v0.9.4-r4-repository-gates.log
+aad5655fa253d3769a13c8a88b200878f47a71ff5d9adc7b8abf0f0ccb6170fb  ../verification-logs/v0.9.4-r4-cleanup.log
+c00629227f637308a8d13a8d406d5adf1f33c2921ec002484cace3f781e073fe  ../verification-logs/v0.9.4-r4-current-atlas-inventory.log
+dfb3bbfec2f5475993e23b3dac43eb7fb186306fb4cd3e941affed0921ed1a55  ../verification-logs/v0.9.4-r4-provenance.log
+f590059533d50a162f560d9d88f8c3abe9ca33b04d434df769bdfb74b0d55bbf  ../verification-logs/v0.9.4-r4-disposable-db.log
+f70816382e6fdffae4f4954babd6be3b35afec3c37011d8ccdeea1e40c4ddb01  ../verification-logs/v0.9.4-r4-release-gates.log

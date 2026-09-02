@@ -1,0 +1,7 @@
+server_version=0.95.0
+protocol_version=2025-03-26
+default_read_tools=10 default_write_tools=0 all_write_rejections=13
+exact_write_inventory=13 allowlisted_write_tools=5 unallowlisted_write_rejections=8
+read_calls_exercised=10 write_calls_exercised=6
+fresh_readback=pass expiry_requires_interactive=pass session_relogin=pass
+state_modes=0700/0600 credential_files=0 origin_forget=pass
