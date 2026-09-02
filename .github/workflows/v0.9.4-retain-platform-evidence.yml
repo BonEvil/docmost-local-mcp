@@ -88,7 +88,7 @@ jobs:
               echo "retention_binary_sha256=$actual_sha"
               "$llvm_readobj" --file-headers "$binary"
             } >> "$out/records/$id.log"
-            gh api "repos/$GITHUB_REPOSITORY/actions/jobs/${job_ids[$id]}/logs" > provider-job.log
+            gh api --allow-escape-sequences "repos/$GITHUB_REPOSITORY/actions/jobs/${job_ids[$id]}/logs" > provider-job.log
             {
               echo "original_provider_job_id=${job_ids[$id]}"
               echo 'original_provider_job_excerpt_begin'
