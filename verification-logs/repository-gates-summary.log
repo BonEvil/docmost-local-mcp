@@ -1,0 +1,14 @@
+rustc=1.98.0
+cargo=1.98.0
+runner=Linux aarch64
+cargo_fmt=pass
+cargo_clippy_locked_all_targets_all_features_deny_warnings=pass
+cargo_test_locked_all_features=152 passed 0 failed
+cargo_test_locked_no_default_features=152 passed 0 failed
+release_integrity=pass
+cosign_v3_bundle_installer_contract=pass
+version_consistency=pass
+release_context=pass
+immutable_release_inputs=pass
+git_diff_check=pass
+note=The slim build container lacked jq for its first shell-gate invocation; the exact shell gates were immediately rerun with the host's jq and all passed. Rust gates had already completed before that environmental miss.

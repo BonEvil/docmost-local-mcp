@@ -1,5 +1,9 @@
 # Docmost Community v0.95.0 compatibility report
 
+> Superseded for v0.9.4 by
+> [`v0.9.4-refresh-evidence-r2.md`](v0.9.4-refresh-evidence-r2.md). The record
+> below remains the historical v0.9.3 exact-candidate result.
+
 **Status:** passed in the isolated disposable compatibility boundary on
 2026-08-31. This report replaces the stale candidate-bound August 28 result.
 It is sanitized: no endpoint, credential, token, cookie, session filename,

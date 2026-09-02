@@ -1,0 +1,55 @@
+{
+  "approveOnce": {
+    "allInventoryReadOnly": true,
+    "approvalAccepted": true,
+    "atlasIndependentEffect": "write",
+    "candidateReadOnlyAnnotation": true,
+    "dispatchOutcomeCode": "dispatch_failed",
+    "inventory": [
+      "get_comments",
+      "get_current_user",
+      "get_page",
+      "get_space",
+      "list_child_pages",
+      "list_pages",
+      "list_spaces",
+      "list_workspace_members",
+      "search_docs",
+      "search_pages"
+    ],
+    "inventoryIsExactTenReads": true,
+    "mutationsAbsent": true,
+    "outcomes": [
+      "McpServerError",
+      "mcp_confirmation_already_consumed"
+    ],
+    "preDecisionBothBlocked": true,
+    "projectionSanitized": true,
+    "projectionUsesGenericLabels": true,
+    "protocolVersion": "2025-03-26",
+    "replayStatusCode": 409
+  },
+  "deny": {
+    "authorizationStatus": "denied",
+    "denialAccepted": true,
+    "dispatchOutcomeCode": null,
+    "outcome": "mcp_confirmation_denied",
+    "preDecisionBlocked": true,
+    "terminalReasonCode": "authorization_denied"
+  },
+  "expiry": {
+    "authorizationStatus": "expired",
+    "dispatchOutcomeCode": null,
+    "outcome": "mcp_confirmation_expired",
+    "terminalReasonCode": "authorization_expired"
+  },
+  "summary": {
+    "annotationsGrantNoAuthority": true,
+    "approveOnceDispatchesExactlyOne": true,
+    "candidateInventoryAccepted": true,
+    "denyDispatchedZero": true,
+    "expiryDispatchedZero": true,
+    "replayFailedClosed": true,
+    "temporaryRegistrationsRemoved": true
+  }
+}
