@@ -1,0 +1,5 @@
+release installer success and rejection paths: ok
+cosign v3 bundle installer contract and v0.9.3 missing-signature regression: ok
+v0.9.4 source, package, manifest, workflow, test, and documentation identity: ok
+release context success and rejection paths: ok
+immutable release inputs: ok

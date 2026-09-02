@@ -1,0 +1,300 @@
+{
+  "normal": {
+    "inventory": {
+      "deleteAnnotations": "destructive non-idempotent",
+      "reads": 10,
+      "writes": 13
+    },
+    "mode": "normal",
+    "persistedYoloMode": false,
+    "temporaryRegistrationsRemaining": 0,
+    "tools": {
+      "delete_comment": {
+        "approveOnce": {
+          "approveOnceDispatches": 1,
+          "competitor": "already_consumed",
+          "effect": "destructive",
+          "independentEffect": true,
+          "modal": true,
+          "replayStatus": 409
+        },
+        "deny": {
+          "dispatches": 0,
+          "effect": "destructive",
+          "modal": true,
+          "outcome": "mcp_confirmation_denied"
+        },
+        "dismiss": {
+          "dispatches": 0,
+          "effect": "destructive",
+          "modal": true,
+          "outcome": "mcp_confirmation_cancelled"
+        },
+        "expiry": {
+          "dispatches": 0,
+          "modal": true,
+          "outcome": "mcp_confirmation_expired"
+        },
+        "interruption": {
+          "dispatches": 0,
+          "effect": "destructive",
+          "modal": true,
+          "outcome": "mcp_confirmation_cancelled"
+        },
+        "mismatch": {
+          "dispatches": 0,
+          "effect": "destructive",
+          "modal": true,
+          "outcome": "mcp_confirmation_cancelled"
+        },
+        "targetMismatch": {
+          "boundTargetDigest": true,
+          "dispatches": 0,
+          "outcome": "mcp_confirmation_mismatch"
+        }
+      },
+      "delete_page": {
+        "approveOnce": {
+          "approveOnceDispatches": 1,
+          "competitor": "already_consumed",
+          "effect": "destructive",
+          "independentEffect": true,
+          "modal": true,
+          "replayStatus": 409
+        },
+        "deny": {
+          "dispatches": 0,
+          "effect": "destructive",
+          "modal": true,
+          "outcome": "mcp_confirmation_denied"
+        },
+        "dismiss": {
+          "dispatches": 0,
+          "effect": "destructive",
+          "modal": true,
+          "outcome": "mcp_confirmation_cancelled"
+        },
+        "expiry": {
+          "dispatches": 0,
+          "modal": true,
+          "outcome": "mcp_confirmation_expired"
+        },
+        "interruption": {
+          "dispatches": 0,
+          "effect": "destructive",
+          "modal": true,
+          "outcome": "mcp_confirmation_cancelled"
+        },
+        "mismatch": {
+          "dispatches": 0,
+          "effect": "destructive",
+          "modal": true,
+          "outcome": "mcp_confirmation_cancelled"
+        },
+        "targetMismatch": {
+          "boundTargetDigest": true,
+          "dispatches": 0,
+          "outcome": "mcp_confirmation_mismatch"
+        }
+      },
+      "delete_space": {
+        "approveOnce": {
+          "approveOnceDispatches": 1,
+          "competitor": "already_consumed",
+          "effect": "destructive",
+          "independentEffect": true,
+          "modal": true,
+          "replayStatus": 409
+        },
+        "deny": {
+          "dispatches": 0,
+          "effect": "destructive",
+          "modal": true,
+          "outcome": "mcp_confirmation_denied"
+        },
+        "dismiss": {
+          "dispatches": 0,
+          "effect": "destructive",
+          "modal": true,
+          "outcome": "mcp_confirmation_cancelled"
+        },
+        "expiry": {
+          "dispatches": 0,
+          "modal": true,
+          "outcome": "mcp_confirmation_expired"
+        },
+        "interruption": {
+          "dispatches": 0,
+          "effect": "destructive",
+          "modal": true,
+          "outcome": "mcp_confirmation_cancelled"
+        },
+        "mismatch": {
+          "dispatches": 0,
+          "effect": "destructive",
+          "modal": true,
+          "outcome": "mcp_confirmation_cancelled"
+        },
+        "targetMismatch": {
+          "boundTargetDigest": true,
+          "dispatches": 0,
+          "outcome": "mcp_confirmation_mismatch"
+        }
+      }
+    }
+  },
+  "summary": {
+    "allApprovedEffectsObserved": true,
+    "allNegativeTargetsPreserved": true,
+    "approvedDisposableDispatches": 6,
+    "deleteTools": 3,
+    "modalCases": 42,
+    "modes": 2,
+    "temporaryRegistrationsRemaining": 0,
+    "unauthorizedDispatches": 0
+  },
+  "yolo": {
+    "inventory": {
+      "deleteAnnotations": "destructive non-idempotent",
+      "reads": 10,
+      "writes": 13
+    },
+    "mode": "yolo",
+    "persistedYoloMode": true,
+    "temporaryRegistrationsRemaining": 0,
+    "tools": {
+      "delete_comment": {
+        "approveOnce": {
+          "approveOnceDispatches": 1,
+          "competitor": "already_consumed",
+          "effect": "destructive",
+          "independentEffect": true,
+          "modal": true,
+          "replayStatus": 409
+        },
+        "deny": {
+          "dispatches": 0,
+          "effect": "destructive",
+          "modal": true,
+          "outcome": "mcp_confirmation_denied"
+        },
+        "dismiss": {
+          "dispatches": 0,
+          "effect": "destructive",
+          "modal": true,
+          "outcome": "mcp_confirmation_cancelled"
+        },
+        "expiry": {
+          "dispatches": 0,
+          "modal": true,
+          "outcome": "mcp_confirmation_expired"
+        },
+        "interruption": {
+          "dispatches": 0,
+          "effect": "destructive",
+          "modal": true,
+          "outcome": "mcp_confirmation_cancelled"
+        },
+        "mismatch": {
+          "dispatches": 0,
+          "effect": "destructive",
+          "modal": true,
+          "outcome": "mcp_confirmation_cancelled"
+        },
+        "targetMismatch": {
+          "boundTargetDigest": true,
+          "dispatches": 0,
+          "outcome": "mcp_confirmation_mismatch"
+        }
+      },
+      "delete_page": {
+        "approveOnce": {
+          "approveOnceDispatches": 1,
+          "competitor": "already_consumed",
+          "effect": "destructive",
+          "independentEffect": true,
+          "modal": true,
+          "replayStatus": 409
+        },
+        "deny": {
+          "dispatches": 0,
+          "effect": "destructive",
+          "modal": true,
+          "outcome": "mcp_confirmation_denied"
+        },
+        "dismiss": {
+          "dispatches": 0,
+          "effect": "destructive",
+          "modal": true,
+          "outcome": "mcp_confirmation_cancelled"
+        },
+        "expiry": {
+          "dispatches": 0,
+          "modal": true,
+          "outcome": "mcp_confirmation_expired"
+        },
+        "interruption": {
+          "dispatches": 0,
+          "effect": "destructive",
+          "modal": true,
+          "outcome": "mcp_confirmation_cancelled"
+        },
+        "mismatch": {
+          "dispatches": 0,
+          "effect": "destructive",
+          "modal": true,
+          "outcome": "mcp_confirmation_cancelled"
+        },
+        "targetMismatch": {
+          "boundTargetDigest": true,
+          "dispatches": 0,
+          "outcome": "mcp_confirmation_mismatch"
+        }
+      },
+      "delete_space": {
+        "approveOnce": {
+          "approveOnceDispatches": 1,
+          "competitor": "already_consumed",
+          "effect": "destructive",
+          "independentEffect": true,
+          "modal": true,
+          "replayStatus": 409
+        },
+        "deny": {
+          "dispatches": 0,
+          "effect": "destructive",
+          "modal": true,
+          "outcome": "mcp_confirmation_denied"
+        },
+        "dismiss": {
+          "dispatches": 0,
+          "effect": "destructive",
+          "modal": true,
+          "outcome": "mcp_confirmation_cancelled"
+        },
+        "expiry": {
+          "dispatches": 0,
+          "modal": true,
+          "outcome": "mcp_confirmation_expired"
+        },
+        "interruption": {
+          "dispatches": 0,
+          "effect": "destructive",
+          "modal": true,
+          "outcome": "mcp_confirmation_cancelled"
+        },
+        "mismatch": {
+          "dispatches": 0,
+          "effect": "destructive",
+          "modal": true,
+          "outcome": "mcp_confirmation_cancelled"
+        },
+        "targetMismatch": {
+          "boundTargetDigest": true,
+          "dispatches": 0,
+          "outcome": "mcp_confirmation_mismatch"
+        }
+      }
+    }
+  }
+}
