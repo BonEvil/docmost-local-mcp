@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "workflowId": "e2e4291f-350c-43c9-bae8-0d9ce57498e8",
+  "cardId": "bc86baa5-d1d4-47e7-bbfb-2878d359e7ef",
+  "scope": "v0.9.4 release correction and local verification only",
+  "externalMutations": [],
+  "localMutations": [
+    "edited and committed in-scope files on the assigned Atlas card branch",
+    "created sanitized local verification evidence",
+    "used ephemeral Docker test environments and local Docker cache"
+  ],
+  "readOnlyExternalObservations": [
+    "official Sigstore documentation and exact cosign-installer source",
+    "public cosign v3.0.3 release asset names",
+    "public BonEvil main, tag, release, and card-branch state"
+  ],
+  "prohibitedActions": {
+    "branchPublication": false,
+    "pullRequestCreationOrUpdate": false,
+    "merge": false,
+    "tagCreationOrUpdate": false,
+    "releaseCreationOrUpdate": false,
+    "docmostMcpReleaseInstallation": false,
+    "atlasRegistrationOrActivation": false,
+    "authentication": false,
+    "ordinaryDocmostContentAccess": false,
+    "docmostMutation": false,
+    "deployment": false
+  },
+  "providerReadback": "verification/v0.9.4-release-correction-provider-evidence.json",
+  "note": "Development-only Rust components and cargo-deny were installed inside disposable verification containers; no Docmost MCP release artifact was installed."
+}

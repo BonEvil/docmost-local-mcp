@@ -1,0 +1,73 @@
+V0.9.4 DESTRUCTIVE DELETE SOURCE-CANDIDATE CHECKS
+candidate_commit=eed531af611739141986dbb62907db8416bce5d6
+candidate_tree=a2172f86dfa44b717d6291eea97554c54dc7ef65
+toolchain=rustc/cargo 1.98.0
+
+COMMAND cargo fmt --check
+exit=0
+result=PASS
+
+COMMAND cargo clippy --locked --all-targets --no-default-features -- -D warnings
+Finished dev profile; exit=0
+result=PASS
+
+COMMAND cargo test --locked --all-features
+unit=36 passed
+docmost_delete_test=8 passed
+mcp_server_test=13 passed
+live_docmost_delete_test=1 ignored by ordinary suite
+all test binaries and doctests: 0 failed
+exit=0
+result=PASS
+
+COMMAND cargo test --locked --no-default-features
+unit=36 passed
+docmost_delete_test=8 passed
+mcp_server_test=13 passed
+live_docmost_delete_test=1 ignored by ordinary suite
+all test binaries and doctests: 0 failed
+exit=0
+result=PASS
+
+COMMAND cargo deny check advisories bans licenses sources
+cargo-deny=0.20.2
+advisories=ok
+bans=ok
+licenses=ok
+sources=ok
+known_duplicate_notices=syn/windows-sys warnings only
+exit=0
+result=PASS
+
+COMMAND bash scripts/check-pinned-inputs.sh
+output=immutable release inputs: ok
+exit=0
+
+COMMAND bash tests/version_consistency_test.sh
+output=v0.9.4 source, package, manifest, workflow, test, and documentation identity: ok
+exit=0
+
+COMMAND bash tests/release_context_test.sh
+output=release context success and rejection paths: ok
+exit=0
+
+COMMAND bash tests/cosign_installer_contract_test.sh
+output=cosign v3 bundle installer contract and v0.9.3 missing-signature regression: ok
+exit=0
+
+COMMAND bash tests/release_integrity_test.sh
+output=release installer success and rejection paths: ok
+exit=0
+
+FOCUSED FAILURE-SAFETY INVENTORY
+tests/docmost_delete_test.rs=8 passed
+unknown_and_absent_404=no retry/no mock deletion
+unauthorized_401_403=no retry
+conflict_409=no retry
+server_error_500=no retry
+redirect=refused/zero target hits
+timeout_after_commit=one dispatch/no retry
+oversized_success=one dispatch/no retry
+interruption=one started request/no replay
+explicit_duplicate=two calls/one deletion
+

@@ -1,0 +1,17 @@
+info: syncing channel updates for 1.98.0-x86_64-unknown-linux-gnu
+info: latest update on 2026-08-20 for version 1.98.0 (88d9e12ae 2026-08-18)
+info: downloading component clippy
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.26s
+     Running tests/live_docmost_delete_test.rs (/target/debug/deps/live_docmost_delete_test-701818cfe77d540b)
+
+running 1 test
+delete_page structured outcome=moved_to_trash permanent=false automatic_retry=false
+delete_page independent_readback trashed_pages=2
+delete_comment structured outcome=permanently_deleted cascade=threaded_replies automatic_retry=false
+delete_comment independent_readback absent_comments=2
+delete_space structured outcome=permanently_deleted follow_up=attachment_cleanup_queued_by_docmost automatic_retry=false
+delete_space independent_readback absent_space_page_comment=3
+cleanup attempted_remaining_synthetic_spaces=3
+test every_delete_tool_has_an_independently_observed_disposable_effect ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.96s

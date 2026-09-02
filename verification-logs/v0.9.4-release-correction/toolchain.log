@@ -1,0 +1,6 @@
+rustc 1.98.0 (88d9e12ae 2026-08-18)
+cargo 1.98.0 (797e8a9bc 2026-08-05)
+rustfmt 1.9.0-stable (88d9e12ae1 2026-08-18)
+clippy 0.1.98 (88d9e12ae1 2026-08-18)
+container_image=rust:1.98.0-slim-bookworm@sha256:1469a27c125cb5a3aebfa4f4e4665d935b02fb72cc093b2c974b3d740e43f157
+source_mount=read-only

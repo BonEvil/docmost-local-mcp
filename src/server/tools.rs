@@ -23,7 +23,9 @@ impl DocmostMcpServer {
         let mut tool_router = Self::tool_router();
         if startup_config.authority_mode == AuthorityMode::Write {
             let allowed = &startup_config.allowed_write_tools;
-            let mut write_router = Self::page_write_tool_router() + Self::write_tool_router();
+            let mut write_router = Self::page_write_tool_router()
+                + Self::write_tool_router()
+                + Self::delete_tool_router();
             write_router
                 .map
                 .retain(|name, _| allowed.contains(name.as_ref()));

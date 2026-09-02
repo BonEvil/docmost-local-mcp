@@ -1,0 +1,94 @@
+record=direct sanitized Atlas request, response, lifecycle, and server-hit observations captured before teardown
+candidate_source_tree=37744d4f533fc1c55b37e86497a6b799fe4b4f2a
+candidate_binary_sha256=a28539da4bd086f9a0d6b137a6525b77171b87fa986ac5f26b6d0f792e5d15a0
+
+[current-atlas-add-readback-delete]
+atlas_commit=83ccb1e453f0db80d3bfa98309a611f08e38d361
+request=POST /api/mcp/servers command=<exact-candidate-transport> arguments=<synthetic-hostile-origin-redacted>
+response.status=201
+response.server.status=ready
+response.server.protocolVersion=2025-03-26
+response.server.tools.count=10
+response.server.tools.names=get_comments,get_current_user,get_page,get_space,list_child_pages,list_pages,list_spaces,list_workspace_members,search_docs,search_pages
+response.server.tools.readOnly=true,true,true,true,true,true,true,true,true,true
+response.server.writeTools.count=0
+request=GET /api/mcp/servers
+response.status=200
+response.records.count=1
+response.persistedRecordEqualsCreateResponse=true
+request=DELETE /api/mcp/servers/<redacted-synthetic-registration-id>
+response.status=204
+request=GET /api/mcp/servers
+response.status=200
+response.records.count=0
+
+[reviewed-authorization-runtime]
+atlas_commit=efad3719b67fc9949be3809a7d07b297a64de10d
+atlas_tree=58d8b8c5d330c905ef70b5be33b06883c0a57ae6
+
+[approve-once-phase]
+registration.POST.status=201
+registration.protocolVersion=2025-03-26
+registration.inventory=get_comments,get_current_user,get_page,get_space,list_child_pages,list_pages,list_spaces,list_workspace_members,search_docs,search_pages
+registration.allReadOnly=true
+registration.writeTools.count=0
+call.tool=list_spaces
+call.arguments={}
+candidate.annotation.readOnly=true
+atlas.classifiedEffect=write
+concurrentExactCalls=2
+pendingAuthorizations.count=1
+pending.status=pending
+pending.serverLabel="Configured MCP server"
+pending.toolLabel="Generic MCP tool"
+pending.projectionContainsArguments=false
+pending.projectionContainsSyntheticOrigin=false
+pending.projectionContainsSyntheticCanary=false
+bothCallsBlockedBeforeDecision=true
+request=POST /api/mcp/authorizations/<redacted-synthetic-id>/approve-once
+response.status=200
+firstCall.dispatchOutcomeCode=dispatch_failed
+firstCall.candidateOutcome="403 Forbidden"
+competingCall.outcome=mcp_confirmation_already_consumed
+request=POST /api/mcp/authorizations/<same-redacted-synthetic-id>/approve-once
+response.status=409
+serverHitLedger.permission-denied=1
+registration.DELETE.status=204
+registration.GET.afterDelete.count=0
+
+[deny-phase]
+registration.POST.status=201
+call.tool=list_spaces
+call.blockedBeforeDecision=true
+request=POST /api/mcp/authorizations/<redacted-synthetic-id>/deny
+response.status=200
+call.outcome=mcp_confirmation_denied
+authorization.status=denied
+authorization.terminalReasonCode=authorization_denied
+authorization.dispatchOutcomeCode=null
+serverHitLedger.server-error=0
+registration.DELETE.status=204
+registration.GET.afterDelete.count=0
+
+[expiry-phase]
+registration.POST.status=201
+authorization.ttlSeconds=0.05
+call.tool=list_spaces
+call.outcome=mcp_confirmation_expired
+authorization.status=expired
+authorization.terminalReasonCode=authorization_expired
+authorization.dispatchOutcomeCode=null
+serverHitLedger.redirect=0
+registration.DELETE.status=204
+registration.GET.afterDelete.count=0
+
+[clean-dispatch-ledger]
+approvedHostileReadDispatches=1
+deniedDispatches=0
+expiredDispatches=0
+replayDispatches=0
+unauthorizedDispatches=0
+testWrites=0
+productionAccesses=0
+productionWrites=0
+temporaryRegistrationsAfterEveryPhase=0

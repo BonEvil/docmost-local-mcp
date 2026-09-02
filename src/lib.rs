@@ -6,6 +6,7 @@ pub mod position;
 pub mod prosemirror;
 pub mod server;
 pub mod startup_config;
+pub mod stdio_compat;
 pub mod storage;
 pub mod types;
 pub mod version;

@@ -15,6 +15,61 @@ use crate::{
 /// methods to keep each file within the size limit; all share `DocmostClient`'s
 /// private request plumbing (accessible from this child module).
 impl super::DocmostClient {
+    /// Move a page and all active descendants to Docmost trash. This intentionally uses
+    /// the reversible v0.95.0 path (`permanentlyDelete: false`) and never automatically
+    /// retries: a transport failure can occur after the server commits the deletion.
+    pub async fn delete_page(&self, page_id: &str) -> Result<()> {
+        self.validate_uuid_identifier("page_id", page_id)?;
+        self.destructive_request(
+            "/api/pages/delete",
+            serde_json::json!({ "pageId": page_id, "permanentlyDelete": false }),
+            "page",
+            page_id,
+        )
+        .await
+    }
+
+    /// Permanently delete a space. Docmost v0.95.0 cascades space-owned database rows
+    /// and enqueues attachment cleanup after the database deletion.
+    pub async fn delete_space(&self, space_id: &str) -> Result<()> {
+        self.validate_uuid_identifier("space_id", space_id)?;
+        self.destructive_request(
+            "/api/spaces/delete",
+            serde_json::json!({ "spaceId": space_id }),
+            "space",
+            space_id,
+        )
+        .await
+    }
+
+    /// Permanently delete a comment. The v0.95.0 foreign key cascades threaded replies.
+    pub async fn delete_comment(&self, comment_id: &str) -> Result<()> {
+        self.validate_uuid_identifier("comment_id", comment_id)?;
+        self.destructive_request(
+            "/api/comments/delete",
+            serde_json::json!({ "commentId": comment_id }),
+            "comment",
+            comment_id,
+        )
+        .await
+    }
+
+    async fn destructive_request(
+        &self,
+        endpoint: &str,
+        payload: Value,
+        target_type: &str,
+        target_id: &str,
+    ) -> Result<()> {
+        self.request_discard_with_retry(endpoint, payload, false)
+            .await
+            .with_context(|| {
+                format!(
+                    "Deletion of Docmost {target_type} {target_id} was not confirmed. No automatic retry was attempted; independently inspect the target before reconfirming any retry."
+                )
+            })
+    }
+
     /// Create a Docmost page.
     ///
     /// When `markdown` body content is supplied it is routed through the **import**
@@ -384,5 +439,19 @@ impl super::DocmostClient {
 
     fn validate_identifier(&self, name: &str, value: &str) -> Result<()> {
         validate_text(name, value, self.network_policy.max_identifier_bytes, false)
+    }
+
+    fn validate_uuid_identifier(&self, name: &str, value: &str) -> Result<()> {
+        self.validate_identifier(name, value)?;
+        let bytes = value.as_bytes();
+        let valid = bytes.len() == 36
+            && bytes.iter().enumerate().all(|(index, byte)| match index {
+                8 | 13 | 18 | 23 => *byte == b'-',
+                _ => byte.is_ascii_hexdigit(),
+            });
+        if !valid {
+            return Err(anyhow!("{name} must be a canonical UUID."));
+        }
+        Ok(())
     }
 }
