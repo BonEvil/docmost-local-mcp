@@ -93,7 +93,8 @@ jobs:
               echo "original_provider_job_id=${job_ids[$id]}"
               echo 'original_provider_job_excerpt_begin'
               grep -a -E 'Finished.*`release` profile|artifact_sha256=|Format:|Arch:|Machine: IMAGE_FILE_MACHINE_' provider-job.log \
-                | perl -pe 's/\e\[[0-9;]*[A-Za-z]//g'
+                | perl -pe 's/\e\[[0-9;]*[A-Za-z]//g' \
+                | sed -E 's/[[:space:]]+$//'
               echo 'original_provider_job_excerpt_end'
             } >> "$out/records/$id.log"
             grep -a -q -E 'Finished.*`release` profile' provider-job.log
