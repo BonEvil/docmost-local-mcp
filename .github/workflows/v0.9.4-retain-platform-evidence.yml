@@ -67,7 +67,7 @@ jobs:
             src_log="downloaded/platform-$id/evidence/$id.log"
             binary="downloaded/platform-$id/target/${triples[$id]}/release/${binaries[$id]}"
             test -s "$src_log" && test -s "$binary"
-            tr -d '\r' < "$src_log" > "$out/records/$id.log"
+            tr -d '\r' < "$src_log" | sed -E 's/[[:space:]]+$//' > "$out/records/$id.log"
             recorded_sha=$(grep -E '^artifact_sha256=' "$src_log" | tail -1 | cut -d= -f2 | tr -d '\r')
             actual_sha=$(sha256sum "$binary" | cut -d' ' -f1)
             test "$recorded_sha" = "$actual_sha"
