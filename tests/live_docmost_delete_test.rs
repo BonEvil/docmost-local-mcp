@@ -155,6 +155,10 @@ async fn every_delete_tool_has_an_independently_observed_disposable_effect() -> 
         {
             bail!("delete_page structured outcome was incorrect");
         }
+        println!(
+            "delete_page structured outcome=moved_to_trash permanent=false automatic_retry=false"
+        );
+        let mut trashed_pages = 0;
         for page_id in [&parent_id, &child_id] {
             let response = raw_post(
                 &http,
@@ -169,7 +173,9 @@ async fn every_delete_tool_has_an_independently_observed_disposable_effect() -> 
             if !status.is_success() || body["data"]["deletedAt"].is_null() {
                 bail!("delete_page did not trash the exact target and descendant");
             }
+            trashed_pages += 1;
         }
+        println!("delete_page independent_readback trashed_pages={trashed_pages}");
 
         let comment_space = direct
             .create_space(
@@ -223,6 +229,10 @@ async fn every_delete_tool_has_an_independently_observed_disposable_effect() -> 
         {
             bail!("delete_comment structured outcome was incorrect");
         }
+        println!(
+            "delete_comment structured outcome=permanently_deleted cascade=threaded_replies automatic_retry=false"
+        );
+        let mut absent_comments = 0;
         for comment_id in [&parent_comment.id, &reply_id] {
             let response = raw_post(
                 &http,
@@ -235,7 +245,9 @@ async fn every_delete_tool_has_an_independently_observed_disposable_effect() -> 
             if response.status() != reqwest::StatusCode::NOT_FOUND {
                 bail!("delete_comment did not remove target and threaded reply");
             }
+            absent_comments += 1;
         }
+        println!("delete_comment independent_readback absent_comments={absent_comments}");
 
         let space = direct
             .create_space(
@@ -262,6 +274,10 @@ async fn every_delete_tool_has_an_independently_observed_disposable_effect() -> 
         {
             bail!("delete_space structured outcome was incorrect");
         }
+        println!(
+            "delete_space structured outcome=permanently_deleted follow_up=attachment_cleanup_queued_by_docmost automatic_retry=false"
+        );
+        let mut absent_space_records = 0;
         for (endpoint, body) in [
             ("/api/spaces/info", json!({"spaceId": space.id})),
             ("/api/pages/info", json!({"pageId": space_page_id})),
@@ -271,7 +287,11 @@ async fn every_delete_tool_has_an_independently_observed_disposable_effect() -> 
             if response.status() != reqwest::StatusCode::NOT_FOUND {
                 bail!("delete_space did not cascade the independently read target");
             }
+            absent_space_records += 1;
         }
+        println!(
+            "delete_space independent_readback absent_space_page_comment={absent_space_records}"
+        );
         Ok(())
     }
     .await;
@@ -279,6 +299,10 @@ async fn every_delete_tool_has_an_independently_observed_disposable_effect() -> 
     for space_id in &cleanup_space_ids {
         let _ = direct.delete_space(space_id).await;
     }
+    println!(
+        "cleanup attempted_remaining_synthetic_spaces={}",
+        cleanup_space_ids.len()
+    );
     mcp.cancel().await?;
     server_handle.await??;
     verification
