@@ -1,0 +1,16 @@
+schema_version=1
+source_commit=d1fbff9b5c35bb05a435c3e4f97ec60fe3300dcc
+source_tree=3a48db6f53611000845330c0527274e83a22fb00
+provider_repository=BonEvil/docmost-local-mcp
+build_run_id=33586504552
+build_run_attempt=1
+build_run_url=https://github.com/BonEvil/docmost-local-mcp/actions/runs/33586504552
+retention_run_id=33587211767
+retention_run_attempt=1
+retention_run_url=https://github.com/BonEvil/docmost-local-mcp/actions/runs/33587211767
+binaries_retained_in_git=false
+provider_artifact_retention_days=1
+darwin-arm64|docmost-local-mcp-darwin-arm64|aarch64-apple-darwin|7160944|93bc8763139ab5a6008e7c1bb7fe7f8cfbf8f10fd35fe4bc2c458c0645be7151|records/darwin-arm64.log
+darwin-x64|docmost-local-mcp-darwin-x64|x86_64-apple-darwin|7683328|f543ef5b205679f9e734da19c1cbd9b65cb19e8b417a1609fab926734557b69d|records/darwin-x64.log
+windows-arm64|docmost-local-mcp-windows-arm64.exe|aarch64-pc-windows-msvc|8021504|9a78b6c507874655b52cd72f336d23f7ff1466a55570b6a62ce4b5e502472696|records/windows-arm64.log
+windows-x64|docmost-local-mcp-windows-x64.exe|x86_64-pc-windows-msvc|9185792|49a995f32d31652920916516999a83468ac6d71f89c266de51b308064f82c816|records/windows-x64.log
