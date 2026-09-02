@@ -5,9 +5,9 @@ provider_repository=BonEvil/docmost-local-mcp
 build_run_id=33586504552
 build_run_attempt=1
 build_run_url=https://github.com/BonEvil/docmost-local-mcp/actions/runs/33586504552
-retention_run_id=33620406522
+retention_run_id=33622252006
 retention_run_attempt=1
-retention_run_url=https://github.com/BonEvil/docmost-local-mcp/actions/runs/33620406522
+retention_run_url=https://github.com/BonEvil/docmost-local-mcp/actions/runs/33622252006
 binaries_retained_in_git=false
 provider_artifact_retention_days=1
 darwin-arm64|docmost-local-mcp-darwin-arm64|aarch64-apple-darwin|7160944|93bc8763139ab5a6008e7c1bb7fe7f8cfbf8f10fd35fe4bc2c458c0645be7151|records/darwin-arm64.log
