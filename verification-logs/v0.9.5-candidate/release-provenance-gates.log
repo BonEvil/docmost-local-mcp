@@ -1,0 +1,10 @@
+record=release-and-provenance-gates
+source_commit=98b328da6819735e1da44fa736cb37383c389b5d
+source_tree=c57b88f9f56adfa7836cd7df32cf3488b5b6c745
+cargo_lock_sha256=bd27ceda8df34213516b2c6be2bfc78fca811998e7d2c634ee6498fdd4d3a001
+release installer success and rejection paths: ok
+cosign v3 bundle installer contract and v0.9.3 missing-signature regression: ok
+v0.9.5 source, package, CLI, MCP, manifest, workflow, test, and documentation identity: ok
+release context success and rejection paths: ok
+immutable release inputs: ok
+git_diff_check=pass

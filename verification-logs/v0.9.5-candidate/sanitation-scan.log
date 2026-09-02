@@ -1,0 +1,12 @@
+record=retained-evidence-sanitation-scan
+source_commit=98b328da6819735e1da44fa736cb37383c389b5d
+source_tree=c57b88f9f56adfa7836cd7df32cf3488b5b6c745
+scanned_files=16
+authorization_or_bearer_matches=0
+cookie_or_token_value_matches=0
+synthetic_email_matches=0
+secret_assignment_matches=0
+private_loopback_origin_matches=0
+uuid_or_target_identifier_matches=0
+credential_token_cookie_private_origin_target_identifier_leaks=0
+sanitation_scan=pass
