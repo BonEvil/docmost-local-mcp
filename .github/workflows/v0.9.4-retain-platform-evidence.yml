@@ -1,0 +1,148 @@
+name: Retain v0.9.4 Platform Evidence
+
+on:
+  pull_request:
+    paths-ignore:
+      - "verification/v0.9.4-platform/**"
+
+permissions:
+  actions: read
+  contents: write
+
+env:
+  SOURCE_COMMIT: d1fbff9b5c35bb05a435c3e4f97ec60fe3300dcc
+  SOURCE_TREE: 3a48db6f53611000845330c0527274e83a22fb00
+  BUILD_RUN_ID: "33586504552"
+  BUILD_RUN_ATTEMPT: "1"
+
+jobs:
+  retain:
+    name: Retain exact successful build records
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout correction commit
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Install pinned LLVM inspection tools
+        uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c
+        with:
+          toolchain: 1.98.0
+          components: llvm-tools-preview
+
+      - name: Download exact successful build artifacts
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          pattern: platform-*
+          path: downloaded
+          run-id: ${{ env.BUILD_RUN_ID }}
+          github-token: ${{ github.token }}
+
+      - name: Assemble, validate, and commit bounded evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_REF: ${{ github.head_ref }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          out=verification/v0.9.4-platform
+          mkdir -p "$out/records"
+          llvm_readobj=$(find "$(rustc --print sysroot)" -type f -name llvm-readobj | head -1)
+          test -n "$llvm_readobj"
+          declare -A triples=(
+            [darwin-arm64]=aarch64-apple-darwin
+            [darwin-x64]=x86_64-apple-darwin
+            [windows-arm64]=aarch64-pc-windows-msvc
+            [windows-x64]=x86_64-pc-windows-msvc
+          )
+          declare -A binaries=(
+            [darwin-arm64]=docmost-local-mcp
+            [darwin-x64]=docmost-local-mcp
+            [windows-arm64]=docmost-local-mcp.exe
+            [windows-x64]=docmost-local-mcp.exe
+          )
+          declare -A job_ids=(
+            [darwin-arm64]=100111656317
+            [darwin-x64]=100111656247
+            [windows-arm64]=100111656361
+            [windows-x64]=100111656396
+          )
+          for id in darwin-arm64 darwin-x64 windows-arm64 windows-x64; do
+            src_log="downloaded/platform-$id/evidence/$id.log"
+            binary="downloaded/platform-$id/target/${triples[$id]}/release/${binaries[$id]}"
+            test -s "$src_log" && test -s "$binary"
+            tr -d '\r' < "$src_log" | sed -E 's/[[:space:]]+$//' > "$out/records/$id.log"
+            recorded_sha=$(grep -E '^artifact_sha256=' "$src_log" | tail -1 | cut -d= -f2 | tr -d '\r')
+            actual_sha=$(sha256sum "$binary" | cut -d' ' -f1)
+            test "$recorded_sha" = "$actual_sha"
+            {
+              echo 'retention_inspection_schema_version=1'
+              echo "retention_provider_run_id=$GITHUB_RUN_ID"
+              echo "retention_provider_run_attempt=$GITHUB_RUN_ATTEMPT"
+              echo "retention_runner_name=$RUNNER_NAME"
+              echo "retention_runner_os=$RUNNER_OS"
+              echo "retention_runner_arch=$RUNNER_ARCH"
+              echo "retention_rustc=$(rustc --version)"
+              echo "retention_binary_sha256=$actual_sha"
+              "$llvm_readobj" --file-headers "$binary"
+            } >> "$out/records/$id.log"
+            gh api --allow-escape-sequences "repos/$GITHUB_REPOSITORY/actions/jobs/${job_ids[$id]}/logs" > provider-job.log
+            {
+              echo "original_provider_job_id=${job_ids[$id]}"
+              echo 'original_provider_job_excerpt_begin'
+              grep -a -E 'Finished.*`release` profile|artifact_sha256=|Format:|Arch:|Machine: IMAGE_FILE_MACHINE_' provider-job.log \
+                | perl -pe 's/\e\[[0-9;]*[A-Za-z]//g' \
+                | sed -E 's/[[:space:]]+$//'
+              echo 'original_provider_job_excerpt_end'
+            } >> "$out/records/$id.log"
+            grep -a -q -E 'Finished.*`release` profile' provider-job.log
+            rm provider-job.log
+          done
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$BUILD_RUN_ID/jobs?per_page=100" \
+            --jq '{run_id:'"$BUILD_RUN_ID"',run_attempt:'"$BUILD_RUN_ATTEMPT"',jobs:[.jobs[]|select(.name|startswith("Evidence ("))|{id,name,runner_name,conclusion,html_url}]}' \
+            > "$out/provider-build-jobs.json"
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$BUILD_RUN_ID/artifacts?per_page=100" \
+            --jq '{run_id:'"$BUILD_RUN_ID"',artifacts:[.artifacts[]|select(.name|startswith("platform-"))|{id,name,size_in_bytes,digest,expired,expires_at}]}' \
+            > "$out/provider-artifacts.json"
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs?per_page=100" \
+            --jq '{run_id:'"$GITHUB_RUN_ID"',run_attempt:'"$GITHUB_RUN_ATTEMPT"',jobs:[.jobs[]|{id,name,runner_name,status,conclusion,html_url}]}' \
+            > "$out/provider-retention-job.json"
+          {
+            echo 'schema_version=1'
+            echo "source_commit=$SOURCE_COMMIT"
+            echo "source_tree=$SOURCE_TREE"
+            echo "provider_repository=$GITHUB_REPOSITORY"
+            echo "build_run_id=$BUILD_RUN_ID"
+            echo "build_run_attempt=$BUILD_RUN_ATTEMPT"
+            echo "build_run_url=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$BUILD_RUN_ID"
+            echo "retention_run_id=$GITHUB_RUN_ID"
+            echo "retention_run_attempt=$GITHUB_RUN_ATTEMPT"
+            echo "retention_run_url=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            echo 'binaries_retained_in_git=false'
+            echo 'provider_artifact_retention_days=1'
+            for id in darwin-arm64 darwin-x64 windows-arm64 windows-x64; do
+              log="$out/records/$id.log"
+              sha=$(grep -E '^artifact_sha256=' "$log" | tail -1 | cut -d= -f2 | tr -d '\r')
+              size=$(grep -E '^artifact_size=' "$log" | tail -1 | cut -d= -f2 | tr -d '\r')
+              triple=$(grep -E '^target_triple=' "$log" | tail -1 | cut -d= -f2 | tr -d '\r')
+              name=$(grep -E '^artifact_name=' "$log" | tail -1 | cut -d= -f2- | tr -d '\r')
+              echo "$id|$name|$triple|$size|$sha|records/$id.log"
+            done
+          } > "$out/artifact-manifest.txt"
+          grep -E 'Format: Mach-O arm64|Arch: aarch64' "$out/records/darwin-arm64.log"
+          grep -E 'Format: Mach-O 64-bit x86-64|Arch: x86_64' "$out/records/darwin-x64.log"
+          grep -E 'Format: COFF-ARM64|Machine: IMAGE_FILE_MACHINE_ARM64' "$out/records/windows-arm64.log"
+          grep -E 'Format: COFF-x86-64|Machine: IMAGE_FILE_MACHINE_AMD64' "$out/records/windows-x64.log"
+          if grep -R -E -i '(authorization:|bearer[[:space:]]|gh[pousr]_[A-Za-z0-9]|api[_-]?key|password=|cookie:)' "$out"; then
+            echo 'potential secret material found' >&2
+            exit 1
+          fi
+          (cd "$out" && sha256sum artifact-manifest.txt provider-*.json records/*.log | LC_ALL=C sort) > "$out/SHA256SUMS"
+          git add -f "$out"
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'docs(verification): retain v0.9.4 platform evidence'
+          git push origin "HEAD:$HEAD_REF"
