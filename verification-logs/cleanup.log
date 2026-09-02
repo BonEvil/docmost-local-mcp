@@ -1,0 +1,35 @@
+ Container docmost-v094-r2-docmost-1 Stopping
+ Container docmost-v094-r2-docmost-1 Stopped
+ Container docmost-v094-r2-docmost-1 Removing
+ Container docmost-v094-r2-docmost-1 Removed
+ Container docmost-v094-r2-redis-1 Stopping
+ Container docmost-v094-r2-db-1 Stopping
+ Container docmost-v094-r2-db-1 Stopped
+ Container docmost-v094-r2-db-1 Removing
+ Container docmost-v094-r2-db-1 Removed
+ Container docmost-v094-r2-redis-1 Stopped
+ Container docmost-v094-r2-redis-1 Removing
+ Container docmost-v094-r2-redis-1 Removed
+ Volume docmost-v094-r2_redis_data Removing
+ Volume docmost-v094-r2_docmost_data Removing
+ Volume docmost-v094-r2_db_data Removing
+ Network docmost-v094-r2_default Removing
+ Volume docmost-v094-r2_docmost_data Removed
+ Volume docmost-v094-r2_redis_data Removed
+ Volume docmost-v094-r2_db_data Removed
+ Network docmost-v094-r2_default Removed
+cleanup=pass
+compat_containers=0
+compat_volumes=0
+compat_networks=0
+remote_source_target_repro_cargo_homes_binaries_credentials_harnesses=absent
+card_build_test_containers=0
+card_downloaded_rust_full_image=absent
+ordinary_inventory_sha256=17c351c06381f653bd2332f1db47eaeefdf7c480819510ff394c924689408c80
+ordinary_started_sha256=7702be144f44fbcc5e040570cf2906f619e97e281382c9001b31e5434be6e007
+serve_config_sha256=45a54a9f3b304d934f54bb66853ebcebae88337677d65b6dfadc073c7aa11401
+ordinary_3001_listener=present
+disposable_3301_listener=absent
+remote_final_absence=pass
+local_run_state_harnesses_known_hosts_build_targets=absent
+local_final_absence=pass

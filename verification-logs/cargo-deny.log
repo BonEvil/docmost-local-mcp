@@ -1,0 +1,306 @@
+Unable to find image 'rust:1-bookworm' locally
+1-bookworm: Pulling from library/rust
+Digest: sha256:82150a52ec202c1b14d7817e14516c392bb7f5cfebd88f1ed531cb37ebd39922
+Status: Downloaded newer image for rust:1-bookworm
+warning[duplicate]: found 2 duplicate entries for crate 'syn'
+    ┌─ /work/Cargo.lock:158:1
+    │
+158 │ ╭ syn 2.0.119 registry+https://github.com/rust-lang/crates.io-index
+159 │ │ syn 3.0.4 registry+https://github.com/rust-lang/crates.io-index
+    │ ╰───────────────────────────────────────────────────────────────┘ lock entries
+    │
+    ├ syn v2.0.119
+      ├── darling_core v0.21.3
+      │   ├── darling v0.21.3
+      │   │   └── rmcp-macros v0.6.4
+      │   │       └── rmcp v0.6.4
+      │   │           └── docmost-local-mcp v0.9.4
+      │   └── darling_macro v0.21.3
+      │       └── darling v0.21.3 (*)
+      ├── darling_macro v0.21.3 (*)
+      ├── rmcp-macros v0.6.4 (*)
+      ├── synstructure v0.13.2
+      │   ├── yoke-derive v0.8.2
+      │   │   └── yoke v0.8.3
+      │   │       ├── icu_collections v2.3.0
+      │   │       │   ├── icu_normalizer v2.3.0
+      │   │       │   │   └── idna_adapter v1.2.2
+      │   │       │   │       └── idna v1.1.0
+      │   │       │   │           └── url v2.5.8
+      │   │       │   │               ├── docmost-local-mcp v0.9.4 (*)
+      │   │       │   │               ├── reqwest v0.12.28
+      │   │       │   │               │   └── docmost-local-mcp v0.9.4 (*)
+      │   │       │   │               └── tower-http v0.6.11
+      │   │       │   │                   └── reqwest v0.12.28 (*)
+      │   │       │   └── icu_properties v2.3.0
+      │   │       │       └── idna_adapter v1.2.2 (*)
+      │   │       ├── icu_provider v2.3.1
+      │   │       │   ├── icu_normalizer v2.3.0 (*)
+      │   │       │   └── icu_properties v2.3.0 (*)
+      │   │       ├── zerotrie v0.2.5
+      │   │       │   ├── icu_properties v2.3.0 (*)
+      │   │       │   └── icu_provider v2.3.1 (*)
+      │   │       └── zerovec v0.11.8
+      │   │           ├── icu_collections v2.3.0 (*)
+      │   │           ├── icu_locale_core v2.3.0
+      │   │           │   ├── icu_properties v2.3.0 (*)
+      │   │           │   └── icu_provider v2.3.1 (*)
+      │   │           ├── icu_normalizer v2.3.0 (*)
+      │   │           ├── icu_properties v2.3.0 (*)
+      │   │           ├── icu_provider v2.3.1 (*)
+      │   │           ├── potential_utf v0.1.6
+      │   │           │   └── icu_collections v2.3.0 (*)
+      │   │           └── tinystr v0.8.4
+      │   │               └── icu_locale_core v2.3.0 (*)
+      │   └── zerofrom-derive v0.1.7
+      │       └── zerofrom v0.1.8
+      │           ├── icu_collections v2.3.0 (*)
+      │           ├── icu_provider v2.3.1 (*)
+      │           ├── yoke v0.8.3 (*)
+      │           ├── zerotrie v0.2.5 (*)
+      │           └── zerovec v0.11.8 (*)
+      ├── tracing-attributes v0.1.31
+      │   └── tracing v0.1.44
+      │       ├── axum v0.8.9
+      │       │   └── docmost-local-mcp v0.9.4 (*)
+      │       ├── axum-core v0.5.6
+      │       │   └── axum v0.8.9 (*)
+      │       ├── docmost-local-mcp v0.9.4 (*)
+      │       ├── hyper-util v0.1.20
+      │       │   ├── axum v0.8.9 (*)
+      │       │   ├── hyper-rustls v0.27.9
+      │       │   │   └── reqwest v0.12.28 (*)
+      │       │   └── reqwest v0.12.28 (*)
+      │       ├── rmcp v0.6.4 (*)
+      │       └── tower v0.5.3
+      │           ├── axum v0.8.9 (*)
+      │           ├── reqwest v0.12.28 (*)
+      │           └── tower-http v0.6.11 (*)
+      ├── wasm-bindgen-macro-support v0.2.127
+      │   └── wasm-bindgen-macro v0.2.127
+      │       └── wasm-bindgen v0.2.127
+      │           ├── chrono v0.4.45
+      │           │   ├── docmost-local-mcp v0.9.4 (*)
+      │           │   ├── rmcp v0.6.4 (*)
+      │           │   └── schemars v1.2.2
+      │           │       ├── docmost-local-mcp v0.9.4 (*)
+      │           │       └── rmcp v0.6.4 (*)
+      │           ├── iana-time-zone v0.1.65
+      │           │   └── chrono v0.4.45 (*)
+      │           ├── js-sys v0.3.104
+      │           │   ├── chrono v0.4.45 (*)
+      │           │   ├── iana-time-zone v0.1.65 (*)
+      │           │   ├── reqwest v0.12.28 (*)
+      │           │   ├── wasm-bindgen-futures v0.4.77
+      │           │   │   └── reqwest v0.12.28 (*)
+      │           │   └── web-sys v0.3.104
+      │           │       └── reqwest v0.12.28 (*)
+      │           ├── reqwest v0.12.28 (*)
+      │           ├── wasm-bindgen-futures v0.4.77 (*)
+      │           └── web-sys v0.3.104 (*)
+      ├── windows-implement v0.60.2
+      │   └── windows-core v0.62.2
+      │       └── iana-time-zone v0.1.65 (*)
+      ├── windows-interface v0.59.3
+      │   └── windows-core v0.62.2 (*)
+      ├── yoke-derive v0.8.2 (*)
+      └── zerofrom-derive v0.1.7 (*)
+    ├ syn v3.0.4
+      ├── clap_derive v4.6.4
+      │   └── clap v4.6.6
+      │       └── docmost-local-mcp v0.9.4
+      ├── displaydoc v0.2.7
+      │   ├── icu_collections v2.3.0
+      │   │   ├── icu_normalizer v2.3.0
+      │   │   │   └── idna_adapter v1.2.2
+      │   │   │       └── idna v1.1.0
+      │   │   │           └── url v2.5.8
+      │   │   │               ├── docmost-local-mcp v0.9.4 (*)
+      │   │   │               ├── reqwest v0.12.28
+      │   │   │               │   └── docmost-local-mcp v0.9.4 (*)
+      │   │   │               └── tower-http v0.6.11
+      │   │   │                   └── reqwest v0.12.28 (*)
+      │   │   └── icu_properties v2.3.0
+      │   │       └── idna_adapter v1.2.2 (*)
+      │   ├── icu_locale_core v2.3.0
+      │   │   ├── icu_properties v2.3.0 (*)
+      │   │   └── icu_provider v2.3.1
+      │   │       ├── icu_normalizer v2.3.0 (*)
+      │   │       └── icu_properties v2.3.0 (*)
+      │   ├── icu_properties v2.3.0 (*)
+      │   ├── icu_provider v2.3.1 (*)
+      │   ├── tinystr v0.8.4
+      │   │   └── icu_locale_core v2.3.0 (*)
+      │   └── zerotrie v0.2.5
+      │       ├── icu_properties v2.3.0 (*)
+      │       └── icu_provider v2.3.1 (*)
+      ├── futures-macro v0.3.34
+      │   └── futures-util v0.3.34
+      │       ├── axum v0.8.9
+      │       │   └── docmost-local-mcp v0.9.4 (*)
+      │       ├── futures v0.3.34
+      │       │   ├── docmost-local-mcp v0.9.4 (*)
+      │       │   └── rmcp v0.6.4
+      │       │       └── docmost-local-mcp v0.9.4 (*)
+      │       ├── futures-executor v0.3.34
+      │       │   └── futures v0.3.34 (*)
+      │       ├── hyper-util v0.1.20
+      │       │   ├── axum v0.8.9 (*)
+      │       │   ├── hyper-rustls v0.27.9
+      │       │   │   └── reqwest v0.12.28 (*)
+      │       │   └── reqwest v0.12.28 (*)
+      │       ├── js-sys v0.3.104
+      │       │   ├── chrono v0.4.45
+      │       │   │   ├── docmost-local-mcp v0.9.4 (*)
+      │       │   │   ├── rmcp v0.6.4 (*)
+      │       │   │   └── schemars v1.2.2
+      │       │   │       ├── docmost-local-mcp v0.9.4 (*)
+      │       │   │       └── rmcp v0.6.4 (*)
+      │       │   ├── iana-time-zone v0.1.65
+      │       │   │   └── chrono v0.4.45 (*)
+      │       │   ├── reqwest v0.12.28 (*)
+      │       │   ├── wasm-bindgen-futures v0.4.77
+      │       │   │   └── reqwest v0.12.28 (*)
+      │       │   └── web-sys v0.3.104
+      │       │       └── reqwest v0.12.28 (*)
+      │       ├── reqwest v0.12.28 (*)
+      │       ├── tower v0.5.3
+      │       │   ├── axum v0.8.9 (*)
+      │       │   ├── reqwest v0.12.28 (*)
+      │       │   └── tower-http v0.6.11 (*)
+      │       └── tower-http v0.6.11 (*)
+      ├── ref-cast-impl v1.0.27
+      │   └── ref-cast v1.0.27
+      │       └── schemars v1.2.2 (*)
+      ├── schemars_derive v1.2.2
+      │   └── schemars v1.2.2 (*)
+      ├── serde_derive v1.0.229
+      │   └── serde v1.0.229
+      │       ├── chrono v0.4.45 (*)
+      │       ├── docmost-local-mcp v0.9.4 (*)
+      │       ├── reqwest v0.12.28 (*)
+      │       ├── rmcp v0.6.4 (*)
+      │       ├── schemars v1.2.2 (*)
+      │       └── serde_urlencoded v0.7.1
+      │           ├── axum v0.8.9 (*)
+      │           └── reqwest v0.12.28 (*)
+      ├── serde_derive_internals v0.30.0
+      │   └── schemars_derive v1.2.2 (*)
+      ├── thiserror-impl v2.0.20
+      │   └── thiserror v2.0.20
+      │       ├── redox_users v0.5.2
+      │       │   └── dirs-sys v0.5.0
+      │       │       └── dirs v6.0.0
+      │       │           └── docmost-local-mcp v0.9.4 (*)
+      │       └── rmcp v0.6.4 (*)
+      ├── tokio-macros v2.7.2
+      │   └── tokio v1.53.1
+      │       ├── axum v0.8.9 (*)
+      │       ├── docmost-local-mcp v0.9.4 (*)
+      │       ├── hyper v1.11.0
+      │       │   ├── axum v0.8.9 (*)
+      │       │   ├── hyper-rustls v0.27.9 (*)
+      │       │   ├── hyper-util v0.1.20 (*)
+      │       │   └── reqwest v0.12.28 (*)
+      │       ├── hyper-rustls v0.27.9 (*)
+      │       ├── hyper-util v0.1.20 (*)
+      │       ├── reqwest v0.12.28 (*)
+      │       ├── rmcp v0.6.4 (*)
+      │       ├── tokio-rustls v0.26.4
+      │       │   ├── hyper-rustls v0.27.9 (*)
+      │       │   └── reqwest v0.12.28 (*)
+      │       ├── tokio-stream v0.1.19
+      │       │   └── rmcp v0.6.4 (*)
+      │       ├── tokio-util v0.7.19
+      │       │   └── rmcp v0.6.4 (*)
+      │       └── tower v0.5.3 (*)
+      └── zerovec-derive v0.11.6
+          └── zerovec v0.11.8
+              ├── icu_collections v2.3.0 (*)
+              ├── icu_locale_core v2.3.0 (*)
+              ├── icu_normalizer v2.3.0 (*)
+              ├── icu_properties v2.3.0 (*)
+              ├── icu_provider v2.3.1 (*)
+              ├── potential_utf v0.1.6
+              │   └── icu_collections v2.3.0 (*)
+              └── tinystr v0.8.4 (*)
+
+warning[duplicate]: found 2 duplicate entries for crate 'windows-sys'
+    ┌─ /work/Cargo.lock:207:1
+    │
+207 │ ╭ windows-sys 0.52.0 registry+https://github.com/rust-lang/crates.io-index
+208 │ │ windows-sys 0.61.2 registry+https://github.com/rust-lang/crates.io-index
+    │ ╰────────────────────────────────────────────────────────────────────────┘ lock entries
+    │
+    ├ windows-sys v0.52.0
+      └── ring v0.17.14
+          ├── rustls v0.23.43
+          │   ├── hyper-rustls v0.27.9
+          │   │   └── reqwest v0.12.28
+          │   │       └── docmost-local-mcp v0.9.4
+          │   ├── reqwest v0.12.28 (*)
+          │   └── tokio-rustls v0.26.4
+          │       ├── hyper-rustls v0.27.9 (*)
+          │       └── reqwest v0.12.28 (*)
+          └── rustls-webpki v0.103.15
+              └── rustls v0.23.43 (*)
+    ├ windows-sys v0.61.2
+      ├── anstyle-query v1.1.5
+      │   └── anstream v1.0.0
+      │       └── clap_builder v4.6.6
+      │           └── clap v4.6.6
+      │               └── docmost-local-mcp v0.9.4
+      ├── anstyle-wincon v3.0.11
+      │   └── anstream v1.0.0 (*)
+      ├── dirs-sys v0.5.0
+      │   └── dirs v6.0.0
+      │       └── docmost-local-mcp v0.9.4 (*)
+      ├── errno v0.3.14
+      │   ├── rustix v1.1.4
+      │   │   └── tempfile v3.27.0
+      │   │       └── (dev) docmost-local-mcp v0.9.4 (*)
+      │   └── signal-hook-registry v1.4.8
+      │       └── tokio v1.53.1
+      │           ├── axum v0.8.9
+      │           │   └── docmost-local-mcp v0.9.4 (*)
+      │           ├── docmost-local-mcp v0.9.4 (*)
+      │           ├── hyper v1.11.0
+      │           │   ├── axum v0.8.9 (*)
+      │           │   ├── hyper-rustls v0.27.9
+      │           │   │   └── reqwest v0.12.28
+      │           │   │       └── docmost-local-mcp v0.9.4 (*)
+      │           │   ├── hyper-util v0.1.20
+      │           │   │   ├── axum v0.8.9 (*)
+      │           │   │   ├── hyper-rustls v0.27.9 (*)
+      │           │   │   └── reqwest v0.12.28 (*)
+      │           │   └── reqwest v0.12.28 (*)
+      │           ├── hyper-rustls v0.27.9 (*)
+      │           ├── hyper-util v0.1.20 (*)
+      │           ├── reqwest v0.12.28 (*)
+      │           ├── rmcp v0.6.4
+      │           │   └── docmost-local-mcp v0.9.4 (*)
+      │           ├── tokio-rustls v0.26.4
+      │           │   ├── hyper-rustls v0.27.9 (*)
+      │           │   └── reqwest v0.12.28 (*)
+      │           ├── tokio-stream v0.1.19
+      │           │   └── rmcp v0.6.4 (*)
+      │           ├── tokio-util v0.7.19
+      │           │   └── rmcp v0.6.4 (*)
+      │           └── tower v0.5.3
+      │               ├── axum v0.8.9 (*)
+      │               ├── reqwest v0.12.28 (*)
+      │               └── tower-http v0.6.11
+      │                   └── reqwest v0.12.28 (*)
+      ├── mio v1.2.2
+      │   └── tokio v1.53.1 (*)
+      ├── nu-ansi-term v0.50.3
+      │   └── tracing-subscriber v0.3.23
+      │       └── docmost-local-mcp v0.9.4 (*)
+      ├── rustix v1.1.4 (*)
+      ├── socket2 v0.6.5
+      │   ├── hyper-util v0.1.20 (*)
+      │   └── tokio v1.53.1 (*)
+      ├── tempfile v3.27.0 (*)
+      └── tokio v1.53.1 (*)
+
+advisories ok, bans ok, licenses ok, sources ok
