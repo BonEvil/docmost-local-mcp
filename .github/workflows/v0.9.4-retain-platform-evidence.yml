@@ -63,6 +63,12 @@ jobs:
             [windows-arm64]=docmost-local-mcp.exe
             [windows-x64]=docmost-local-mcp.exe
           )
+          declare -A job_ids=(
+            [darwin-arm64]=100111656317
+            [darwin-x64]=100111656247
+            [windows-arm64]=100111656361
+            [windows-x64]=100111656396
+          )
           for id in darwin-arm64 darwin-x64 windows-arm64 windows-x64; do
             src_log="downloaded/platform-$id/evidence/$id.log"
             binary="downloaded/platform-$id/target/${triples[$id]}/release/${binaries[$id]}"
@@ -82,6 +88,16 @@ jobs:
               echo "retention_binary_sha256=$actual_sha"
               "$llvm_readobj" --file-headers "$binary"
             } >> "$out/records/$id.log"
+            gh api "repos/$GITHUB_REPOSITORY/actions/jobs/${job_ids[$id]}/logs" > provider-job.log
+            {
+              echo "original_provider_job_id=${job_ids[$id]}"
+              echo 'original_provider_job_excerpt_begin'
+              grep -a -E 'Finished.*`release` profile|artifact_sha256=|Format:|Arch:|Machine: IMAGE_FILE_MACHINE_' provider-job.log \
+                | perl -pe 's/\e\[[0-9;]*[A-Za-z]//g'
+              echo 'original_provider_job_excerpt_end'
+            } >> "$out/records/$id.log"
+            grep -a -q -E 'Finished.*`release` profile' provider-job.log
+            rm provider-job.log
           done
           gh api "repos/$GITHUB_REPOSITORY/actions/runs/$BUILD_RUN_ID/jobs?per_page=100" \
             --jq '{run_id:'"$BUILD_RUN_ID"',run_attempt:'"$BUILD_RUN_ATTEMPT"',jobs:[.jobs[]|select(.name|startswith("Evidence ("))|{id,name,runner_name,conclusion,html_url}]}' \
