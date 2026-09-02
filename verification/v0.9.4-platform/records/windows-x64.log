@@ -1,0 +1,160 @@
+**********************
+PowerShell transcript start
+Start time: 20260902031822
+Username: runnervmeef0v\runneradmin
+RunAs User: runnervmeef0v\runneradmin
+Configuration Name:
+Machine: runnervmeef0v (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\Program Files\PowerShell\7\pwsh.dll -command . 'D:\a\_temp\5c78efc6-e532-4559-bc2f-398fe5b22b80.ps1'
+Process ID: 8992
+PSVersion: 7.6.5
+PSEdition: Core
+GitCommitId: 7.6.5
+OS: Microsoft Windows 10.0.26100
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.4
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+Transcript started, output file is evidence/windows-x64.log
+schema_version=1
+source_commit=d1fbff9b5c35bb05a435c3e4f97ec60fe3300dcc
+source_tree=3a48db6f53611000845330c0527274e83a22fb00
+provider_run_id=33586504552
+provider_run_attempt=1
+provider_job=build
+provider_repository=BonEvil/docmost-local-mcp
+runner_name=GitHub Actions 1000000224
+runner_os=Windows
+runner_arch=X64
+target_triple=x86_64-pc-windows-msvc
+
+WindowsProductName : Windows Server 2025 Datacenter
+WindowsVersion     : 2009
+OsArchitecture     : 64-bit
+
+
+
+
+artifact_name=docmost-local-mcp-windows-x64.exe
+artifact_size=9185792
+artifact_sha256=49a995f32d31652920916516999a83468ac6d71f89c266de51b308064f82c816
+
+**********************
+PowerShell transcript end
+End time: 20260902032140
+**********************
+retention_inspection_schema_version=1
+retention_provider_run_id=33587464469
+retention_provider_run_attempt=1
+retention_runner_name=GitHub Actions 1000000271
+retention_runner_os=Linux
+retention_runner_arch=X64
+retention_rustc=rustc 1.98.0 (88d9e12ae 2026-08-18)
+retention_binary_sha256=49a995f32d31652920916516999a83468ac6d71f89c266de51b308064f82c816
+
+File: downloaded/platform-windows-x64/target/x86_64-pc-windows-msvc/release/docmost-local-mcp.exe
+Format: COFF-x86-64
+Arch: x86_64
+AddressSize: 64bit
+ImageFileHeader {
+  Machine: IMAGE_FILE_MACHINE_AMD64 (0x8664)
+  SectionCount: 5
+  TimeDateStamp: 2026-09-02 03:21:40 (0x6A979644)
+  PointerToSymbolTable: 0x0
+  SymbolCount: 0
+  StringTableSize: 0
+  OptionalHeaderSize: 240
+  Characteristics [ (0x22)
+    IMAGE_FILE_EXECUTABLE_IMAGE (0x2)
+    IMAGE_FILE_LARGE_ADDRESS_AWARE (0x20)
+  ]
+}
+ImageOptionalHeader {
+  Magic: 0x20B
+  MajorLinkerVersion: 14
+  MinorLinkerVersion: 51
+  SizeOfCode: 6579712
+  SizeOfInitializedData: 2606080
+  SizeOfUninitializedData: 0
+  AddressOfEntryPoint: 0x620090
+  BaseOfCode: 0x1000
+  ImageBase: 0x140000000
+  SectionAlignment: 4096
+  FileAlignment: 512
+  MajorOperatingSystemVersion: 6
+  MinorOperatingSystemVersion: 0
+  MajorImageVersion: 0
+  MinorImageVersion: 0
+  MajorSubsystemVersion: 6
+  MinorSubsystemVersion: 0
+  SizeOfImage: 9199616
+  SizeOfHeaders: 1024
+  CheckSum: 0x0
+  Subsystem: IMAGE_SUBSYSTEM_WINDOWS_CUI (0x3)
+  Characteristics [ (0x8160)
+    IMAGE_DLL_CHARACTERISTICS_DYNAMIC_BASE (0x40)
+    IMAGE_DLL_CHARACTERISTICS_HIGH_ENTROPY_VA (0x20)
+    IMAGE_DLL_CHARACTERISTICS_NX_COMPAT (0x100)
+    IMAGE_DLL_CHARACTERISTICS_TERMINAL_SERVER_AWARE (0x8000)
+  ]
+  SizeOfStackReserve: 1048576
+  SizeOfStackCommit: 4096
+  SizeOfHeapReserve: 1048576
+  SizeOfHeapCommit: 4096
+  NumberOfRvaAndSize: 16
+  DataDirectory {
+    ExportTableRVA: 0x0
+    ExportTableSize: 0x0
+    ImportTableRVA: 0x878FF4
+    ImportTableSize: 0x154
+    ResourceTableRVA: 0x0
+    ResourceTableSize: 0x0
+    ExceptionTableRVA: 0x87C000
+    ExceptionTableSize: 0x3E8F8
+    CertificateTableRVA: 0x0
+    CertificateTableSize: 0x0
+    BaseRelocationTableRVA: 0x8BB000
+    BaseRelocationTableSize: 0xA3F4
+    DebugRVA: 0x794320
+    DebugSize: 0x54
+    ArchitectureRVA: 0x0
+    ArchitectureSize: 0x0
+    GlobalPtrRVA: 0x0
+    GlobalPtrSize: 0x0
+    TLSTableRVA: 0x794380
+    TLSTableSize: 0x28
+    LoadConfigTableRVA: 0x7941E0
+    LoadConfigTableSize: 0x140
+    BoundImportRVA: 0x0
+    BoundImportSize: 0x0
+    IATRVA: 0x648000
+    IATSize: 0x5A0
+    DelayImportDescriptorRVA: 0x0
+    DelayImportDescriptorSize: 0x0
+    CLRRuntimeHeaderRVA: 0x0
+    CLRRuntimeHeaderSize: 0x0
+    ReservedRVA: 0x0
+    ReservedSize: 0x0
+  }
+}
+DOSHeader {
+  Magic: MZ
+  UsedBytesInTheLastPage: 144
+  FileSizeInPages: 3
+  NumberOfRelocationItems: 0
+  HeaderSizeInParagraphs: 4
+  MinimumExtraParagraphs: 0
+  MaximumExtraParagraphs: 65535
+  InitialRelativeSS: 0
+  InitialSP: 184
+  Checksum: 0
+  InitialIP: 0
+  InitialRelativeCS: 0
+  AddressOfRelocationTable: 64
+  OverlayNumber: 0
+  OEMid: 0
+  OEMinfo: 0
+  AddressOfNewExeHeader: 240
+}
