@@ -41,8 +41,10 @@ fi
 grep -q 'test "\$GITHUB_REF_NAME" = "v\$product_version"' "$repo_root/.github/workflows/release.yml"
 grep -q 'test "\$binary_identity" = "docmost-local-mcp \$product_version"' "$repo_root/.github/workflows/release.yml"
 
+# Cargo.lock dependency versions are not project release metadata. The package-version
+# assertion above checks the docmost-local-mcp lockfile entry directly.
 if git -C "$repo_root" grep -n -E '0\.9\.4|v0\.9\.4' -- \
-  Cargo.toml Cargo.lock npm/launcher/package.json .github scripts tests \
+  Cargo.toml npm/launcher/package.json .github scripts tests \
   ':!.github/workflows/v0.9.4-platform-evidence.yml' \
   ':!.github/workflows/v0.9.4-retain-platform-evidence.yml' \
   ':!tests/fixtures/cosign-v3.0.3-linux-amd64-assets.txt' \
