@@ -1,14 +1,14 @@
 schema_version=1
-source_commit=98b328da6819735e1da44fa736cb37383c389b5d
-source_tree=c57b88f9f56adfa7836cd7df32cf3488b5b6c745
+source_commit=22fb502370f0cbcea7ce321492607c94d8af4cfc
+source_tree=a5aaddab1f0318438354778830d7c40eb07ad7a3
 provider_repository=BonEvil/docmost-local-mcp
-provider_run_id=33620406860
-provider_run_attempt=1
+provider_run_id=33790040726
+provider_run_attempt=2
 binaries_retained_in_git=false
 provider_artifact_retention_days=1
-darwin-arm64|docmost-local-mcp-darwin-arm64|aarch64-apple-darwin|7160960|605f257e04198bd22ee2bdf09e330d0a1c02af54ffde9c53d83fd78e80d98070|docmost-local-mcp 0.9.5|records/darwin-arm64.log
-darwin-x64|docmost-local-mcp-darwin-x64|x86_64-apple-darwin|7687448|3900c675a3914d0042bee039777f1cb4220bd1bceb8e388edcf6c7ebb9047169|docmost-local-mcp 0.9.5|records/darwin-x64.log
+darwin-arm64|docmost-local-mcp-darwin-arm64|aarch64-apple-darwin|7162864|1ecd9104a81d830cef8811aa73307862b153269bc85134d903650eeee8f246c8|docmost-local-mcp 0.9.5|records/darwin-arm64.log
+darwin-x64|docmost-local-mcp-darwin-x64|x86_64-apple-darwin|7689344|6bff2505555b2a1210559b7047fda686b1ca13e71d212b099dd9622838dc9f1e|docmost-local-mcp 0.9.5|records/darwin-x64.log
 linux-arm64|docmost-local-mcp-linux-arm64|aarch64-unknown-linux-gnu|7609528|615b72482449a62d1502fef531fcdab63354a50980f2e9223d7a48c7069f4e70|docmost-local-mcp 0.9.5|records/linux-arm64.log
 linux-x64|docmost-local-mcp-linux-x64|x86_64-unknown-linux-gnu|8506904|6609cef388967a9c74aba84651189eead1edc96cec625c52f78d32d339b3368f|docmost-local-mcp 0.9.5|records/linux-x64.log
-windows-arm64|docmost-local-mcp-windows-arm64.exe|aarch64-pc-windows-msvc|8022528|b669135eb499933fd511995a5a347b3373f6f2b89bd93a432bf883c61d59d22c|docmost-local-mcp 0.9.5|records/windows-arm64.log
-windows-x64|docmost-local-mcp-windows-x64.exe|x86_64-pc-windows-msvc|9186816|8be8595e87830fd2db1bc97716912b214b80ba8258373d72e56013799f5b0344|docmost-local-mcp 0.9.5|records/windows-x64.log
+windows-arm64|docmost-local-mcp-windows-arm64.exe|aarch64-pc-windows-msvc|8022528|7eaf371bf9d40c458ff5f7e8df5b74cd7ce3f7c9649b90ab840e7b55c425a4fc|docmost-local-mcp 0.9.5|records/windows-arm64.log
+windows-x64|docmost-local-mcp-windows-x64.exe|x86_64-pc-windows-msvc|9186816|319c0c5d548476dfb5e7c2c7adea2073cb76a0b714e296832eab5d4eba29e390|docmost-local-mcp 0.9.5|records/windows-x64.log
