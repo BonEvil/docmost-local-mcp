@@ -19,19 +19,28 @@ use crate::{
 
 impl DocmostMcpServer {
     pub fn new(startup_config: StartupConfig) -> anyhow::Result<Self> {
+        Self::new_with_state_dir(startup_config, None)
+    }
+
+    /// Construct with an explicit authentication directory (e.g. isolated test state).
+    pub fn new_with_state_dir(
+        startup_config: StartupConfig,
+        state_dir: Option<std::path::PathBuf>,
+    ) -> anyhow::Result<Self> {
         crate::startup_config::validate_authority_config(&startup_config)?;
-        let mut tool_router = Self::tool_router();
+        let mut tool_router = Self::tool_router() + Self::media_read_tool_router();
         if startup_config.authority_mode == AuthorityMode::Write {
             let allowed = &startup_config.allowed_write_tools;
             let mut write_router = Self::page_write_tool_router()
                 + Self::write_tool_router()
-                + Self::delete_tool_router();
+                + Self::delete_tool_router()
+                + Self::media_write_tool_router();
             write_router
                 .map
                 .retain(|name, _| allowed.contains(name.as_ref()));
             tool_router += write_router;
         }
-        let auth_manager = AuthManager::new(startup_config, None)?;
+        let auth_manager = AuthManager::new(startup_config, state_dir)?;
         let client = crate::docmost_client::DocmostClient::new(auth_manager);
         Ok(Self {
             client,

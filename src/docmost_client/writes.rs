@@ -441,7 +441,7 @@ impl super::DocmostClient {
         validate_text(name, value, self.network_policy.max_identifier_bytes, false)
     }
 
-    fn validate_uuid_identifier(&self, name: &str, value: &str) -> Result<()> {
+    pub(super) fn validate_uuid_identifier(&self, name: &str, value: &str) -> Result<()> {
         self.validate_identifier(name, value)?;
         let bytes = value.as_bytes();
         let valid = bytes.len() == 36

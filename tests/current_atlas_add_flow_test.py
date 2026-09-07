@@ -50,7 +50,7 @@ def main() -> None:
             assert response.status_code == 201, record
             assert record["protocolVersion"] == "2025-03-26", record
             assert record["status"] == "ready", record
-            assert len(record["tools"]) == 10, record
+            assert len(record["tools"]) == 13, record
             assert all(tool["readOnly"] is True for tool in record["tools"]), record
             assert client.get("/api/mcp/servers").json() == [record]
 

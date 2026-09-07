@@ -93,6 +93,24 @@ impl DocmostMcpServer {
             .filter(|markdown| !markdown.trim().is_empty())
             .map(markdown_to_prosemirror);
         let has_body = content.is_some();
+        if has_body {
+            let existing = self
+                .client
+                .get_page(&input.page_id)
+                .await
+                .map_err(internal_error)?
+                .and_then(|p| p.content)
+                .ok_or_else(|| {
+                    internal_error(anyhow::anyhow!(
+                        "Cannot inspect existing page content; refusing Markdown replacement"
+                    ))
+                })?;
+            if crate::media::contains_rich_media(&existing) {
+                return Err(internal_error(anyhow::anyhow!(
+                    "Markdown replacement would discard rich-media attributes. Use get_page_content to inspect and the media tools to edit this page."
+                )));
+            }
+        }
         let page = self
             .client
             .update_page(&input.page_id, input.title.as_deref(), content.as_ref())

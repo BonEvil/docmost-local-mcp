@@ -13,7 +13,7 @@ use tokio::{
     time::timeout,
 };
 
-const READ_TOOL_NAMES: [&str; 10] = [
+const READ_TOOL_NAMES: [&str; 13] = [
     "list_spaces",
     "search_docs",
     "search_pages",
@@ -24,6 +24,9 @@ const READ_TOOL_NAMES: [&str; 10] = [
     "get_comments",
     "list_workspace_members",
     "get_current_user",
+    "get_page_content",
+    "list_page_attachments",
+    "download_attachment",
 ];
 
 struct ServerProcess {

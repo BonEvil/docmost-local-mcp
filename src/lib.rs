@@ -1,6 +1,7 @@
 pub mod auth;
 pub mod debug;
 pub mod docmost_client;
+pub mod media;
 pub mod network_policy;
 pub mod position;
 pub mod prosemirror;
