@@ -11,7 +11,7 @@ use rmcp::{
     model::{CallToolRequestParam, ClientInfo, Tool},
 };
 
-const READ_TOOL_NAMES: [&str; 10] = [
+const READ_TOOL_NAMES: [&str; 13] = [
     "list_spaces",
     "search_docs",
     "search_pages",
@@ -22,6 +22,9 @@ const READ_TOOL_NAMES: [&str; 10] = [
     "get_comments",
     "list_workspace_members",
     "get_current_user",
+    "get_page_content",
+    "list_page_attachments",
+    "download_attachment",
 ];
 
 #[derive(Debug, Clone, Default)]
@@ -42,7 +45,7 @@ fn write_config(names: &[&str]) -> StartupConfig {
 }
 
 #[test]
-fn supported_write_allowlist_is_locked_to_exact_thirteen_names() {
+fn supported_write_allowlist_is_locked_to_exact_sixteen_names() {
     assert_eq!(
         WRITE_TOOL_NAMES,
         [
@@ -59,6 +62,9 @@ fn supported_write_allowlist_is_locked_to_exact_thirteen_names() {
             "delete_page",
             "delete_space",
             "delete_comment",
+            "upload_attachment",
+            "insert_media",
+            "insert_embed",
         ]
     );
 }
@@ -176,6 +182,9 @@ async fn every_persistent_mutation_has_expected_annotations() -> Result<()> {
         ("delete_page", true),
         ("delete_space", true),
         ("delete_comment", true),
+        ("upload_attachment", false),
+        ("insert_media", false),
+        ("insert_embed", false),
     ];
 
     assert_eq!(expectations.len(), WRITE_TOOL_NAMES.len());

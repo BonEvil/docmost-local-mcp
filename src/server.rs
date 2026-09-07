@@ -10,6 +10,7 @@ use crate::{PRODUCT_NAME, PRODUCT_TITLE, PRODUCT_VERSION, docmost_client::Docmos
 mod render;
 mod tools;
 mod tools_delete;
+mod tools_media;
 mod tools_page_write;
 mod tools_write;
 

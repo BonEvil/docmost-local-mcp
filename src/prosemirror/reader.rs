@@ -118,6 +118,22 @@ fn convert_nodes(nodes: &[Value], indent: usize) -> String {
                     output.push(String::new());
                 }
             }
+            Some("attachment" | "video") => {
+                let attrs = &node["attrs"];
+                let src = attrs["url"]
+                    .as_str()
+                    .or_else(|| attrs["src"].as_str())
+                    .unwrap_or("");
+                let name = attrs["name"]
+                    .as_str()
+                    .or_else(|| attrs["alt"].as_str())
+                    .filter(|name| !name.is_empty())
+                    .unwrap_or("Attached media");
+                if !src.is_empty() {
+                    output.push(format!("[{name}]({src})"));
+                    output.push(String::new());
+                }
+            }
             Some("embed") => {
                 let src = node
                     .get("attrs")

@@ -5,7 +5,7 @@ use url::{Host, Url};
 
 use crate::types::{AuthorityMode, StartupConfig};
 
-pub const WRITE_TOOL_NAMES: [&str; 13] = [
+pub const WRITE_TOOL_NAMES: [&str; 16] = [
     "create_page",
     "update_page",
     "duplicate_page",
@@ -19,6 +19,9 @@ pub const WRITE_TOOL_NAMES: [&str; 13] = [
     "delete_page",
     "delete_space",
     "delete_comment",
+    "upload_attachment",
+    "insert_media",
+    "insert_embed",
 ];
 
 pub fn parse_startup_config(

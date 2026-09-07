@@ -4,7 +4,8 @@
 
 `list_spaces`, `search_docs`, `search_pages`, `get_space`, `get_page`,
 `list_pages`, `list_child_pages`, `get_comments`, `list_workspace_members`, and
-`get_current_user`.
+`get_current_user`, `get_page_content`, `list_page_attachments`, and
+`download_attachment`.
 
 No persistent mutation is registered in this mode.
 
@@ -26,12 +27,12 @@ The allowlist is exact and comma-separated. Its only valid names are:
 `create_page`, `update_page`, `duplicate_page`, `copy_page_to_space`,
 `move_page`, `move_page_to_space`, `create_space`, `update_space`,
 `create_comment`, `update_comment`, `delete_page`, `delete_space`, and
-`delete_comment`.
+`delete_comment`, `upload_attachment`, `insert_media`, and `insert_embed`.
 
 Write mode with an empty allowlist, an allowlist in read-only mode, unknown or
 read-tool names, duplicates, and empty entries are startup errors. The server
 does not broaden the allowlist: for example, allowing `create_page` exposes that
-one write alongside the ten read tools, not every write.
+one write alongside the thirteen read tools, not every write.
 
 ## Mutation annotations
 
@@ -52,6 +53,9 @@ Annotations describe effects; they do not authorize them.
 | `delete_page` | false | true | false |
 | `delete_space` | false | true | false |
 | `delete_comment` | false | true | false |
+| `upload_attachment` | false | false | false |
+| `insert_media` | false | false | false |
+| `insert_embed` | false | false | false |
 
 Creation and copy operations add data without overwriting existing data, so
 their destructive hint is false. Move and update operations change or replace

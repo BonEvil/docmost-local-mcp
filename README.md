@@ -35,7 +35,7 @@ If you run your own Docmost and want it available inside Cursor, Claude Desktop,
 
 ## Available Tools
 
-The server starts in **read-only mode**. The default inventory is the ten read
+The server starts in **read-only mode**. The default inventory is the thirteen read
 tools below; no persistent mutation is registered:
 
 - `list_spaces`: list available Docmost spaces
@@ -48,6 +48,9 @@ tools below; no persistent mutation is registered:
 - `get_comments`: list comments for a page
 - `list_workspace_members`: list workspace members
 - `get_current_user`: fetch the authenticated user and workspace context
+- `get_page_content`: inspect lossless ProseMirror JSON, including rich-media attributes
+- `list_page_attachments`: list files referenced by a page
+- `download_attachment`: download a page-owned attachment as base64 (up to 2 MiB)
 
 The following write tools are unavailable unless the operator enables write
 mode and names each tool in the allowlist:
@@ -65,6 +68,9 @@ mode and names each tool in the allowlist:
 - `delete_page`: move a page and all active descendants to trash
 - `delete_space`: permanently delete a space and its space-owned content
 - `delete_comment`: permanently delete a comment and threaded replies
+- `upload_attachment`: upload explicit base64 bytes to a page (up to 2 MiB)
+- `insert_media`: append an uploaded image, video, or file attachment
+- `insert_embed`: append an HTTPS iframe embed without fetching it
 
 See [Authority modes](docs/authority-modes.md) for the fail-closed configuration,
 the exact inventories and annotations, and the independent Atlas confirmation
@@ -111,8 +117,10 @@ URL becomes a mention — `[Display Name](user:USER_UUID)` tags a user (find the
 UUID with `list_workspace_members`) and `[Page Title](page:PAGE_UUID)` links a
 page. Tagged users are notified by Docmost.
 
-Attaching uploaded files/images (as opposed to referencing an image URL) is not
-supported.
+Uploaded images, videos, file attachments, and HTTPS iframe embeds have dedicated
+tools that append rich JSON nodes without replacing existing content. Markdown
+body replacement is refused when inspection finds media on the existing page.
+See [Attachments and rich media](docs/media-tools.md) for limits and examples.
 
 ## Requirements
 
