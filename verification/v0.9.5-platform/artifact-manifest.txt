@@ -1,14 +1,14 @@
 schema_version=1
-source_commit=b81f4dc4cf4ec01a75ea384ad4078b2b6106c202
-source_tree=10867f84efe4e4eed4abcf5d5706554e059028c6
+source_commit=045496a81f0dd724c4b7640ec15da8f7f10b2a56
+source_tree=f8d823f9be065d9ba23db5b6ffd11cd93c1bfe17
 provider_repository=BonEvil/docmost-local-mcp
-provider_run_id=34154375552
-provider_run_attempt=1
+provider_run_id=34154835433
+provider_run_attempt=2
 binaries_retained_in_git=false
 provider_artifact_retention_days=1
 darwin-arm64|docmost-local-mcp-darwin-arm64|aarch64-apple-darwin|7244864|46a575d201a9fb5c549ed86ce520d607c5387aecb7479936da1711747c182bee|docmost-local-mcp 0.9.5|records/darwin-arm64.log
 darwin-x64|docmost-local-mcp-darwin-x64|x86_64-apple-darwin|7795272|dcec02f8b55a7a987ae808bb5214fd95e7d86dc6d7f116ba4f6046179a7af6ae|docmost-local-mcp 0.9.5|records/darwin-x64.log
 linux-arm64|docmost-local-mcp-linux-arm64|aarch64-unknown-linux-gnu|7675064|1654fbd6a090b68d74d985890e337b019c15395b7d4dd37aaedbf12d61ba6bbd|docmost-local-mcp 0.9.5|records/linux-arm64.log
 linux-x64|docmost-local-mcp-linux-x64|x86_64-unknown-linux-gnu|8615248|a4dd6529ccf758bb17d88de8765a0abd7d977f3f31a96ab10de27d85bdf49565|docmost-local-mcp 0.9.5|records/linux-x64.log
-windows-arm64|docmost-local-mcp-windows-arm64.exe|aarch64-pc-windows-msvc|8161280|ec352c4c820862580efd5c98b80c4cd3dcd49211bf310b1c0e3c397e9960606f|docmost-local-mcp 0.9.5|records/windows-arm64.log
-windows-x64|docmost-local-mcp-windows-x64.exe|x86_64-pc-windows-msvc|9349632|b97c9d83917d3e88a5da6c2742ff41467018f292a5ebd72c6baf914e36e26009|docmost-local-mcp 0.9.5|records/windows-x64.log
+windows-arm64|docmost-local-mcp-windows-arm64.exe|aarch64-pc-windows-msvc|8161280|bc3a18e26197fe8a9892b3163195bd9e1223b1c5d051b20edce4c1ed67ddc973|docmost-local-mcp 0.9.5|records/windows-arm64.log
+windows-x64|docmost-local-mcp-windows-x64.exe|x86_64-pc-windows-msvc|9349632|1b7794765337fe0953904345912c789d21a6a921dfe62f474e6855680f7f97ad|docmost-local-mcp 0.9.5|records/windows-x64.log
