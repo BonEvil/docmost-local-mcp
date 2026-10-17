@@ -18,6 +18,15 @@ CI checks these supported configurations with a locked lockfile:
 
 Release platform builds use `cargo build --locked --release --no-default-features`.
 
+## Native credential stores
+
+Keyring backends are explicit target dependencies: Linux uses
+`sync-secret-service` with `crypto-rust`, macOS uses `apple-native`, and Windows
+uses `windows-native`. Linux builds and runtime need libdbus; desktop usage also
+requires an unlocked Secret Service and the session bus. Backend selection does
+not depend on default Cargo features, so release builds retain OS storage with
+`--no-default-features`. Unsupported targets keep fail-closed behavior.
+
 ## Advisory disposition
 
 All high- and critical-severity advisories fail CI through `cargo-deny`. The
@@ -42,16 +51,20 @@ updates the remaining active graph, including `anyhow` 1.0.104,
 `rustls-webpki` 0.103.15, `rmcp` 0.6.4, `quinn-proto` 0.11.17, and `rand`
 0.10.2. `time` is absent from the retained lockfile.
 
+The native-keyring change also advances the existing `rustls` dependency from
+0.23.43 to 0.23.46, addressing RUSTSEC-2026-0285, RUSTSEC-2026-0346,
+RUSTSEC-2026-0348, and RUSTSEC-2026-0349 without adding advisory exceptions.
+
 ## Reproducibility and maintenance
 
 Lockfile identity after this refresh:
 
 ```text
-Cargo.lock SHA-256: 0db9682d4bf880bf7769e2565c8ec75b75f8d1a3820d482b0be5db3ec6374690
+Cargo.lock SHA-256: c8fc5e7958ed15c9c7a819ac4efdebe976f9ef93c03f5d1f8a3ad79ee4efc6e7
 Generator: cargo 1.98.0
 Integration note: the release-policy refresh was followed by the locked
 `sha2` and `url` additions required by origin-scoped credential state. The hash
-above is the integrated release-candidate lockfile identity.
+above includes the target-specific native credential-store dependencies.
 ```
 
 Run the same checks locally with a Rust toolchain:

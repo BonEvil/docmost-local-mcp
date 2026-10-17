@@ -96,6 +96,10 @@ jobs:
           echo "CARGO_INCREMENTAL=0" >> "$GITHUB_ENV"
           echo "RUSTFLAGS=--remap-path-prefix=$GITHUB_WORKSPACE=." >> "$GITHUB_ENV"
 
+      - name: Install Linux Secret Service build dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libdbus-1-dev pkg-config
+
       - name: Build release binary from lockfile
         run: cargo build --locked --release --no-default-features
 
@@ -140,6 +144,9 @@ jobs:
         with:
           toolchain: 1.98.0
           components: rustfmt, clippy
+
+      - name: Install Linux Secret Service build dependencies
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libdbus-1-dev pkg-config
 
       - name: Run locked release tests
         run: |
