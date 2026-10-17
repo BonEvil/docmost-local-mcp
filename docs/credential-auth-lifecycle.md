@@ -22,7 +22,12 @@ A missing keyring entry means no remembered password. A keyring initialization, 
 
 Persistence is never assumed from a successful write call. After storing a remembered password, the secret is read back through an independent credential handle and compared. If the value is missing, unreadable, or different, the entry is removed and the login fails closed with the same unavailable-storage error. This matters because a build or host without a real platform credential store resolves to an entry-scoped store that accepts a write and retains nothing; without the read-back check an operator would be told the password was remembered when it had been discarded.
 
-**Supported build note.** The reviewed dependency graph enables no platform credential-store backend, and the supported Atlas host is a headless Linux server with no desktop secret service. On that target the keyring path therefore always fails closed. Session-only authentication is the supported and recommended mechanism; unattended reauthentication requires the operator to accept the weaker encrypted-file fallback explicitly. Do not read a successful `remember_password` request as proof that an OS keyring is in use.
+**Supported build note.** Builds explicitly enable Secret Service on Linux,
+Keychain on macOS, and Credential Manager on Windows. Linux needs libdbus and
+an unlocked Secret Service on the desktop session bus; MCP clients must forward
+`DBUS_SESSION_BUS_ADDRESS` and `XDG_RUNTIME_DIR`. Hosts without a usable native
+store fail closed. Session-only authentication remains available, and encrypted
+credential-file fallback remains disabled by default.
 
 The acknowledged fallback uses origin-specific AES-256-GCM ciphertext and key files with directory mode `0700` and file mode `0600` on Unix. Its key and ciphertext share the same directory, so it protects against casual disclosure rather than compromise of that account or directory. A working keyring remains preferred even when fallback is enabled.
 

@@ -228,7 +228,7 @@ Files used there:
 - `config.json`: last base URL and email
 - `session.json`: saved auth token and expiry
 
-Credentials are stored in the OS keychain when available, which is the preferred path on supported platforms.
+Credentials use Secret Service on Linux, Keychain on macOS, and Credential Manager on Windows. Linux requires libdbus and an unlocked Secret Service on the desktop session bus. MCP hosts must preserve `DBUS_SESSION_BUS_ADDRESS` and `XDG_RUNTIME_DIR` for browser sign-in and keyring access.
 
 Passwords are not persisted by default. Interactive login stores only the resulting origin-bound session unless the operator selects **Remember password**. Remembered passwords use secure OS credential storage; keyring failures fail closed.
 
@@ -368,3 +368,15 @@ For maintainer and contributor workflow details, see `CONTRIBUTING.md`.
 ## License
 
 MIT
+
+## Native keyring verification
+
+On a desktop with an unlocked OS keyring, run:
+
+```bash
+cargo test --locked --test native_keyring_test -- --ignored
+```
+
+This opt-in check writes synthetic credentials for a unique `.invalid` origin,
+reads them in a separate process, and deletes only that test entry. It never
+uses the real Docmost account or clears the legacy credential entry.

@@ -1,14 +1,14 @@
 schema_version=1
-source_commit=b81f4dc4cf4ec01a75ea384ad4078b2b6106c202
-source_tree=10867f84efe4e4eed4abcf5d5706554e059028c6
+source_commit=cc92bbb1f9d8da66eebddface0e118882ab5e569
+source_tree=60a417396654b2a7b3eef6f670d4a227b7be2884
 provider_repository=BonEvil/docmost-local-mcp
-provider_run_id=34157264416
+provider_run_id=39053736166
 provider_run_attempt=1
 binaries_retained_in_git=false
 provider_artifact_retention_days=1
-darwin-arm64|docmost-local-mcp-darwin-arm64|aarch64-apple-darwin|7244864|46a575d201a9fb5c549ed86ce520d607c5387aecb7479936da1711747c182bee|docmost-local-mcp 0.9.5|records/darwin-arm64.log
-darwin-x64|docmost-local-mcp-darwin-x64|x86_64-apple-darwin|7795272|dcec02f8b55a7a987ae808bb5214fd95e7d86dc6d7f116ba4f6046179a7af6ae|docmost-local-mcp 0.9.5|records/darwin-x64.log
-linux-arm64|docmost-local-mcp-linux-arm64|aarch64-unknown-linux-gnu|7675064|1654fbd6a090b68d74d985890e337b019c15395b7d4dd37aaedbf12d61ba6bbd|docmost-local-mcp 0.9.5|records/linux-arm64.log
-linux-x64|docmost-local-mcp-linux-x64|x86_64-unknown-linux-gnu|8615248|a4dd6529ccf758bb17d88de8765a0abd7d977f3f31a96ab10de27d85bdf49565|docmost-local-mcp 0.9.5|records/linux-x64.log
-windows-arm64|docmost-local-mcp-windows-arm64.exe|aarch64-pc-windows-msvc|8161280|bdea85caa2c6daf1e92bbe722b7ba68e9ef312ec8bb293730185063934a9fd16|docmost-local-mcp 0.9.5|records/windows-arm64.log
-windows-x64|docmost-local-mcp-windows-x64.exe|x86_64-pc-windows-msvc|9349632|b8e8ca10f0f87dd6c356bbdcc4a5ae9127b86c6ca8ffcb5e8c92ee5ec0e3a143|docmost-local-mcp 0.9.5|records/windows-x64.log
+darwin-arm64|docmost-local-mcp-darwin-arm64|aarch64-apple-darwin|7246848|f42a150d4f98bf9579fef211f1a88af683a02d16958e36940ee97923a6ed4a9c|docmost-local-mcp 0.9.5|records/darwin-arm64.log
+darwin-x64|docmost-local-mcp-darwin-x64|x86_64-apple-darwin|7805424|b463fb7507bf7f3b463500e274320826b2bf118ba228d9ad63dfd6e3428f6425|docmost-local-mcp 0.9.5|records/darwin-x64.log
+linux-arm64|docmost-local-mcp-linux-arm64|aarch64-unknown-linux-gnu|8264976|f9df9c3e12319682f3a8f15715a304e90cac150714c402ac4f6f25066f99aa7d|docmost-local-mcp 0.9.5|records/linux-arm64.log
+linux-x64|docmost-local-mcp-linux-x64|x86_64-unknown-linux-gnu|9260496|2d82e34e3bc7cfb618022646284b7f7667a61b1d2db27afe407b24f6b7792aad|docmost-local-mcp 0.9.5|records/linux-x64.log
+windows-arm64|docmost-local-mcp-windows-arm64.exe|aarch64-pc-windows-msvc|8175104|13db3564da84e2bc562d653c64fa69efe7fc3fb138e06819a5faf58a220416e6|docmost-local-mcp 0.9.5|records/windows-arm64.log
+windows-x64|docmost-local-mcp-windows-x64.exe|x86_64-pc-windows-msvc|9365504|ee630a13a3a1b6a43e3d38d274b8a2007f44984c0337c72368162beda16cd2b8|docmost-local-mcp 0.9.5|records/windows-x64.log

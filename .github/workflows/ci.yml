@@ -41,6 +41,10 @@ jobs:
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@49a0bdc70d2e1b713ca9e2869b211fcce03d3c1c # v2
 
+      - name: Install Linux Secret Service build dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libdbus-1-dev pkg-config
+
       - name: Run format check
         if: matrix.os == 'ubuntu-24.04'
         run: cargo fmt --check
@@ -142,6 +146,10 @@ jobs:
 
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@49a0bdc70d2e1b713ca9e2869b211fcce03d3c1c # v2
+
+      - name: Install Linux Secret Service build dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libdbus-1-dev pkg-config
 
       - name: Build Rust binary
         run: cargo build --locked --release --no-default-features

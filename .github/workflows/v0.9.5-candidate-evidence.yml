@@ -59,6 +59,10 @@ jobs:
           targets: ${{ matrix.target }}
           components: llvm-tools-preview
 
+      - name: Install Linux Secret Service build dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libdbus-1-dev pkg-config
+
       - name: Build, execute, hash, and inspect native candidate
         shell: bash
         env:
