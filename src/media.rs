@@ -152,3 +152,56 @@ pub fn contains_rich_media(value: &Value) -> bool {
             .as_array()
             .is_some_and(|c| c.iter().any(contains_rich_media))
 }
+
+/// Preserve exact rich nodes, including attributes and duplicate references.
+/// New media must first be appended through the ownership-checked media tools.
+pub fn validate_preserving_media(existing: &Value, proposed: &Value) -> Result<()> {
+    fn inspect(
+        node: &Value,
+        depth: usize,
+        count: &mut usize,
+        media: &mut Vec<String>,
+    ) -> Result<()> {
+        *count += 1;
+        if depth > 64 || *count > 20_000 {
+            bail!("Document exceeds the supported node count or depth");
+        }
+        let kind = node["type"]
+            .as_str()
+            .ok_or_else(|| anyhow::anyhow!("Document nodes require a type"))?;
+        if kind == "text" && !node["text"].as_str().is_some_and(|text| !text.is_empty()) {
+            bail!("Text nodes require nonempty text");
+        }
+        if matches!(
+            kind,
+            "image" | "video" | "attachment" | "embed" | "drawio" | "excalidraw"
+        ) || node.pointer("/attrs/attachmentId").is_some()
+        {
+            media.push(node.to_string());
+        }
+        if let Some(children) = node.get("content") {
+            let children = children
+                .as_array()
+                .ok_or_else(|| anyhow::anyhow!("Node content must be an array"))?;
+            for child in children {
+                inspect(child, depth + 1, count, media)?;
+            }
+        }
+        Ok(())
+    }
+    if proposed["type"] != "doc" || !proposed["content"].is_array() {
+        bail!("content must be a ProseMirror doc with a content array");
+    }
+    let mut before = Vec::new();
+    let mut after = Vec::new();
+    inspect(existing, 0, &mut 0, &mut before)?;
+    inspect(proposed, 0, &mut 0, &mut after)?;
+    before.sort();
+    after.sort();
+    if before != after {
+        bail!(
+            "Structured edits must preserve every existing media node exactly. To add media, use upload_attachment and insert_media first, then read get_page_content again. Media removal requires the Docmost UI"
+        );
+    }
+    Ok(())
+}

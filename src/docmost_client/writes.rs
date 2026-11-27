@@ -437,7 +437,7 @@ impl super::DocmostClient {
             .await
     }
 
-    fn validate_identifier(&self, name: &str, value: &str) -> Result<()> {
+    pub(super) fn validate_identifier(&self, name: &str, value: &str) -> Result<()> {
         validate_text(name, value, self.network_policy.max_identifier_bytes, false)
     }
 

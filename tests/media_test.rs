@@ -36,6 +36,7 @@ fn document() -> Value {
 #[derive(Clone)]
 struct Mock {
     row: Arc<Mutex<Value>>,
+    document: Arc<Mutex<Value>>,
     uploads: Arc<Mutex<Vec<Vec<u8>>>>,
     updates: Arc<Mutex<Vec<Value>>>,
     downloads: Arc<AtomicUsize>,
@@ -45,6 +46,7 @@ struct Mock {
 async fn spawn(temp: &TempDir) -> (DocmostClient, Mock, tokio::task::JoinHandle<()>) {
     let state = Mock {
         row: Arc::new(Mutex::new(row())),
+        document: Arc::new(Mutex::new(document())),
         uploads: Default::default(),
         updates: Default::default(),
         downloads: Default::default(),
@@ -54,7 +56,9 @@ async fn spawn(temp: &TempDir) -> (DocmostClient, Mock, tokio::task::JoinHandle<
     let app = Router::new()
         .route(
             "/api/pages/info",
-            post(|| async { Json(json!({"data":{"id":PAGE,"content":document()}})) }),
+            post(|State(s): State<Mock>| async move {
+                Json(json!({"data":{"id":PAGE,"content":s.document.lock().unwrap().clone()}}))
+            }),
         )
         .route(
             "/api/version",
@@ -80,6 +84,9 @@ async fn spawn(temp: &TempDir) -> (DocmostClient, Mock, tokio::task::JoinHandle<
             "/api/pages/update",
             post(
                 |State(s): State<Mock>, Json(body): Json<Value>| async move {
+                    if s.status.load(Ordering::SeqCst) == 200 && body["operation"] == "replace" {
+                        *s.document.lock().unwrap() = body["content"].clone();
+                    }
                     s.updates.lock().unwrap().push(body);
                     (
                         StatusCode::from_u16(s.status.load(Ordering::SeqCst)).unwrap(),
@@ -269,4 +276,173 @@ fn rich_nodes_and_embed_validation_preserve_media_semantics() {
         &json!({"type":"doc","content":[file]}),
     );
     assert!(markdown.contains("sample.png"));
+}
+
+#[tokio::test]
+async fn structured_update_preserves_nested_media_and_rejects_stale_or_lossy_edits() {
+    let temp = TempDir::new().unwrap();
+    let (client, state, handle) = spawn(&temp).await;
+    let before = document();
+    let hash = media::content_hash(&before);
+    let mut changed = before.clone();
+    changed["content"][0]["content"][0]["text"] = json!("Updated order details");
+    // Move an image inside a table cell, preserving its complete node.
+    let image = changed["content"].as_array_mut().unwrap().remove(1);
+    changed["content"].as_array_mut().unwrap().push(json!({
+        "type":"table","content":[{"type":"tableRow","content":[
+            {"type":"tableCell","content":[image]}
+        ]}]
+    }));
+    client
+        .update_page_content("sampleSlug", None, &changed, &hash)
+        .await
+        .unwrap();
+    assert_eq!(*state.document.lock().unwrap(), changed);
+    let request = state.updates.lock().unwrap()[0].clone();
+    assert!(request.get("title").is_none());
+    assert_eq!(request["pageId"], PAGE);
+    assert_eq!(request["operation"], "replace");
+    assert_eq!(request["format"], "json");
+    assert_eq!(request["content"], changed);
+    assert!(
+        client
+            .update_page_content(PAGE, None, &changed, &hash)
+            .await
+            .unwrap_err()
+            .to_string()
+            .contains("Page content changed")
+    );
+    let new_hash = media::content_hash(&changed);
+    assert!(
+        client
+            .update_page_content(PAGE, None, &json!({"type":"doc","content":[]}), &new_hash)
+            .await
+            .unwrap_err()
+            .to_string()
+            .contains("preserve every existing media")
+    );
+    assert_eq!(state.updates.lock().unwrap().len(), 1);
+    assert_eq!(*state.document.lock().unwrap(), changed);
+    // Even an authentication failure is submitted once, never replayed.
+    state.status.store(401, Ordering::SeqCst);
+    assert!(
+        client
+            .update_page_content(PAGE, None, &changed, &new_hash)
+            .await
+            .is_err()
+    );
+    assert_eq!(state.updates.lock().unwrap().len(), 2);
+    handle.abort();
+}
+
+#[test]
+fn structured_media_guard_preserves_attributes_counts_and_validates_tree() {
+    let before = document();
+    let mut changed = before.clone();
+    changed["content"][1]["attrs"]["width"] = json!(200);
+    assert!(media::validate_preserving_media(&before, &changed).is_err());
+    let mut duplicated = before.clone();
+    duplicated["content"]
+        .as_array_mut()
+        .unwrap()
+        .push(before["content"][1].clone());
+    assert!(media::validate_preserving_media(&before, &duplicated).is_err());
+    let mut new_media = before.clone();
+    new_media["content"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!({"type":"image","attrs":{"src":"data:image/jpeg;base64,AAAA"}}));
+    assert!(media::validate_preserving_media(&before, &new_media).is_err());
+    for invalid in [
+        json!({"type":"paragraph","content":[]}),
+        json!({"type":"doc","content":{}}),
+        json!({"type":"doc","content":[{"text":"missing node type"}]}),
+        json!({"type":"doc","content":[{"type":"paragraph","content":false}]}),
+    ] {
+        assert!(media::validate_preserving_media(&before, &invalid).is_err());
+    }
+}
+
+#[tokio::test]
+async fn mcp_media_rejection_is_tool_error_and_connection_remains_usable() {
+    use docmost_local_mcp::{server::DocmostMcpServer, types::AuthorityMode};
+    use rmcp::{
+        ClientHandler, ServiceExt,
+        model::{CallToolRequestParam, ClientInfo},
+    };
+    #[derive(Clone)]
+    struct Handler;
+    impl ClientHandler for Handler {
+        fn get_info(&self) -> ClientInfo {
+            ClientInfo::default()
+        }
+    }
+    let temp = TempDir::new().unwrap();
+    let (_client, state, handle) = spawn(&temp).await;
+    let server = DocmostMcpServer::new_with_state_dir(
+        StartupConfig {
+            authority_mode: AuthorityMode::Write,
+            allowed_write_tools: ["update_page".to_string()].into_iter().collect(),
+            allow_insecure_loopback_http: true,
+            allow_insecure_credential_file: true,
+            ..Default::default()
+        },
+        Some(temp.path().into()),
+    )
+    .unwrap();
+    let (server_transport, client_transport) = tokio::io::duplex(64 * 1024);
+    let running = tokio::spawn(async move {
+        server
+            .serve(server_transport)
+            .await
+            .unwrap()
+            .waiting()
+            .await
+            .unwrap();
+    });
+    let mcp = Handler.serve(client_transport).await.unwrap();
+    let rejected = mcp
+        .call_tool(CallToolRequestParam {
+            name: "update_page".into(),
+            arguments: json!({"page_id":PAGE,"markdown":"Would erase images"})
+                .as_object()
+                .cloned(),
+        })
+        .await
+        .unwrap();
+    assert_eq!(rejected.is_error, Some(true));
+    assert!(
+        serde_json::to_string(&rejected)
+            .unwrap()
+            .contains("rich-media attributes")
+    );
+    assert!(state.updates.lock().unwrap().is_empty());
+    let before = document();
+    let mut edited = before.clone();
+    edited["content"][0]["content"][0]["text"] = json!("Updated through MCP");
+    for arguments in [
+        json!({"page_id":PAGE,"content":edited}),
+        json!({"page_id":PAGE,"expected_content_sha256":media::content_hash(&before)}),
+        json!({"page_id":PAGE,"content":edited,"markdown":"ambiguous"}),
+    ] {
+        let invalid = mcp
+            .call_tool(CallToolRequestParam {
+                name: "update_page".into(),
+                arguments: arguments.as_object().cloned(),
+            })
+            .await
+            .unwrap();
+        assert_eq!(invalid.is_error, Some(true));
+        assert!(state.updates.lock().unwrap().is_empty());
+    }
+    let accepted = mcp.call_tool(CallToolRequestParam {
+        name: "update_page".into(),
+        arguments: json!({"page_id":PAGE,"content":edited,"expected_content_sha256":media::content_hash(&before)})
+            .as_object().cloned(),
+    }).await.unwrap();
+    assert_ne!(accepted.is_error, Some(true));
+    assert_eq!(*state.document.lock().unwrap(), edited);
+    mcp.cancel().await.unwrap();
+    running.await.unwrap();
+    handle.abort();
 }

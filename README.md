@@ -56,7 +56,7 @@ The following write tools are unavailable unless the operator enables write
 mode and names each tool in the allowlist:
 
 - `create_page`: create a new page in a space from Markdown content
-- `update_page`: update an existing page's title and/or Markdown content
+- `update_page`: update a title, Markdown body, or guarded structured content while preserving existing media
 - `duplicate_page`: duplicate a page (and its sub-pages) within its space
 - `copy_page_to_space`: copy a page (and its sub-pages) into a different space
 - `move_page`: move a page under a new parent page, or to the space root
@@ -336,6 +336,13 @@ content across Docmost versions (including older self-hosted servers). Pages cre
 a body land at the space root — `parent_page_id` is honored only for title-only pages.
 
 ### `update_page`
+
+For pages with images or attachments, read `get_page_content` and supply its edited
+ProseMirror document as `content`, plus the original `content_sha256` as
+`expected_content_sha256`. Every existing media node must be retained exactly.
+Do not also supply `markdown`. See [rich-media editing](docs/media-tools.md) for
+adding new attachments and the non-atomic concurrency boundary.
+
 
 Inputs:
 
