@@ -81,3 +81,26 @@ cargo deny check advisories bans licenses sources
 Dependabot opens weekly Cargo, GitHub Actions, and launcher npm dependency
 updates. The scheduled CI run repeats the policy checks every Monday; it does
 not use repository secrets.
+
+
+## 2026-11-27 deployment refresh
+
+The deployment gate flagged newly published advisories in the unchanged lockfile.
+Patch updates advance tokio to 1.53.3, url to 2.5.9, webpki-roots to 1.0.10,
+rustls-webpki to 0.103.16, and pulldown-cmark to 0.13.6. Direct timestamp use now
+uses Jiff instead of the unmaintained Chrono crate. Chrono may remain transitive
+through rmcp/schemars; the existing workspace maintenance policy still applies.
+
+RUSTSEC-2026-0462 affects rmcp Streamable HTTP clients buffering responses.
+`cargo tree --locked -e features -i rmcp` on the supported graph enables only
+`base64`, `default`, `client`, `macros`, `server`, `transport-async-rw`, and
+`transport-io`. Neither `transport-streamable-http-client-reqwest` nor
+`transport-streamable-http-client-unix-socket` is enabled. The application runs
+rmcp over stdio and constructs no rmcp HTTP client; its separate Docmost reqwest
+client enforces streaming response limits in network_policy.rs. This exact
+advisory is ignored only for that absent transport path, alongside the existing
+stdio-only RUSTSEC-2026-0189 exception. Revisit both on each rmcp change or any
+transport-feature expansion. No reachable advisory is waived.
+
+Jiff's Timestamp API preserves UTC RFC3339 strings with millisecond precision
+and integer JWT expiration handling: https://docs.rs/jiff/latest/jiff/struct.Timestamp.html

@@ -8,7 +8,7 @@ use base64::{
     Engine as _,
     engine::general_purpose::{URL_SAFE, URL_SAFE_NO_PAD},
 };
-use chrono::{DateTime, Utc};
+use jiff::Timestamp;
 use once_cell::sync::Lazy;
 use regex::Regex;
 use reqwest::{Client, Response, header::SET_COOKIE};
@@ -219,7 +219,7 @@ impl AuthManager {
         )
         .await?;
         let expires_at = get_jwt_expiry_iso(&token);
-        let now = Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Millis, true);
+        let now = format!("{:.3}", Timestamp::now());
 
         self.persist_authenticated_state(
             LoginInput {
@@ -436,11 +436,11 @@ fn is_session_expiring(session: &StoredSession) -> bool {
         return false;
     };
 
-    let Ok(expires_at) = DateTime::parse_from_rfc3339(expires_at) else {
+    let Ok(expires_at) = expires_at.parse::<Timestamp>() else {
         return false;
     };
 
-    expires_at.timestamp_millis() - Utc::now().timestamp_millis() <= REFRESH_WINDOW_MS
+    expires_at.as_millisecond() - Timestamp::now().as_millisecond() <= REFRESH_WINDOW_MS
 }
 
 pub fn read_auth_token_from_headers(headers: &reqwest::header::HeaderMap) -> Option<String> {
@@ -467,8 +467,9 @@ pub fn get_jwt_expiry_iso(token: &str) -> Option<String> {
         .ok()?;
     let payload = serde_json::from_slice::<serde_json::Value>(&decoded).ok()?;
     let exp = payload.get("exp")?.as_i64()?;
-    DateTime::<Utc>::from_timestamp(exp, 0)
-        .map(|value| value.to_rfc3339_opts(chrono::SecondsFormat::Millis, true))
+    Timestamp::from_second(exp)
+        .ok()
+        .map(|value| format!("{value:.3}"))
 }
 
 pub async fn safe_read_response_text(response: Response, limit: usize) -> Result<String> {
