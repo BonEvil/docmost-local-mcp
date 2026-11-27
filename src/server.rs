@@ -2,7 +2,6 @@ use rmcp::{
     ServerHandler,
     handler::server::router::tool::ToolRouter,
     model::{ErrorData, Implementation, ServerCapabilities, ServerInfo},
-    tool_handler,
 };
 
 use crate::{PRODUCT_NAME, PRODUCT_TITLE, PRODUCT_VERSION, docmost_client::DocmostClient};
@@ -20,8 +19,35 @@ pub struct DocmostMcpServer {
     tool_router: ToolRouter<Self>,
 }
 
-#[tool_handler]
 impl ServerHandler for DocmostMcpServer {
+    async fn call_tool(
+        &self,
+        request: rmcp::model::CallToolRequestParam,
+        context: rmcp::service::RequestContext<rmcp::RoleServer>,
+    ) -> Result<rmcp::model::CallToolResult, ErrorData> {
+        let call = rmcp::handler::server::tool::ToolCallContext::new(self, request, context);
+        match self.tool_router.call(call).await {
+            // Domain failures belong in the tool result, not the JSON-RPC transport.
+            // Invalid arguments and unknown tool names retain protocol error semantics.
+            Err(error) if error.code == rmcp::model::ErrorCode::INTERNAL_ERROR => {
+                Ok(rmcp::model::CallToolResult::error(vec![
+                    rmcp::model::Content::text(error.message),
+                ]))
+            }
+            result => result,
+        }
+    }
+
+    async fn list_tools(
+        &self,
+        _request: Option<rmcp::model::PaginatedRequestParam>,
+        _context: rmcp::service::RequestContext<rmcp::RoleServer>,
+    ) -> Result<rmcp::model::ListToolsResult, ErrorData> {
+        Ok(rmcp::model::ListToolsResult::with_all_items(
+            self.tool_router.list_all(),
+        ))
+    }
+
     fn get_info(&self) -> ServerInfo {
         ServerInfo {
             instructions: Some(

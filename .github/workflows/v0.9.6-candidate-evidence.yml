@@ -1,9 +1,9 @@
-name: v0.9.5 Candidate Evidence
+name: v0.9.6 Candidate Evidence
 
 on:
   pull_request:
     paths-ignore:
-      - "verification/v0.9.5-platform/**"
+      - "verification/v0.9.6-platform/**"
 
 permissions:
   actions: read
@@ -11,7 +11,7 @@ permissions:
 
 env:
   RUST_TOOLCHAIN: 1.98.0
-  PRODUCT_VERSION_OUTPUT: docmost-local-mcp 0.9.5
+  PRODUCT_VERSION_OUTPUT: docmost-local-mcp 0.9.6
 
 jobs:
   build:
@@ -140,7 +140,7 @@ jobs:
           SOURCE_COMMIT: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
-          out=verification/v0.9.5-platform
+          out=verification/v0.9.6-platform
           mkdir -p "$out/records"
           source_tree=$(git rev-parse "$SOURCE_COMMIT^{tree}")
           find downloaded -type f -name '*.log' -exec cp {} "$out/records/" \;
@@ -167,7 +167,7 @@ jobs:
             test -s "$log" && test -s "$binary"
             test "$(grep -E '^source_commit=' "$log" | tail -1 | cut -d= -f2)" = "$SOURCE_COMMIT"
             test "$(grep -E '^source_tree=' "$log" | tail -1 | cut -d= -f2)" = "$source_tree"
-            test "$(grep -E '^product_version_output=' "$log" | tail -1 | cut -d= -f2-)" = 'docmost-local-mcp 0.9.5'
+            test "$(grep -E '^product_version_output=' "$log" | tail -1 | cut -d= -f2-)" = 'docmost-local-mcp 0.9.6'
             recorded_sha=$(grep -E '^artifact_sha256=' "$log" | tail -1 | cut -d= -f2 | tr -d '\r')
             actual_sha=$(sha256sum "$binary" | cut -d' ' -f1)
             test "$recorded_sha" = "$actual_sha"
@@ -212,5 +212,5 @@ jobs:
           git diff --cached --check
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'docs(verification): retain v0.9.5 platform evidence'
+          git commit -m 'docs(verification): retain v0.9.6 platform evidence'
           git push origin "HEAD:$HEAD_REF"

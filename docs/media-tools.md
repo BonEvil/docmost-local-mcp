@@ -28,7 +28,8 @@ external provider; embedding depends on its iframe/security policy.
 ## Read tools
 
 - `get_page_content(slug_id)` returns the complete bounded JSON document and
-  SHA-256 of its JSON serialization. The hash is informational, not a server CAS token.
+  SHA-256 of its JSON serialization. The hash supports the structured update
+  snapshot guard, not server-side CAS.
 - `list_page_attachments(slug_id)` resolves up to 100 distinct referenced IDs,
   including nested nodes. It cannot enumerate uploads not inserted in the page.
 - `download_attachment(page_id, attachment_id)` verifies page ownership and
@@ -47,9 +48,9 @@ Default mode adds only the three read tools. To enable only media mutations:
 --authority-mode=write --write-tools=upload_attachment,insert_media,insert_embed
 ```
 
-Existing installations do not silently gain write authority. Atlas's independent
-exact-call confirmation remains required, including confirmation of the bytes
-being uploaded. Avoid putting base64 or private attachment data in diagnostic logs.
+Existing installations do not silently gain write authority. Clients apply their
+own authorization policy independently of the connector's write allowlist.
+Avoid putting base64 or private attachment data in diagnostic logs.
 
 Insertion uses Docmost's JSON `append` operation, never read-modify-replace.
 It requires confirmed REST body-update support (v0.70.0+); compatibility evidence
@@ -58,7 +59,30 @@ replacement if current content cannot be inspected or contains rich media.
 Title-only updates remain available. This is an inspection guard, not an atomic
 concurrency lock; do not replace bodies while other editors are changing them.
 
-Standalone file deletion, attachment replacement, arbitrary JSON body replacement,
+`update_page` also accepts `content` (a complete ProseMirror document) together
+with `expected_content_sha256` from a fresh `get_page_content`. This lets an agent
+edit table rows and text or reposition existing images without flattening their
+attachment metadata into Markdown. `content` and `markdown` are mutually exclusive.
+The connector checks the current snapshot hash, validates document shape and bounds,
+and requires every existing rich-media node to remain exactly unchanged, including
+attributes and duplicate counts. It refuses new, removed, or altered media nodes.
+The `update_page` allowlist entry covers this structured path; no new tool is added.
+
+To put a new image in a table: enable `upload_attachment` and `insert_media` in the
+server's write allowlist, upload the bytes, append the returned attachment with
+`insert_media`, then read the document again and move that complete image node into
+the intended table cell through `update_page(content=..., expected_content_sha256=...)`.
+Existing installations must explicitly add these media tools to their arguments
+and refresh the MCP catalog; the ordinary page-write allowlist does not expose them.
+A data-URI image inside Markdown is not this attachment workflow.
+
+Structured replacement requires confirmed REST body-update support. The snapshot
+check is performed before the write and is **not atomic** with it; avoid editing
+while a human or another agent changes the page. Replacements are never retried
+automatically, even on 401. After any ambiguous failure, read back the page before
+issuing another write. Read back successful writes to verify the intended content.
+
+Standalone file deletion, attachment replacement, unrestricted JSON body replacement,
 audio-specific widgets, and inline insertion at a cursor are not exposed. Docmost
 v0.95.0 has no general standalone file-delete route; safe removal remains a UI
 operation. The connector does not claim that removing a reference purges storage.
@@ -73,3 +97,8 @@ it creates a synthetic workspace and must never target production. Teardown must
 remove its containers, volumes, and network. The synthetic MP4 fixture verifies the
 video node and byte transfer, not video playback. External iframe rendering is
 provider-dependent and is not implied by a successful REST insertion.
+
+
+Operational tool failures now return normal MCP results with `isError: true` and
+the existing diagnostic text. Invalid arguments and unknown tools remain JSON-RPC
+errors. An ordinary media guard rejection does not end the MCP connection.

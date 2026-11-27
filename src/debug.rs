@@ -1,4 +1,4 @@
-use chrono::Utc;
+use jiff::Timestamp;
 use serde::Serialize;
 use serde_json::{Map, Value};
 
@@ -32,7 +32,7 @@ where
         return;
     }
 
-    let timestamp = Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Millis, true);
+    let timestamp = format!("{:.3}", Timestamp::now());
     let prefix = format!("[docmost-local-mcp][{timestamp}][{scope}]");
 
     match details {

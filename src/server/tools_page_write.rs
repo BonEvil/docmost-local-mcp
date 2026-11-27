@@ -65,7 +65,7 @@ impl DocmostMcpServer {
 
     #[tool(
         name = "update_page",
-        description = "Update an existing Docmost page's title and/or Markdown content.",
+        description = "Update a page title or body. Use markdown for text-only pages; for pages containing images or attachments, use content plus expected_content_sha256 from get_page_content to preserve rich-media metadata.",
         annotations(
             title = "Update Docmost Page",
             read_only_hint = false,
@@ -78,6 +78,29 @@ impl DocmostMcpServer {
         &self,
         Parameters(input): Parameters<UpdatePageInput>,
     ) -> Result<String, ErrorData> {
+        if input.content.is_some() && input.markdown.is_some() {
+            return Err(internal_error(anyhow::anyhow!(
+                "Supply content or markdown, never both"
+            )));
+        }
+        if let Some(content) = &input.content {
+            let hash = input.expected_content_sha256.as_deref().ok_or_else(|| {
+                internal_error(anyhow::anyhow!(
+                    "content requires expected_content_sha256 from get_page_content"
+                ))
+            })?;
+            let page = self
+                .client
+                .update_page_content(&input.page_id, input.title.as_deref(), content, hash)
+                .await
+                .map_err(internal_error)?;
+            return Ok(format_updated_page(&page, None));
+        }
+        if input.expected_content_sha256.is_some() {
+            return Err(internal_error(anyhow::anyhow!(
+                "expected_content_sha256 requires content"
+            )));
+        }
         if let Some(markdown) = input.markdown.as_deref() {
             crate::network_policy::validate_text(
                 "markdown",
@@ -107,7 +130,7 @@ impl DocmostMcpServer {
                 })?;
             if crate::media::contains_rich_media(&existing) {
                 return Err(internal_error(anyhow::anyhow!(
-                    "Markdown replacement would discard rich-media attributes. Use get_page_content to inspect and the media tools to edit this page."
+                    "Markdown replacement would discard rich-media attributes. Use get_page_content, then update_page with content and expected_content_sha256 to preserve media."
                 )));
             }
         }

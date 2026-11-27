@@ -320,3 +320,17 @@ async fn server_required_input_fields_are_present() -> Result<()> {
     }
     Ok(())
 }
+
+#[tokio::test]
+async fn update_page_exposes_guarded_structured_input_without_new_authority() -> Result<()> {
+    let tools = listed_tools(write_config(&["update_page"])).await?;
+    let tool = tools
+        .iter()
+        .find(|tool| tool.name == "update_page")
+        .unwrap();
+    let properties = tool.input_schema["properties"].as_object().unwrap();
+    assert!(properties.contains_key("content"));
+    assert!(properties.contains_key("expected_content_sha256"));
+    assert!(!tools.iter().any(|tool| tool.name == "upload_attachment"));
+    Ok(())
+}

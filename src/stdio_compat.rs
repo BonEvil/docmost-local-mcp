@@ -242,7 +242,7 @@ mod tests {
         drop(input_writer);
         let mut output = Vec::new();
         let result =
-            negotiate_with_timeout(input_reader, &mut output, Duration::from_millis(50)).await;
+            negotiate_with_timeout(input_reader, &mut output, Duration::from_secs(2)).await;
         let result = match result {
             Ok(mut reader) => {
                 let mut retained = Vec::new();

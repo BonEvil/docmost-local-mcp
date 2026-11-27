@@ -2,7 +2,7 @@
 set -euo pipefail
 
 repo_root=$(cd "$(dirname "$0")/.." && pwd)
-expected=0.9.5
+expected=0.9.6
 test_root=$(mktemp -d)
 trap 'rm -rf "$test_root"' EXIT HUP INT TERM
 
@@ -15,7 +15,7 @@ npm_version=$(jq -er '.version' "$repo_root/npm/launcher/package.json")
 [[ $cargo_version == "$expected" ]] || { echo "Cargo release identity is $cargo_version, expected $expected" >&2; exit 1; }
 [[ $lock_version == "$expected" ]] || { echo "Cargo.lock release identity is $lock_version, expected $expected" >&2; exit 1; }
 [[ $npm_version == "$expected" ]] || { echo "npm release identity is $npm_version, expected $expected" >&2; exit 1; }
-grep -q 'prepared source release identity is \*\*v0.9.5\*\*' "$repo_root/docs/atlas-release-integrity.md"
+grep -q 'prepared source release identity is \*\*v0.9.6\*\*' "$repo_root/docs/atlas-release-integrity.md"
 
 mkdir -p "$test_root/artifacts"
 printf 'synthetic release binary\n' > "$test_root/artifacts/docmost-local-mcp-linux-x64"
@@ -54,4 +54,4 @@ if git -C "$repo_root" grep -n -E '0\.9\.4|v0\.9\.4' -- \
   exit 1
 fi
 
-echo "v0.9.5 source, package, CLI, MCP, manifest, workflow, test, and documentation identity: ok"
+echo "v0.9.6 source, package, CLI, MCP, manifest, workflow, test, and documentation identity: ok"

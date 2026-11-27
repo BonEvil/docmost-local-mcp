@@ -94,6 +94,16 @@ pub struct UpdatePageInput {
         description = "Optional new page body as Markdown; replaces the existing content. Omit to leave content unchanged."
     )]
     pub markdown: Option<String>,
+    #[serde(default)]
+    #[schemars(
+        description = "Complete ProseMirror document from get_page_content, edited without changing or removing existing media nodes. Mutually exclusive with markdown. Requires expected_content_sha256. To add media, enable upload_attachment and insert_media, append it first, then read and rearrange the document."
+    )]
+    pub content: Option<serde_json::Value>,
+    #[serde(default)]
+    #[schemars(
+        description = "Required with content: content_sha256 from a fresh get_page_content. Rejects stale snapshots before writing; not an atomic concurrency lock. Avoid simultaneous editor changes."
+    )]
+    pub expected_content_sha256: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize, JsonSchema)]
